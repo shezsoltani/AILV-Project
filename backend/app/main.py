@@ -1,6 +1,6 @@
 from enum import Enum
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field #validieren die Datenmodelle (Request/Response)
 
 app = FastAPI()
 
