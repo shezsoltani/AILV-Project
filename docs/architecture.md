@@ -41,10 +41,10 @@ Das System besteht aus vier Hauptkomponenten:
 | **bloom_level** | `string` | Kognitive Lernstufe nach der Bloom-Taxonomie (z. B. "Verstehen", "Anwenden", "Analysieren"). | `"Anwenden"` |
 | **target_audience** | `string` | Zielgruppe oder Kursniveau. | `"Bachelor, 2. Semester Informatik"` |
 | **context_text** | `string` | Optionaler Referenztext aus Lehrmaterialien oder Skripten. Wird als thematischer Kontext für die Generierung verwendet. | `"In der dritten Normalform dürfen keine transitiven Abhängigkeiten bestehen..."` |
-| **attachments** | `array<File>` | Optional hochgeladene Dateien (z. B. PDF, DOCX, TXT) zur Kontextanreicherung. | `["skript.pdf", "folien.docx"]` |
+
 
 
 ## 5. Offene Punkte / Nächste Schritte
 - Datenbankschema verfeinern (Prompts, Results, Logs)
 - Validierung & Pydantic-Contracts definieren
-- Frontend-Anbindung in Sprint 2
+- Frontend-Anbindung in Sprint 3
