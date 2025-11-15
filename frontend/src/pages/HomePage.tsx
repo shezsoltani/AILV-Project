@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleGenerateClick = () => {
-    console.log('Generate clicked');
+    navigate('/generate');
   };
 
   return (
