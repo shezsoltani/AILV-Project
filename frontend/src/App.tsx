@@ -1,11 +1,14 @@
-function App() {
-  return (
-    <div className="app">
-      <h1>AILV Project</h1>
-      <p>Prüfungsfragen Generator</p>
-    </div>
-  )
-}
+import React from 'react';
+import Layout from './layout/Layout';
+import HomePage from './pages/HomePage';
 
-export default App
+const App: React.FC = () => {
+  return (
+    <Layout>
+      <HomePage />
+    </Layout>
+  );
+};
+
+export default App;
 
