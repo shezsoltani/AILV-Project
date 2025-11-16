@@ -1,4 +1,5 @@
 import React from 'react';
+import { GenerateForm } from '../components/GenerateForm';
 
 const GeneratePage: React.FC = () => {
   return (
@@ -8,9 +9,9 @@ const GeneratePage: React.FC = () => {
         Hier können Sie das Eingabeformular für die Generierung von Prüfungsfragen verwenden.
         Geben Sie Ihre Anforderungen ein und lassen Sie die KI passende Fragen erstellen.
       </p>
-      <p className="page-placeholder">
-        Formular folgt in Sprint 2 / Issue 3
-      </p>
+      <div className="page-form">
+        <GenerateForm />
+      </div>
     </div>
   );
 };
