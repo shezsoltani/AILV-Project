@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE
 );
 
-
 CREATE TABLE IF NOT EXISTS generation_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -20,8 +19,7 @@ CREATE TABLE IF NOT EXISTS generation_requests (
   learning_objectives JSONB NULL,
   bloom_level VARCHAR(50),
   target_audience TEXT,
-  context_text TEXT,
-  attachments JSONB NULL,
+  context_text TEXT,,
   status VARCHAR(30) DEFAULT 'pending',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -52,8 +50,6 @@ CREATE TABLE IF NOT EXISTS questions (
   rationale TEXT,
   learning_objective TEXT,
   bloom_level VARCHAR(50),
-  quality_score REAL,
-  tags JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
