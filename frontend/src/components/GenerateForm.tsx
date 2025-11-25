@@ -27,7 +27,11 @@ const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
   contextText: '',
 };
 
-export const GenerateForm = () => {
+interface GenerateFormProps {
+  onSubmit?: (values: GenerateRequestFormValues) => void;
+}
+
+export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
   const [formValues, setFormValues] =
     useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -88,6 +92,10 @@ export const GenerateForm = () => {
     event.preventDefault();
     console.log('GenerateRequest form values:', formValues);
     setShowSuccessMessage(true);
+    
+    if (onSubmit) {
+      onSubmit(formValues);
+    }
   };
 
   return (
