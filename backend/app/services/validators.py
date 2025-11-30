@@ -4,7 +4,7 @@ from ..models.generate_models import GenerateRequest
 
 ALLOWED_TYPES = {"MCQ", "SHORT ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
-ALLOWED_BLOOM = {"Erinnern", "Verstehen", "Anwenden", "Analysieren", "Evaluieren", "Erstellen"}
+# ALLOWED_BLOOM = {"Erinnern", "Verstehen", "Anwenden", "Analysieren", "Evaluieren", "Erstellen"}
 
 class GenerateRequestValidator:
 
@@ -32,7 +32,7 @@ class GenerateRequestValidator:
                                 detail=f"difficulty_distribution muss insgesamt 100 ergeben (aktuell {total}).")
 
         # 3) Bloom-level validieren
-        if req.bloom_level and req.bloom_level not in ALLOWED_BLOOM:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                                detail=f"Ungültiger bloom_level. Erlaubt: {sorted(list(ALLOWED_BLOOM))}")
+        #if req.bloom_level and req.bloom_level not in ALLOWED_BLOOM:
+        #    raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        #                        detail=f"Ungültiger bloom_level. Erlaubt: {sorted(list(ALLOWED_BLOOM))}")
 
