@@ -21,10 +21,6 @@ const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
     medium: 40,
     hard: 20,
   },
-  learningObjectives: '',
-  bloomLevel: '',
-  targetAudience: '',
-  contextText: '',
 };
 
 interface GenerateFormProps {
@@ -216,62 +212,6 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
           <p className="form-helper">
             Achte darauf, dass die Summe idealerweise 100% ergibt.
           </p>
-        </div>
-
-        <div className="form-row">
-          <label className="form-label" htmlFor="learningObjectives">
-            Lernziele (optional)
-          </label>
-          <textarea
-            id="learningObjectives"
-            name="learningObjectives"
-            className="form-textarea"
-            rows={3}
-            value={formValues.learningObjectives}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div className="form-row">
-          <label className="form-label" htmlFor="bloomLevel">
-            Bloom-Level
-          </label>
-          <input
-            id="bloomLevel"
-            name="bloomLevel"
-            className="form-input"
-            type="text"
-            value={formValues.bloomLevel}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div className="form-row">
-          <label className="form-label" htmlFor="targetAudience">
-            Zielgruppe
-          </label>
-          <input
-            id="targetAudience"
-            name="targetAudience"
-            className="form-input"
-            type="text"
-            value={formValues.targetAudience}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div className="form-row">
-          <label className="form-label" htmlFor="contextText">
-            Kontexttext
-          </label>
-          <textarea
-            id="contextText"
-            name="contextText"
-            className="form-textarea"
-            rows={4}
-            value={formValues.contextText}
-            onChange={handleInputChange}
-          />
         </div>
 
         <button type="submit" className="primary-button form-submit-button">
