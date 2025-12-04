@@ -2,37 +2,23 @@ import React, { useState } from 'react';
 import { GenerateForm } from '../components/GenerateForm';
 import { QuestionsList } from '../components/QuestionsList';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+import { generateQuestions } from '../services/api';
+import type { GenerateRequestFormValues } from '../types/generate';
 
 const GeneratePage: React.FC = () => {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleFormSubmit = () => {
-    console.log('handleFormSubmit wurde aufgerufen ✅');
+  const handleFormSubmit = async (values: GenerateRequestFormValues) => {
+    console.log('handleFormSubmit wurde aufgerufen mit:', values);
 
-    // 🔹 Feste Mock-Daten – später durch echte API-Daten ersetzen
-    const mockQuestions: GeneratedQuestion[] = [
-      {
-        question:
-          'Erklären Sie den Unterschied zwischen supervised und unsupervised Learning.',
-        type: 'SHORT_ANSWER',
-        difficulty: 'medium',
-      },
-      {
-        question: 'Welche Aussage trifft auf eine Multiple-Choice-Frage zu?',
-        type: 'MCQ',
-        difficulty: 'easy',
-      },
-      {
-        question:
-          'Formulieren Sie drei Lernziele für eine LV zum Thema Datenbanken.',
-        type: 'SHORT_ANSWER',
-        difficulty: 'hard',
-      },
-    ];
-
-    setQuestions(mockQuestions);
-    setIsModalOpen(true);
+    try {
+      const result = await generateQuestions(values);
+      setQuestions(result);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Fehler beim Generieren der Fragen:', error);
+    }
   };
 
   const handleCloseModal = () => {

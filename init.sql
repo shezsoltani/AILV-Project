@@ -137,4 +137,75 @@ Antwortformat: gleiche Struktur wie Eingabe (JSON-Array).
 $$
 );
 
+-- ENGLISH TEMPLATES ----------------------------------------
+
+-- SKELETON (en)
+INSERT INTO prompt_templates (stage, language, template)
+VALUES (
+  'SKELETON',
+  'en',
+  $$
+Create a skeleton for {{count}} exam questions on the topic "{{topic}}".
+
+For each question, provide only the following information:
+- id (sequential number starting from 1)
+- type (one of the following: {{types}})
+- difficulty (easy, medium or hard), according to the distribution:
+  easy: {{difficulty_distribution.easy}}%
+  medium: {{difficulty_distribution.medium}}%
+  hard: {{difficulty_distribution.hard}}%
+
+Do not generate complete questions, only a structural skeleton!
+Response format: JSON array with objects of the form:
+{ "id": 1, "type": "MCQ", "difficulty": "easy"}
+
+Language: {{language}}.
+$$
+);
+
+-- CONTENT (en)
+INSERT INTO prompt_templates (stage, language, template)
+VALUES (
+  'CONTENT',
+  'en',
+  $$
+You receive the following raw skeleton for exam questions:
+{{skeleton_data}}
+
+Generate complete exam questions from it on the topic "{{topic}}".
+
+Rules:
+- Write each question in the language: {{language}}
+- type determines the format:
+  - MCQ: 1 question + 4-6 answer options, exactly 1 correct
+  - Short answer: 1 question + 1 short, correct answer
+  - TRUE-FALSE: 1 question + 2 answer options (TRUE and FALSE), exactly 1 correct
+- Consider difficulty (complexity & scope)
+
+Response format: JSON array with objects:
+{ "id": 1, "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "...", "difficulty": "..."}
+$$
+);
+
+-- IMPROVE (en)
+INSERT INTO prompt_templates (stage, language, template)
+VALUES (
+  'IMPROVE',
+  'en',
+  $$
+Improve the following exam questions linguistically and didactically without changing their core:
+
+{{questions_raw}}
+
+Optimization rules:
+- clear, unambiguous formulations
+- correct and consistent terminology
+- plausible and distinguishable MCQ options
+- refine rationale, brief and evidence-based
+- No hints about internal evaluation process
+
+Response format: same structure as input (JSON array).
+$$
+);
+
 

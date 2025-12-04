@@ -1,13 +1,29 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from .exceptions import TemplateRenderError, PromptTemplateNotFound
 from .api.routes_generate import router as generate_router
+
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Vite Dev-Server im Docker-Compose
+    "http://localhost:5173",  # optional: lokaler Vite-Dev-Server ohne Docker
+]
 
 app = FastAPI(
     title="AI-LV Backend",
     version="0.1",
     description="Backend-Service für die AI-LV Projektarchitektur"
+)
+
+# CORS-Konfiguration: erlaubt Aufrufe vom Vite-Frontend auf Port 3000/5173
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 @app.exception_handler(PromptTemplateNotFound)

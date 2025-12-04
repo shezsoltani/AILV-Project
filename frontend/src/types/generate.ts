@@ -11,11 +11,7 @@ export interface DifficultyDistribution {
 export interface GenerateRequestFormValues {
   topic: string;
   language: Language;
-  count: number | '';            
+  count: number | '';
   types: QuestionType[];
   difficultyDistribution: DifficultyDistribution;
-  learningObjectives: string;
-  bloomLevel: string;
-  targetAudience: string;
-  contextText: string;
 }
