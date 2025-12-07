@@ -241,6 +241,16 @@ body {
   margin-top: 0.5rem;
 }
 
+.form-error-message {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: #dc3545;
+}
+
+.form-input--error {
+  border-color: #dc3545;
+}
+
 .form-success-message {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
