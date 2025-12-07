@@ -31,6 +31,39 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
   const [formValues, setFormValues] =
     useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [errors, setErrors] = useState<{
+    topic?: string;
+    difficulty?: string;
+  }>({});
+
+  const getDifficultyTotal = (values: GenerateRequestFormValues): number => {
+    const { easy, medium, hard } = values.difficultyDistribution;
+
+    const toNumber = (value: number | '' | undefined): number => {
+      if (value === '' || value === undefined || Number.isNaN(Number(value))) {
+        return 0;
+      }
+      return Number(value);
+    };
+
+    return toNumber(easy) + toNumber(medium) + toNumber(hard);
+  };
+
+  const validate = (values: GenerateRequestFormValues) => {
+    const nextErrors: { topic?: string; difficulty?: string } = {};
+
+    if (values.topic.trim().length < 3) {
+      nextErrors.topic = 'Thema muss mindestens 3 Zeichen lang sein.';
+    }
+
+    const total = getDifficultyTotal(values);
+    if (total !== 100) {
+      nextErrors.difficulty =
+        'Die Summe der Schwierigkeitsgrade (einfach + mittel + schwer) muss exakt 100% ergeben.';
+    }
+
+    return nextErrors;
+  };
 
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -40,10 +73,14 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
     // 🔹 count: darf leer sein (''), sonst number
     if (name === 'count') {
       const raw = value;
-      setFormValues((prev) => ({
+      setFormValues((prev) => {
+        const next: GenerateRequestFormValues = {
         ...prev,
         count: raw === '' ? '' : Number(raw),
-      }));
+        };
+        setErrors(validate(next));
+        return next;
+      });
       return;
     }
 
@@ -52,22 +89,34 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
       const key =
         name.split('.')[1] as keyof GenerateRequestFormValues['difficultyDistribution'];
       const raw = value;
-      setFormValues((prev) => ({
+      setFormValues((prev) => {
+        const next: GenerateRequestFormValues = {
         ...prev,
         difficultyDistribution: {
           ...prev.difficultyDistribution,
           [key]: raw === '' ? '' : Number(raw),
         },
-      }));
+        };
+        setErrors(validate(next));
+        return next;
+      });
       return;
     }
 
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setFormValues((prev) => {
+      const next: GenerateRequestFormValues = { ...prev, [name]: value } as GenerateRequestFormValues;
+      setErrors(validate(next));
+      return next;
+    });
   };
 
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const language = event.target.value as Language;
-    setFormValues((prev) => ({ ...prev, language }));
+    setFormValues((prev) => {
+      const next: GenerateRequestFormValues = { ...prev, language };
+      setErrors(validate(next));
+      return next;
+    });
   };
 
   const handleTypeToggle = (type: QuestionType) => {
@@ -86,9 +135,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const validationErrors = validate(formValues);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setShowSuccessMessage(false);
+      return;
+    }
+
     console.log('GenerateRequest form values:', formValues);
     setShowSuccessMessage(true);
-    
+
     if (onSubmit) {
       onSubmit(formValues);
     }
@@ -104,13 +162,16 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
           <input
             id="topic"
             name="topic"
-            className="form-input"
+            className={`form-input${errors.topic ? ' form-input--error' : ''}`}
             type="text"
             placeholder="Einführung in Algorithmen"
             value={formValues.topic}
             onChange={handleInputChange}
             required
           />
+          {errors.topic && (
+            <p className="form-error-message">{errors.topic}</p>
+          )}
         </div>
 
         <div className="form-row">
@@ -171,7 +232,9 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
             <input
               id="difficulty-easy"
               name="difficultyDistribution.easy"
-              className="form-input"
+              className={`form-input${
+                errors.difficulty ? ' form-input--error' : ''
+              }`}
               type="number"
               min={0}
               max={100}
@@ -186,7 +249,9 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
             <input
               id="difficulty-medium"
               name="difficultyDistribution.medium"
-              className="form-input"
+              className={`form-input${
+                errors.difficulty ? ' form-input--error' : ''
+              }`}
               type="number"
               min={0}
               max={100}
@@ -201,7 +266,9 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
             <input
               id="difficulty-hard"
               name="difficultyDistribution.hard"
-              className="form-input"
+              className={`form-input${
+                errors.difficulty ? ' form-input--error' : ''
+              }`}
               type="number"
               min={0}
               max={100}
@@ -210,8 +277,11 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
             />
           </div>
           <p className="form-helper">
-            Achte darauf, dass die Summe idealerweise 100% ergibt.
+            Die Summe aus Einfach, Mittel und Schwer muss 100% ergeben.
           </p>
+          {errors.difficulty && (
+            <p className="form-error-message">{errors.difficulty}</p>
+          )}
         </div>
 
         <button type="submit" className="primary-button form-submit-button">
