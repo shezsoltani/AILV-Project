@@ -1,9 +1,13 @@
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from .config import settings
 from .exceptions import TemplateRenderError, PromptTemplateNotFound
 from .api.routes_generate import router as generate_router
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Vite Dev-Server im Docker-Compose
@@ -25,6 +29,11 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+@app.on_event("startup")
+async def startup_check():
+    if not settings.openai_api_key:
+        logger.warning("OPENAI_API_KEY missing; LLM features disabled.")
 
 @app.exception_handler(PromptTemplateNotFound)
 async def template_not_found_handler(request: Request, exc: PromptTemplateNotFound):
