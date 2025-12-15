@@ -11,10 +11,15 @@ def get_validator():
     return GenerateRequestValidator()
 
 @router.post("/generate", response_model=GenerateResponse)
-def generate(req: GenerateRequest, validator: GenerateRequestValidator = Depends(get_validator),  db: Session = Depends(get_db)):
+async def generate(
+    req: GenerateRequest,
+    validator: GenerateRequestValidator = Depends(get_validator),
+    db: Session = Depends(get_db)
+):
     try:
         validator.validate(req)
-        result = generate_test_data(req, db)  
+        result = await generate_test_data(req, db) 
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+

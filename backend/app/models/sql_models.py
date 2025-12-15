@@ -1,8 +1,10 @@
 # app/models/sql_models.py
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer
+from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
+from datetime import datetime
 
 Base = declarative_base() #---erzeugt eine Basisklasse für SQLAlchemy ORM-Modelle
 
@@ -22,18 +24,23 @@ class PromptTemplate(Base):
 class PromptEntry(Base):
     __tablename__ = "prompts"
 
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.uuid_generate_v4()
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    request_id: Mapped[int] = mapped_column(
+        ForeignKey("generation_requests.id"),
+        nullable=False
     )
-    request_id = Column(UUID(as_uuid=True), nullable=False)
-    stage = Column(String(50), nullable=False)
-    prompt_text = Column(Text)
-    response_text = Column(Text)
-    created_at = Column(
-        TIMESTAMP(timezone=True),
-        server_default=func.now()
+
+    stage: Mapped[str] = mapped_column(nullable=False)
+
+    prompt_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    response_text: Mapped[str | None] = mapped_column(Text)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
     )
 
 

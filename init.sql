@@ -36,6 +36,24 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 CREATE INDEX idx_prompts_request_id ON prompts (request_id);
 
+CREATE TABLE IF NOT EXISTS generated_questions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  request_id UUID NOT NULL
+    REFERENCES generation_requests(id) ON DELETE CASCADE,
+  prompt_id UUID NOT NULL
+    REFERENCES prompts(id) ON DELETE CASCADE,
+  stage VARCHAR(50) NOT NULL,  -- z.B. SKELETON, CONTENT, IMPROVE
+  type VARCHAR(50),
+  difficulty VARCHAR(20),
+  stem TEXT,
+  choices JSONB,
+  correct_index INT,
+  rationale TEXT,
+  learning_objective TEXT NULL,
+  bloom_level VARCHAR(50) NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
 -- QUESTIONS table (generated items)
 CREATE TABLE IF NOT EXISTS questions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
