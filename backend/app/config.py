@@ -13,11 +13,11 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         """Liest Konfiguration aus Environment-Variablen."""
-        # OPENAI_API_KEY: trim whitespace, None wenn leer oder nicht gesetzt
+        # OPENAI_API_KEY
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
         openai_api_key = api_key if api_key else None
         
-        # OPENAI_MODEL_NAME: trim whitespace, Default "gpt-4o" wenn leer oder nicht gesetzt
+        # OPENAI_MODEL_NAME
         model_name = os.getenv("OPENAI_MODEL_NAME", "").strip()
         openai_model_name = model_name if model_name else "gpt-4o"
         
