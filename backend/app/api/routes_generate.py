@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..models.generate_models import GenerateRequest, GenerateResponse
-from ..services.generator_service import generate_test_data
+from ..services.generator_service import generate_questions
 from ..services.validators import GenerateRequestValidator
 from ..db import get_db
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ async def generate(
 ):
     try:
         validator.validate(req)
-        result = await generate_test_data(req, db) 
+        result = await generate_questions(req, db) 
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

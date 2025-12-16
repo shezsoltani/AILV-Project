@@ -6,7 +6,9 @@ from ..models.generate_models import GenerateResponse, GeneratedQuestion, Genera
 from ..models.sql_models import GenerationRequest as ORMGenReq, PromptEntry
 from .templateService import get_template_by_stage, render_template
 from .llm_client import call_llm, LLMAPIError
-
+from .json_utils import safe_parse_json, LLMJSONError
+from .skeleton_validator import validate_skeleton, SkeletonValidationError
+from uuid import UUID
 
 def create_generation_request_db(db: Session, req: GenerateRequest):
     db_req = ORMGenReq(
@@ -33,69 +35,91 @@ def insert_prompt_entry(db: Session, request_id, stage: str, prompt_text: str, r
     db.refresh(p)
     return p
 
-async def generate_test_data(req: GenerateRequest, db: Session) -> GenerateResponse:
-    """
-    Flow:
-     - create generation_request row
-     - load SKELETON template
-     - render skeleton prompt
-     - insert prompt row (stage=SKELETON)
-     - call LLM with rendered prompt
-     - update prompt row with response
-     - parse response (optional)
-     - return result
-    """
+async def run_stage(
+    db: Session,
+    request_id: UUID,
+    stage: str,
+    language: str,
+    context: dict
+) -> str:
+    template = get_template_by_stage(db, stage, language)
+    prompt = render_template(template, context)
 
-    # 1) Persist generation_request
-    db_req = create_generation_request_db(db, req)
-
-    # 2) Load skeleton template
-    language = req.language.value if hasattr(req.language, "value") else str(req.language)
-    template_text = get_template_by_stage(db, "SKELETON", language=language)
-
-    # 3) Render template
-    context = {
-        "topic": req.topic,
-        "count": req.count,
-        "types": req.types,
-        "difficulty_distribution": req.difficulty_distribution,
-        "language": language
-    }
-    rendered_prompt = render_template(template_text, context)
-
-    # 4) Insert prompt entry (without response yet)
     prompt_entry = insert_prompt_entry(
         db=db,
-        request_id=db_req.id,
-        stage="SKELETON",
-        prompt_text=rendered_prompt,
-        response_text=None
+        request_id=request_id,
+        stage=stage,
+        prompt_text=prompt
     )
 
-    # 5) Call LLM
     try:
-        llm_response = await call_llm(rendered_prompt)
+        response = await call_llm(prompt)
     except LLMAPIError as e:
-        # Optional: Prompt-Eintrag trotzdem aktualisieren
         prompt_entry.response_text = f"ERROR: {str(e)}"
         db.commit()
         raise
 
-    # 6) Update prompt entry with LLM response
-    prompt_entry.response_text = llm_response
+    prompt_entry.response_text = response
     db.commit()
-    db.refresh(prompt_entry)
 
-    # 7) (Optional) Response parsen
-    # Hier kannst du später JSON parsing / validation einbauen
-    # Beispiel: questions = parse_llm_response(llm_response)
+    return response
+
+async def generate_questions(req: GenerateRequest, db: Session) -> GenerateResponse:
+    # 1) DB Request speichern
+    db_req = ORMGenReq(
+        topic=req.topic,
+        language=req.language.value,
+        count=req.count,
+        types=req.types,
+        difficulty_distribution=req.difficulty_distribution,
+    )
+    db.add(db_req)
+    db.commit()
+    db.refresh(db_req)
+
+    # 2) Template laden & rendern
+    template = get_template_by_stage(db, "SKELETON", language=req.language.value)
+
+    prompt = render_template(template, {
+        "topic": req.topic,
+        "count": req.count,
+        "types": req.types,
+        "difficulty_distribution": req.difficulty_distribution,
+        "language": req.language.value
+    })
+
+    prompt_entry = insert_prompt_entry(
+        db=db,
+        request_id=db_req.id,
+        stage="SKELETON",
+        prompt_text=prompt
+    )
+
+    # 3) LLM aufrufen
+    try:
+        llm_response = await call_llm(prompt)
+        prompt_entry.response_text = llm_response
+        db.commit()
+    except LLMAPIError:
+        raise
+
+    # 4) JSON parsen (SAFE!)
+    try:
+        skeleton = safe_parse_json(llm_response)
+    except LLMJSONError as e:
+        raise RuntimeError(f"SKELETON JSON error: {e}")
+
+    # 5) Sanity Check
+    try:
+        validate_skeleton(skeleton, expected_count=req.count)
+    except SkeletonValidationError as e:
+        raise RuntimeError(f"SKELETON validation failed: {e}")
 
     return GenerateResponse(
         accepted=True,
         topic=req.topic,
         language=req.language,
         count=req.count,
-        questions=[],  # vorerst leer
-        note=f"LLM response saved (prompt_id={prompt_entry.id})."
+        questions=[],
+        note="Skeleton generated and validated successfully"
     )
-
