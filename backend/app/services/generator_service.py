@@ -115,11 +115,30 @@ async def generate_questions(req: GenerateRequest, db: Session) -> GenerateRespo
     except SkeletonValidationError as e:
         raise RuntimeError(f"SKELETON validation failed: {e}")
 
+    # 6) Questions aus Skeleton bauen
+    if not isinstance(skeleton, list):
+        raise RuntimeError("Skeleton must be a list of questions")
+
+    questions: list[GeneratedQuestion] = []
+
+    for q in skeleton:
+        questions.append(
+            GeneratedQuestion(
+                id=q.get("id"),
+                type=q.get("type"),
+                difficulty=q.get("difficulty"),
+                question="",      # Platzhalter (kommt in nächster Stage)
+                options=[],       # Platzhalter
+                answer=""         # Platzhalter
+            )
+        )
+
+    # 7) Response zurückgeben
     return GenerateResponse(
         accepted=True,
         topic=req.topic,
         language=req.language,
         count=req.count,
-        questions=[],
-        note="Skeleton generated and validated successfully"
+        questions=questions,
+        note="Skeleton generated successfully (questions are placeholders)"
     )
