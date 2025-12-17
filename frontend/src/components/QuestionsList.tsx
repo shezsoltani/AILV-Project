@@ -13,9 +13,8 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({ questions }) => {
 
   return (
     <section className="questions-section">
-      <h2 className="questions-title">Generierte Prüfungsfragen (Mock)</h2>
       <p className="questions-description">
-        Dies ist eine Vorschau der von der KI generierten Fragen (Mock-Daten).
+        Die KI hat die Struktur der Prüfungsfragen generiert (Typ und Schwierigkeitsgrad). Der eigentliche Frage-Text wird in einem späteren Schritt erzeugt.
       </p>
 
       <div className="questions-list">

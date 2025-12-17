@@ -11,6 +11,19 @@ const QUESTION_TYPE_OPTIONS: QuestionType[] = [
   'TRUE_FALSE',
 ];
 
+const getQuestionTypeLabel = (type: QuestionType): string => {
+  switch (type) {
+    case 'MCQ':
+      return 'MCQ (Multiple Choice)';
+    case 'SHORT_ANSWER':
+      return 'Kurzantwort (Freitext)';
+    case 'TRUE_FALSE':
+      return 'Wahr/Falsch';
+    default:
+      return type;
+  }
+};
+
 const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
   topic: '',
   language: 'de',
@@ -25,9 +38,10 @@ const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
 
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
+  isLoading?: boolean;
 }
 
-export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
+export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading = false }) => {
   const [formValues, setFormValues] =
     useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -153,7 +167,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
   };
 
   return (
-    <div>
+    <div className="card">
       <form className="form" onSubmit={handleSubmit}>
         <div className="form-row">
           <label className="form-label" htmlFor="topic">
@@ -208,6 +222,10 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
 
         <div className="form-row">
           <p className="form-section-title">Fragetypen</p>
+          <p className="form-helper" style={{ marginBottom: '1rem', fontStyle: 'normal' }}>
+            Wählen Sie einen oder mehrere Fragetypen aus, die generiert werden sollen. 
+            Sie können mehrere Optionen gleichzeitig auswählen.
+          </p>
           <div className="checkbox-group">
             {QUESTION_TYPE_OPTIONS.map((type) => (
               <label key={type} className="form-label">
@@ -217,7 +235,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
                   checked={formValues.types.includes(type)}
                   onChange={() => handleTypeToggle(type)}
                 />
-                {type}
+                {getQuestionTypeLabel(type)}
               </label>
             ))}
           </div>
@@ -284,8 +302,12 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit }) => {
           )}
         </div>
 
-        <button type="submit" className="primary-button form-submit-button">
-          Fragen generieren
+        <button 
+          type="submit" 
+          className="primary-button form-submit-button"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Wird generiert...' : 'Fragen generieren'}
         </button>
       </form>
       {showSuccessMessage && (
