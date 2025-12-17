@@ -1,13 +1,14 @@
 import json
 import re
-
-class LLMJSONError(Exception):
-    pass
+from ..core.exceptions import LLMJSONError
 
 
 def safe_parse_json(raw: str):
     if not raw or not raw.strip():
-        raise LLMJSONError("LLM returned empty response")
+        raise LLMJSONError(
+            detail="LLM returned empty response",
+            raw=raw,
+        )
 
     text = raw.strip()
 
@@ -20,5 +21,6 @@ def safe_parse_json(raw: str):
         return json.loads(text)
     except json.JSONDecodeError as e:
         raise LLMJSONError(
-            f"Invalid JSON from LLM: {e.msg} (line {e.lineno})"
+            detail=f"{e.msg} (line {e.lineno})",
+            raw=text,
         )

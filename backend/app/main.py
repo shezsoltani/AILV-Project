@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .exceptions import TemplateRenderError, PromptTemplateNotFound
+from .core.exceptions import TemplateRenderError, PromptTemplateNotFound, LLMJSONError, SkeletonValidationError, LLMAPIError
 from .api.routes_generate import router as generate_router
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,27 @@ async def handle_template_render_error(request: Request, exc: TemplateRenderErro
     return JSONResponse(
         status_code=422,
         content={"error": "template_render_error", "detail": str(exc)}
+    )
+
+@app.exception_handler(LLMJSONError)
+async def handle_llm_json_error(request: Request, exc: LLMJSONError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "llm_invalid_json", "detail": str(exc)}
+    )
+
+@app.exception_handler(SkeletonValidationError)
+async def handle_skeleton_validation_error(request: Request, exc: SkeletonValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "invalid_skeleton", "detail": str(exc)}
+    )
+
+@app.exception_handler(LLMAPIError)
+async def handle_llm_api_error(request: Request, exc: LLMAPIError):
+    return JSONResponse(
+        status_code=502,
+        content={"error": "llm_api_error", "detail": exc.message}
     )
 
 @app.get("/health")

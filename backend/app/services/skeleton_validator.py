@@ -1,6 +1,4 @@
-class SkeletonValidationError(Exception):
-    pass
-
+from ..core.exceptions import SkeletonValidationError
 
 def validate_skeleton(data, expected_count: int):
     if not isinstance(data, list):

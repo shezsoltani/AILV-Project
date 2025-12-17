@@ -3,7 +3,7 @@ from sqlalchemy import cast
 from sqlalchemy.orm import Session
 from jinja2 import Environment, StrictUndefined, UndefinedError, TemplateSyntaxError
 from ..models.sql_models import PromptTemplate
-from ..exceptions import PromptTemplateNotFound, TemplateRenderError
+from ..core.exceptions import PromptTemplateNotFound, TemplateRenderError
 
 jinja_env = Environment(undefined=StrictUndefined)
 

@@ -5,39 +5,12 @@ from typing import Optional
 
 from openai import AsyncOpenAI, APIError
 from openai import APITimeoutError, RateLimitError, BadRequestError
+from ..core.exceptions import LLMAPIError
 
 from ..config import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-# -------------------------
-# Custom Exception
-# -------------------------
-
-class LLMAPIError(Exception):
-    """Exception für Fehler bei LLM-API-Aufrufen."""
-
-    def __init__(
-        self,
-        status_code: Optional[int],
-        message: str,
-        detail: Optional[str] = None
-    ):
-        self.status_code = status_code
-        self.message = message
-        self.detail = detail
-        super().__init__(self.message)
-
-    def __str__(self) -> str:
-        base = (
-            f"LLM API Error (HTTP {self.status_code}): {self.message}"
-            if self.status_code
-            else f"LLM API Error: {self.message}"
-        )
-        return f"{base} - {self.detail}" if self.detail else base
-
 
 # -------------------------
 # OpenAI Client (Singleton)
