@@ -289,6 +289,37 @@ body {
   outline: 2px solid #007bff;
   outline-offset: 2px;
 }
+.primary-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.primary-button:disabled:hover {
+  background-color: #6c757d;
+  transform: none;
+}
+
+/* Error Banner Styles */
+.error-banner {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  color: #842029;
+}
+
+.error-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.error-banner-content strong {
+  font-weight: 600;
+}
 
 /* Responsive Styles */
 @media (max-width: 1024px) {

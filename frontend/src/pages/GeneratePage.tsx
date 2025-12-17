@@ -9,8 +9,14 @@ const GeneratePage: React.FC = () => {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleFormSubmit = async (values: GenerateRequestFormValues) => {
     console.log('handleFormSubmit wurde aufgerufen mit:', values);
+    setIsLoading(true);
+    setErrorMessage(null);
+    //setIsModalOpen(false); 
 
     try {
       const result = await generateQuestions(values);
@@ -18,6 +24,19 @@ const GeneratePage: React.FC = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error('Fehler beim Generieren der Fragen:', error);
+      let errorText = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+      
+      if (error instanceof Error) {
+        errorText = error.message;
+      } else if (typeof error === 'string') {
+        errorText = error;
+      }
+      
+      setErrorMessage(errorText);
+      // Modal darf nicht geöffnet werden, wenn ein Fehler vorliegt
+      setIsModalOpen(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -32,16 +51,20 @@ const GeneratePage: React.FC = () => {
         Hier können Sie das Eingabeformular für die Generierung von Prüfungsfragen verwenden.
         Geben Sie Ihre Anforderungen ein und lassen Sie die KI passende Fragen erstellen.
       </p>
-
+      {/* Fehlerbanner sichtbar über dem Formular */}
+      {errorMessage && (
+        <div className="error-banner" role="alert">
+          <div className="error-banner-content">
+            <strong>Fehler:</strong> {errorMessage}
+          </div>
+        </div>
+      )}
       <div className="page-form">
-        {/* WICHTIG: onSubmit muss hier gesetzt sein */}
-        <GenerateForm onSubmit={handleFormSubmit} />
+        <GenerateForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       </div>
 
-      {/* 🔍 Debug-Ausgabe */}
-      <p>Debug: {questions.length} Fragen im State</p>
-
-      {isModalOpen && (
+      
+      {isModalOpen && !errorMessage && (
         <div className="questions-modal-overlay" role="dialog" aria-modal="true">
           <div className="questions-modal">
             <div className="questions-modal-header">
