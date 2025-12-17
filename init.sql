@@ -79,10 +79,8 @@ CREATE TABLE IF NOT EXISTS prompt_templates (
   template TEXT NOT NULL              -- der eigentliche Prompt-Text (mit Platzhaltern)
 );
 
--- Nützliche Indexe für schnelle Suche nach Stage/Language
 CREATE INDEX IF NOT EXISTS idx_prompt_templates_stage ON prompt_templates(stage);
 CREATE INDEX IF NOT EXISTS idx_prompt_templates_language ON prompt_templates(language);
-
 
 --PROMPT-TEMPLATES-INSERTS-------------------------------
 

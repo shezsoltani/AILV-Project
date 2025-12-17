@@ -12,9 +12,8 @@ from ..models.sql_models import GenerationRequest as ORMGenReq, PromptEntry
 from .templateService import get_template_by_stage, render_template
 from .llm_client import call_llm
 from .json_utils import safe_parse_json
-from ..core.exceptions import LLMAPIError
+from ..core.exceptions import LLMAPIError, LLMJSONError, SkeletonValidationError
 from .skeleton_validator import validate_skeleton
-
 
 def create_generation_request_db(db: Session, req: GenerateRequest):
     db_req = ORMGenReq(
@@ -79,15 +78,47 @@ async def run_stage(
 
     return response
 
+async def generate_valid_skeleton(
+    db: Session,
+    request_id: UUID,
+    language: str,
+    base_context: dict,
+    expected_count: int,
+    max_attempts: int = 3,
+):
+    context = dict(base_context)
+    last_error: Exception | None = None
+
+    for attempt in range(1, max_attempts + 1):
+        llm_response = await run_stage(
+            db=db,
+            request_id=request_id,
+            stage="SKELETON",
+            language=language,
+            context=context,
+        )
+
+        try:
+            skeleton = safe_parse_json(llm_response)
+            validate_skeleton(skeleton, expected_count)
+            return skeleton  # Erfolg
+
+        except (LLMJSONError, SkeletonValidationError) as e:
+            last_error = e
+
+            # strukturiertes Feedback für das LLM
+            context["previous_error"] = str(e)
+            context["attempt"] = attempt
+
+    # Erst nach allen Versuchen eskalieren
+    raise last_error
 
 async def generate_questions(
     req: GenerateRequest,
     db: Session,
 ) -> GenerateResponse:
-    # 1) GenerationRequest anlegen
     db_req = create_generation_request_db(db, req)
 
-    # 2) Kontext für die Skeleton-Stage
     context = {
         "topic": req.topic,
         "count": req.count,
@@ -96,22 +127,15 @@ async def generate_questions(
         "language": req.language.value,
     }
 
-    # 3) Skeleton-Stage (Exceptions werden durchgereicht)
-    llm_response = await run_stage(
+    skeleton = await generate_valid_skeleton(
         db=db,
         request_id=db_req.id,
-        stage="SKELETON",
         language=req.language.value,
-        context=context,
+        base_context=context,
+        expected_count=req.count,
+        max_attempts=3,
     )
 
-    # 4) JSON parsen (wirft LLMJSONError)
-    skeleton = safe_parse_json(llm_response)
-
-    # 5) Skeleton validieren (wirft SkeletonValidationError)
-    validate_skeleton(skeleton, expected_count=req.count)
-
-    # 6) Platzhalter-Questions erzeugen
     questions = [
         GeneratedQuestion(
             id=q.get("id"),
@@ -124,7 +148,6 @@ async def generate_questions(
         for q in skeleton
     ]
 
-    # 7) Response zurückgeben
     return GenerateResponse(
         accepted=True,
         topic=req.topic,

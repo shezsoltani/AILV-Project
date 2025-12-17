@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 from ..models.generate_models import GenerateRequest
 
-ALLOWED_TYPES = {"MCQ", "SHORT ANSWER", "TRUE_FALSE"}
+ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
 # ALLOWED_BLOOM = {"Erinnern", "Verstehen", "Anwenden", "Analysieren", "Evaluieren", "Erstellen"}
 
