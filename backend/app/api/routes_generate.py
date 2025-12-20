@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..models.generate_models import GenerateRequest, GenerateResponse
-from ..services.generator_service import generate_questions
+from ..services.generation.orchestrator import generate_questions
 from ..services.validators.request_validator import GenerateRequestValidator
 from ..db import get_db
 from sqlalchemy.orm import Session
