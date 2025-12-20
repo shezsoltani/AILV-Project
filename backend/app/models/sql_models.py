@@ -5,8 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
 from datetime import datetime
-
-Base = declarative_base() #---erzeugt eine Basisklasse für SQLAlchemy ORM-Modelle
+from .base import Base
 
 class PromptTemplate(Base):
     __tablename__ = "prompt_templates"
@@ -24,25 +23,34 @@ class PromptTemplate(Base):
 class PromptEntry(Base):
     __tablename__ = "prompts"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-    request_id: Mapped[int] = mapped_column(
-        ForeignKey("generation_requests.id"),
-        nullable=False
+    # UUID Primary Key
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
 
-    stage: Mapped[str] = mapped_column(nullable=False)
-
-    prompt_text: Mapped[str] = mapped_column(Text, nullable=False)
-
-    response_text: Mapped[str | None] = mapped_column(Text)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False
+    # Sauberer Foreign Key
+    request_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("generation_requests.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
 
+    # Beziehung (optional, aber sehr sinnvoll)
+    generation_request = relationship(
+        "GenerationRequest",
+        back_populates="prompt_entries",
+    )
+
+    # Stage: SKELETON / CONTENT / IMPROVE
+    stage = Column(String(50), nullable=False)
+
+    # Prompt & Response
+    prompt_text = Column(Text, nullable=False)
+    response_text = Column(Text, nullable=True)
 
 class GenerationRequest(Base):
     __tablename__ = "generation_requests"
@@ -59,3 +67,9 @@ class GenerationRequest(Base):
     types = Column(JSONB, nullable=False, server_default="[]")
     difficulty_distribution = Column(JSONB, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    prompt_entries = relationship(
+        "PromptEntry",
+        back_populates="generation_request",
+        cascade="all, delete-orphan"
+    )

@@ -1,21 +1,21 @@
 from sqlalchemy.orm import Session
 from ...models.sql_models import PromptEntry
-
+from uuid import UUID
 
 def insert_prompt_entry(
     db: Session,
-    request_id,
+    request_id: UUID,
     stage: str,
     prompt_text: str,
     response_text: str | None = None,
-):
-    p = PromptEntry(
+) -> PromptEntry:
+    entry = PromptEntry(
         request_id=request_id,
         stage=stage,
         prompt_text=prompt_text,
         response_text=response_text,
     )
-    db.add(p)
+    db.add(entry)
     db.commit()
-    db.refresh(p)
-    return p
+    db.refresh(entry)
+    return entry
