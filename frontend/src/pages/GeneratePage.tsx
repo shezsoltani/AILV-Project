@@ -68,7 +68,7 @@ const GeneratePage: React.FC = () => {
         <div className="questions-modal-overlay" role="dialog" aria-modal="true">
           <div className="questions-modal">
             <div className="questions-modal-header">
-              <h2>Generierte Fragen</h2>
+              <h2>Generierte Fragen-Struktur</h2>
               <button
                 type="button"
                 className="questions-modal-close"
