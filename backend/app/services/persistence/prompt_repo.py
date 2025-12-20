@@ -19,3 +19,19 @@ def insert_prompt_entry(
     db.commit()
     db.refresh(entry)
     return entry
+
+def get_latest_prompt_by_stage(
+    db: Session,
+    *,
+    request_id: UUID,
+    stage: str,
+) -> PromptEntry | None:
+    return (
+        db.query(PromptEntry)
+        .filter(
+            PromptEntry.request_id == request_id,
+            PromptEntry.stage == stage,
+        )
+        .order_by(PromptEntry.created_at.desc())
+        .first()
+    )

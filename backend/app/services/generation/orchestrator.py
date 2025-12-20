@@ -10,6 +10,8 @@ from .skeleton_service import generate_valid_skeleton
 from .content_service import generate_valid_content
 from .improve_service import generate_valid_improved_content
 from ..persistence.generation_repo import create_generation_request_db
+from ..persistence.prompt_repo import get_latest_prompt_by_stage
+from ..persistence.generated_questions_repo import store_generated_questions
 
 async def generate_questions(
     req: GenerateRequest,
@@ -53,6 +55,25 @@ async def generate_questions(
         language=req.language.value,
         original_questions=content,
         max_attempts=3,
+    )
+    
+    # letzter Prompt = IMPROVE
+    improve_prompt = get_latest_prompt_by_stage(
+        db=db,
+        request_id=db_req.id,
+        stage="IMPROVE",
+    )
+
+    if not improve_prompt:
+        raise RuntimeError("No IMPROVE prompt found for request")
+
+
+    store_generated_questions(
+        db=db,
+        request_id=db_req.id,
+        prompt_id=improve_prompt.id,
+        stage="IMPROVE",
+        questions=improved,
     )
 
     # Mapping auf API-Response
