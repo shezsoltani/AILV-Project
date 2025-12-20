@@ -18,11 +18,15 @@ class GenerateRequest(BaseModel):
     )
     # -> keine learning_objectives, bloom_level, target_audience, context_text im API-Modell
 
-
 class GeneratedQuestion(BaseModel):
+    id: Optional[int] = None
     question: str
     type: str
     difficulty: str
+
+    choices: Optional[List[str]] = None
+    correct_index: Optional[int] = None
+    rationale: Optional[str] = None
 
 
 class GenerateResponse(BaseModel):

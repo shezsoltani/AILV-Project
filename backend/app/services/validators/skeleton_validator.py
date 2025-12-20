@@ -1,4 +1,4 @@
-from ..core.exceptions import SkeletonValidationError
+from ...core.exceptions import SkeletonValidationError
 
 ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}

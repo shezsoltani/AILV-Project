@@ -4,7 +4,14 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .core.exceptions import TemplateRenderError, PromptTemplateNotFound, LLMJSONError, SkeletonValidationError, LLMAPIError
+from .core.exceptions import (
+    TemplateRenderError,
+    PromptTemplateNotFound, 
+    LLMJSONError, 
+    SkeletonValidationError, 
+    LLMAPIError,
+    ImproveValidationError,
+    ContentValidationError)
 from .api.routes_generate import router as generate_router
 
 logger = logging.getLogger(__name__)
@@ -61,6 +68,20 @@ async def handle_skeleton_validation_error(request: Request, exc: SkeletonValida
     return JSONResponse(
         status_code=422,
         content={"error": "invalid_skeleton", "detail": str(exc)}
+    )
+
+@app.exception_handler(ContentValidationError)
+async def handle_content_validation_error(request: Request, exc: ContentValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "invalid_content", "detail": str(exc)}
+    )
+
+@app.exception_handler(ImproveValidationError)
+async def handle_improve_validation_error(request: Request, exc: ImproveValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "invalid_improved_content", "detail": str(exc)}
     )
 
 @app.exception_handler(LLMAPIError)

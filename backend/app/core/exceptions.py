@@ -20,6 +20,15 @@ class SkeletonValidationError(Exception):
         super().__init__(f"Invalid skeleton structure: {detail}")
         self.detail = detail
 
+class ContentValidationError(Exception):
+    def __init__(self, detail: str):
+        super().__init__(f"Invalid content structure: {detail}")
+        self.detail = detail
+
+class ImproveValidationError(Exception):
+    def __init__(self, detail: str):
+        super().__init__(f"Invalid improved content structure: {detail}")
+        self.detail = detail
 
 class LLMAPIError(Exception):
     def __init__(self, status_code: int | None, message: str, detail: str | None = None):

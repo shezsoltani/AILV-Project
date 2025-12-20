@@ -105,6 +105,15 @@ Antwortformat: JSON-Array mit Objekten der Form:
 { "id": 1, "type": "MCQ", "difficulty": "easy"}
 
 Sprache: {{language}}.
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK ZUM LETZTEN VERSUCH:
+
+{{ previous_error }}
+
+Dies ist Versuch Nummer {{ attempt }}.
+Bitte korrigiere den Fehler und halte dich strikt an das JSON-Format.
+{% endif %}
 $$
 );
 
@@ -129,6 +138,15 @@ Regeln:
 
 Antwortformat: JSON-Array mit Objekten:
 { "id": 1, "stem": "Fragetext...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "…", "difficulty": "..."}
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK ZUM LETZTEN VERSUCH:
+
+{{ previous_error }}
+
+Dies ist Versuch Nummer {{ attempt }}.
+Bitte korrigiere den Fehler und halte dich strikt an das JSON-Format.
+{% endif %}
 $$
 );
 
@@ -150,6 +168,15 @@ Optimierungsregeln:
 - Keine Hinweise auf internen Bewertungsprozess
 
 Antwortformat: gleiche Struktur wie Eingabe (JSON-Array).
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK ZUM LETZTEN VERSUCH:
+
+{{ previous_error }}
+
+Dies ist Versuch Nummer {{ attempt }}.
+Bitte korrigiere den Fehler und halte dich strikt an das JSON-Format.
+{% endif %}
 $$
 );
 
@@ -176,6 +203,13 @@ Response format: JSON array with objects of the form:
 { "id": 1, "type": "MCQ", "difficulty": "easy"}
 
 Language: {{language}}.
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK:
+{{ previous_error }}
+
+Attempt {{ attempt }} – please fix the issue.
+{% endif %}
 $$
 );
 
@@ -200,7 +234,13 @@ Rules:
 
 Response format: JSON array with objects:
 { "id": 1, "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "...", "difficulty": "..."}
-$$
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK:
+{{ previous_error }}
+
+Attempt {{ attempt }} – please fix the issue.
+{% endif %}
 );
 
 -- IMPROVE (en)
@@ -221,7 +261,13 @@ Optimization rules:
 - No hints about internal evaluation process
 
 Response format: same structure as input (JSON array).
-$$
+
+{% if previous_error is defined and previous_error %}
+FEEDBACK:
+{{ previous_error }}
+
+Attempt {{ attempt }} – please fix the issue.
+{% endif %}
 );
 
 

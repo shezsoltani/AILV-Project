@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import HTTPException, status
-from ..models.generate_models import GenerateRequest
+from ...models.generate_models import GenerateRequest
 
 ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
