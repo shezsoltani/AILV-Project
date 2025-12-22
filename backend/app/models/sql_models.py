@@ -123,3 +123,48 @@ class GeneratedQuestion(Base):
     
     prompt = relationship("PromptEntry")
     generation_request = relationship("GenerationRequest")
+
+class Question(Base):
+    __tablename__ = "questions"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
+    )
+
+    request_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("generation_requests.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    prompt_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("prompts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    type = Column(String(50), nullable=True)
+    difficulty = Column(String(20), nullable=True)
+    stem = Column(Text, nullable=True)
+    choices = Column(JSONB, nullable=True)
+    correct_index = Column(Integer, nullable=True)
+    rationale = Column(Text, nullable=True)
+
+    learning_objective = Column(Text, nullable=True)
+    bloom_level = Column(String(50), nullable=True)
+
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # Beziehungen
+    generation_request = relationship("GenerationRequest")
+    prompt = relationship("PromptEntry")
+

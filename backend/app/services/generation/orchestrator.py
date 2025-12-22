@@ -68,7 +68,7 @@ async def generate_questions(
         raise RuntimeError("No IMPROVE prompt found for request")
 
 
-    store_generated_questions(
+    stored_questions = store_generated_questions(
         db=db,
         request_id=db_req.id,
         prompt_id=improve_prompt.id,
@@ -79,19 +79,20 @@ async def generate_questions(
     # Mapping auf API-Response
     questions = [
         GeneratedQuestion(
-            id=q.get("id"),
-            question=q.get("stem"),
-            type=q.get("type"),
-            difficulty=q.get("difficulty"),
-            choices=q.get("choices"),
-            correct_index=q.get("correct_index"),
-            rationale=q.get("rationale"),
+            id=q.id,
+            question=q.stem,
+            type=q.type,
+            difficulty=q.difficulty,
+            choices=q.choices,
+            correct_index=q.correct_index,
+            rationale=q.rationale,
         )
-        for q in improved
+        for q in stored_questions
     ]
 
     return GenerateResponse(
         accepted=True,
+        request_id=db_req.id,
         topic=req.topic,
         language=req.language,
         count=req.count,

@@ -2,6 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..models.generate_models import GenerateRequest, GenerateResponse
 from ..services.generation.orchestrator import generate_questions
 from ..services.validators.request_validator import GenerateRequestValidator
+from ..models.finalization_models import FinalizeQuestionsRequest, FinalQuestion, FinalizeQuestionsResponse
+from ..services.finalization.finalize_service import finalize_questions
+
+
 from ..db import get_db
 from sqlalchemy.orm import Session
 
@@ -22,4 +26,21 @@ async def generate(
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+@router.post("/finalize", response_model=FinalizeQuestionsResponse)
+def finalize_questions_endpoint(
+    payload: FinalizeQuestionsRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        count = finalize_questions(db=db, payload=payload)
+        return FinalizeQuestionsResponse(
+            success=True,
+            request_id=payload.request_id,
+            finalized_count=count,
+            message="Questions finalized successfully",
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
 

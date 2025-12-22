@@ -1,4 +1,5 @@
 # app/models/generate_models.py
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from enum import Enum
@@ -19,7 +20,7 @@ class GenerateRequest(BaseModel):
     # -> keine learning_objectives, bloom_level, target_audience, context_text im API-Modell
 
 class GeneratedQuestion(BaseModel):
-    id: Optional[int] = None
+    id: Optional[UUID] = None
     question: str
     type: str
     difficulty: str
@@ -28,9 +29,9 @@ class GeneratedQuestion(BaseModel):
     correct_index: Optional[int] = None
     rationale: Optional[str] = None
 
-
 class GenerateResponse(BaseModel):
     accepted: bool
+    request_id: UUID   #NEU
     topic: str
     language: str
     count: int

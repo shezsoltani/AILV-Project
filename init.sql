@@ -93,7 +93,6 @@ VALUES (
 Erstelle ein Gerüst für {{count}} Prüfungsfragen zum Thema "{{topic}}".
 
 Gib für jede Frage nur folgende Informationen an:
-- id (laufende Nummer ab 1)
 - type (einer der folgenden: {{types}})
 - difficulty (easy, medium oder hard), entsprechend der Verteilung:
   easy: {{difficulty_distribution.easy}}%
@@ -102,7 +101,7 @@ Gib für jede Frage nur folgende Informationen an:
 
 Keine vollständigen Fragen erzeugen, nur ein Strukturgerüst!
 Antwortformat: JSON-Array mit Objekten der Form:
-{ "id": 1, "type": "MCQ", "difficulty": "easy"}
+{ "type": "MCQ", "difficulty": "easy"}
 
 Sprache: {{language}}.
 
@@ -137,7 +136,7 @@ Regeln:
 - difficulty beachten (Komplexität & Umfang)
 
 Antwortformat: JSON-Array mit Objekten:
-{ "id": 1, "stem": "Fragetext...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "…", "difficulty": "..."}
+{ "stem": "Fragetext...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "…", "difficulty": "..."}
 
 {% if previous_error is defined and previous_error %}
 FEEDBACK ZUM LETZTEN VERSUCH:
@@ -191,7 +190,6 @@ VALUES (
 Create a skeleton for {{count}} exam questions on the topic "{{topic}}".
 
 For each question, provide only the following information:
-- id (sequential number starting from 1)
 - type (one of the following: {{types}})
 - difficulty (easy, medium or hard), according to the distribution:
   easy: {{difficulty_distribution.easy}}%
@@ -200,7 +198,7 @@ For each question, provide only the following information:
 
 Do not generate complete questions, only a structural skeleton!
 Response format: JSON array with objects of the form:
-{ "id": 1, "type": "MCQ", "difficulty": "easy"}
+{ "type": "MCQ", "difficulty": "easy"}
 
 Language: {{language}}.
 
@@ -233,7 +231,7 @@ Rules:
 - Consider difficulty (complexity & scope)
 
 Response format: JSON array with objects:
-{ "id": 1, "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "...", "difficulty": "..."}
+{ "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "...", "difficulty": "..."}
 
 {% if previous_error is defined and previous_error %}
 FEEDBACK:
