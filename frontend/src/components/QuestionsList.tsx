@@ -1,12 +1,19 @@
 // src/components/QuestionsList.tsx
 import React from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+import { EditableQuestionCard } from './EditableQuestionCard';
 
 interface QuestionsListProps {
   questions: GeneratedQuestion[];
+  onQuestionChange: (updatedQuestion: GeneratedQuestion) => void;
+  onFinalize: () => void;
 }
 
-export const QuestionsList: React.FC<QuestionsListProps> = ({ questions }) => {
+export const QuestionsList: React.FC<QuestionsListProps> = ({
+  questions,
+  onQuestionChange,
+  onFinalize,
+}) => {
   if (questions.length === 0) {
     return null;
   }
@@ -18,21 +25,12 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({ questions }) => {
       </p>
 
       <div className="questions-list">
-        {questions.map((q, idx) => (
-          <article key={`${q.question}-${idx}`} className="question-card">
-            <header className="question-header">
-              <span className="question-type">Typ: {q.type}</span>
-              <span
-                className={`question-difficulty question-difficulty-${q.difficulty}`}
-              >
-                {q.difficulty === 'easy' && 'Einfach'}
-                {q.difficulty === 'medium' && 'Mittel'}
-                {q.difficulty === 'hard' && 'Schwer'}
-              </span>
-            </header>
-
-            <p className="question-text">{q.question}</p>
-          </article>
+        {questions.map((q) => (
+          <EditableQuestionCard
+            key={q.id}
+            question={q}
+            onQuestionChange={onQuestionChange}
+          />
         ))}
       </div>
     </section>
