@@ -6,13 +6,11 @@ import { EditableQuestionCard } from './EditableQuestionCard';
 interface QuestionsListProps {
   questions: GeneratedQuestion[];
   onQuestionChange: (updatedQuestion: GeneratedQuestion) => void;
-  onFinalize: () => void;
 }
 
 export const QuestionsList: React.FC<QuestionsListProps> = ({
   questions,
   onQuestionChange,
-  onFinalize,
 }) => {
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(false);
 

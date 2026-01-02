@@ -1,5 +1,5 @@
 // src/components/EditableQuestionCard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
 interface EditableQuestionCardProps {
@@ -48,6 +48,23 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
     onQuestionChange(updated);
   };
 
+  // Automatische Höhenanpassung für Textareas
+  const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
+
+  const adjustTextareaHeight = (element: HTMLTextAreaElement) => {
+    element.style.height = 'auto';
+    element.style.height = `${element.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    // Höhe aller Textareas anpassen, wenn sich die Choices ändern
+    Object.values(textareaRefs.current).forEach((textarea) => {
+      if (textarea) {
+        adjustTextareaHeight(textarea);
+      }
+    });
+  }, [localQuestion.choices]);
+
   return (
     <article className="question-card">
       <header className="question-header">
@@ -92,13 +109,23 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                   {index + 1}.
                 </label>
                 <div style={{ flex: 1, position: 'relative' }}>
-                  <input
+                  <textarea
+                    ref={(el) => {
+                      const key = `choice-${localQuestion.id}-${index}`;
+                      textareaRefs.current[key] = el;
+                      if (el) {
+                        adjustTextareaHeight(el);
+                      }
+                    }}
                     id={`choice-${localQuestion.id}-${index}`}
-                    type="text"
                     value={choice}
-                    onChange={(e) => handleChoiceChange(index, e.target.value)}
+                    onChange={(e) => {
+                      adjustTextareaHeight(e.target);
+                      handleChoiceChange(index, e.target.value);
+                    }}
                     className={`question-choice-input ${isCorrect ? 'question-choice-input--correct' : ''}`}
                     placeholder={`Antwortmöglichkeit ${index + 1}`}
+                    rows={1}
                   />
                   {isCorrect && (
                     <span className="question-correct-badge">✓ Korrekt</span>

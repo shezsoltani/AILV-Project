@@ -78,7 +78,6 @@ const GeneratePage: React.FC = () => {
             <QuestionsList
               questions={questions}
               onQuestionChange={handleQuestionChange}
-              onFinalize={handleFinalizeQuestions}
             />
 
             <div className="questions-modal-actions">
@@ -88,7 +87,7 @@ const GeneratePage: React.FC = () => {
                 onClick={handleFinalizeQuestions}
                 disabled={isLoading}
               >
-                {isLoading ? 'Wird gespeichert...' : 'Fragen speichern & finalisieren'}
+                {isLoading ? 'Wird gespeichert...' : 'Fragen speichern'}
               </button>
               <button
                 type="button"
