@@ -1,40 +1,15 @@
-import { FormEvent, useState, ChangeEvent } from 'react';
-import {
+import React, { FormEvent, useState, ChangeEvent } from 'react';
+import type {
   GenerateRequestFormValues,
   Language,
   QuestionType,
 } from '../types/generate';
-
-const QUESTION_TYPE_OPTIONS: QuestionType[] = [
-  'MCQ',
-  'SHORT_ANSWER',
-  'TRUE_FALSE',
-];
-
-const getQuestionTypeLabel = (type: QuestionType): string => {
-  switch (type) {
-    case 'MCQ':
-      return 'MCQ (Multiple Choice)';
-    case 'SHORT_ANSWER':
-      return 'Kurzantwort (Freitext)';
-    case 'TRUE_FALSE':
-      return 'Wahr/Falsch';
-    default:
-      return type;
-  }
-};
-
-const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
-  topic: '',
-  language: 'de',
-  count: 5,
-  types: ['MCQ'],
-  difficultyDistribution: {
-    easy: 40,
-    medium: 40,
-    hard: 20,
-  },
-};
+import {
+  QUESTION_TYPE_OPTIONS,
+  DEFAULT_FORM_VALUES,
+  getQuestionTypeLabel,
+} from '../constants/formConstants';
+import { validate, type ValidationErrors } from '../validators/generateValidator';
 
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
@@ -45,46 +20,14 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
   const [formValues, setFormValues] =
     useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [errors, setErrors] = useState<{
-    topic?: string;
-    difficulty?: string;
-  }>({});
-
-  const getDifficultyTotal = (values: GenerateRequestFormValues): number => {
-    const { easy, medium, hard } = values.difficultyDistribution;
-
-    const toNumber = (value: number | '' | undefined): number => {
-      if (value === '' || value === undefined || Number.isNaN(Number(value))) {
-        return 0;
-      }
-      return Number(value);
-    };
-
-    return toNumber(easy) + toNumber(medium) + toNumber(hard);
-  };
-
-  const validate = (values: GenerateRequestFormValues) => {
-    const nextErrors: { topic?: string; difficulty?: string } = {};
-
-    if (values.topic.trim().length < 3) {
-      nextErrors.topic = 'Thema muss mindestens 3 Zeichen lang sein.';
-    }
-
-    const total = getDifficultyTotal(values);
-    if (total !== 100) {
-      nextErrors.difficulty =
-        'Die Summe der Schwierigkeitsgrade (einfach + mittel + schwer) muss exakt 100% ergeben.';
-    }
-
-    return nextErrors;
-  };
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = event.target;
 
-    // 🔹 count: darf leer sein (''), sonst number
+    // Anzahl-Feld: leer lassen erlaubt, sonst als Zahl speichern
     if (name === 'count') {
       const raw = value;
       setFormValues((prev) => {
@@ -98,7 +41,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
       return;
     }
 
-    // 🔹 difficultyDistribution: easy/medium/hard dürfen ebenfalls leer sein
+    // Schwierigkeitsverteilung: auch hier dürfen Felder leer bleiben
     if (name.startsWith('difficultyDistribution.')) {
       const key =
         name.split('.')[1] as keyof GenerateRequestFormValues['difficultyDistribution'];
@@ -117,11 +60,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
       return;
     }
 
-    setFormValues((prev) => {
-      const next: GenerateRequestFormValues = { ...prev, [name]: value } as GenerateRequestFormValues;
-      setErrors(validate(next));
-      return next;
-    });
+    // Nur für topic-Feld (String)
+    if (name === 'topic') {
+      setFormValues((prev) => {
+        const next: GenerateRequestFormValues = { ...prev, topic: value };
+        setErrors(validate(next));
+        return next;
+      });
+      return;
+    }
+
+    // Fallback für unbekannte Felder (sollte nicht vorkommen)
+    console.warn(`Unbekanntes Formularfeld: ${name}`);
   };
 
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -133,6 +83,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
     });
   };
 
+  // Fragetypen können mehrfach ausgewählt werden
   const handleTypeToggle = (type: QuestionType) => {
     setFormValues((prev) => {
       const isSelected = prev.types.includes(type);
@@ -150,6 +101,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // Formular validieren bevor es abgeschickt wird
     const validationErrors = validate(formValues);
     setErrors(validationErrors);
 

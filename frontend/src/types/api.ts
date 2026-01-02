@@ -1,0 +1,38 @@
+import type { GeneratedQuestion } from './generatedQuestion';
+
+// Response DTO für die generateQuestions API
+export interface GenerateResponseDto {
+  accepted: boolean;
+  topic: string;
+  language: string;
+  count: number;
+  questions: GeneratedQuestion[];
+  note: string;
+  request_id: string;
+}
+
+// FinalQuestion Interface für die finalizeQuestions API
+export interface FinalQuestion {
+  generated_question_id: string;  // UUID
+  type?: string;
+  difficulty?: string;
+  stem?: string;
+  choices?: string[];
+  correct_index?: number;
+  rationale?: string;
+}
+
+// Request Interface für die finalizeQuestions API
+export interface FinalizeRequest {
+  request_id: string;  // UUID
+  questions: FinalQuestion[];
+}
+
+// Response Interface für die finalizeQuestions API
+export interface FinalizeResponse {
+  success: boolean;
+  request_id: string;  // UUID
+  finalized_count: number;
+  message: string;
+}
+

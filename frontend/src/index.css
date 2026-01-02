@@ -734,6 +734,10 @@ body {
   color: var(--color-text-muted);
 }
 
+.question-choice-input--correct {
+  padding-right: calc(var(--spacing-md) + 100px);
+}
+
 /* Screen Reader Only */
 .sr-only {
   position: absolute;
@@ -860,6 +864,7 @@ body {
 .questions-modal-actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--spacing-lg);
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-lg);
   border-top: 2px solid var(--color-border-light);
@@ -1066,4 +1071,69 @@ body {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
   }
+}
+
+/* Secondary Button Styles */
+.secondary-button {
+  background: var(--color-bg-card);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  padding: var(--spacing-md) var(--spacing-2xl);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.01em;
+}
+
+.secondary-button:hover {
+  background: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.secondary-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Question Choice Correct Answer Highlighting */
+.question-choice-input--correct {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: var(--color-success) !important;
+}
+
+.question-choice-input--correct:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+.question-correct-badge {
+  position: absolute;
+  right: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--color-success);
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  pointer-events: none;
+  white-space: nowrap;
 }
