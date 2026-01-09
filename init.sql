@@ -132,7 +132,7 @@ Regeln:
 - type bestimmt das Format:
   - MCQ: 1 Frage + 4-6 Antwortoptionen, genau 1 richtig
   - Kurzantwort: 1 Frage + 1 kurze, korrekte Antwort
-  - TRUE-FALSE: 1 Frage + 2 Antwortoptionen(TRUE und FALSE), genau 1 richtig
+  - TRUE_FALSE: 1 Frage + 2 Antwortoptionen(TRUE und FALSE), genau 1 richtig
 - difficulty beachten (Komplexität & Umfang)
 
 Antwortformat: JSON-Array mit Objekten:
@@ -227,7 +227,7 @@ Rules:
 - type determines the format:
   - MCQ: 1 question + 4-6 answer options, exactly 1 correct
   - Short answer: 1 question + 1 short, correct answer
-  - TRUE-FALSE: 1 question + 2 answer options (TRUE and FALSE), exactly 1 correct
+  - TRUE_FALSE: 1 question + 2 answer options (TRUE and FALSE), exactly 1 correct
 - Consider difficulty (complexity & scope)
 
 Response format: JSON array with objects:
@@ -239,6 +239,7 @@ FEEDBACK:
 
 Attempt {{ attempt }} – please fix the issue.
 {% endif %}
+$$
 );
 
 -- IMPROVE (en)
@@ -266,6 +267,7 @@ FEEDBACK:
 
 Attempt {{ attempt }} – please fix the issue.
 {% endif %}
+$$
 );
 
 

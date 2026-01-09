@@ -1,40 +1,13 @@
-import { FormEvent, useState, ChangeEvent } from 'react';
+// src/components/GenerateForm.tsx
+// Eingabeformular für die Generierung von Prüfungsfragen
+
+import React from 'react';
+import type { GenerateRequestFormValues } from '../types/generate';
 import {
-  GenerateRequestFormValues,
-  Language,
-  QuestionType,
-} from '../types/generate';
-
-const QUESTION_TYPE_OPTIONS: QuestionType[] = [
-  'MCQ',
-  'SHORT_ANSWER',
-  'TRUE_FALSE',
-];
-
-const getQuestionTypeLabel = (type: QuestionType): string => {
-  switch (type) {
-    case 'MCQ':
-      return 'MCQ (Multiple Choice)';
-    case 'SHORT_ANSWER':
-      return 'Kurzantwort (Freitext)';
-    case 'TRUE_FALSE':
-      return 'Wahr/Falsch';
-    default:
-      return type;
-  }
-};
-
-const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
-  topic: '',
-  language: 'de',
-  count: 5,
-  types: ['MCQ'],
-  difficultyDistribution: {
-    easy: 40,
-    medium: 40,
-    hard: 20,
-  },
-};
+  QUESTION_TYPE_OPTIONS,
+  getQuestionTypeLabel,
+} from '../constants/formConstants';
+import { useGenerateForm } from '../hooks/useGenerateForm';
 
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
@@ -42,129 +15,20 @@ interface GenerateFormProps {
 }
 
 export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading = false }) => {
-  const [formValues, setFormValues] =
-    useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [errors, setErrors] = useState<{
-    topic?: string;
-    difficulty?: string;
-  }>({});
-
-  const getDifficultyTotal = (values: GenerateRequestFormValues): number => {
-    const { easy, medium, hard } = values.difficultyDistribution;
-
-    const toNumber = (value: number | '' | undefined): number => {
-      if (value === '' || value === undefined || Number.isNaN(Number(value))) {
-        return 0;
-      }
-      return Number(value);
-    };
-
-    return toNumber(easy) + toNumber(medium) + toNumber(hard);
-  };
-
-  const validate = (values: GenerateRequestFormValues) => {
-    const nextErrors: { topic?: string; difficulty?: string } = {};
-
-    if (values.topic.trim().length < 3) {
-      nextErrors.topic = 'Thema muss mindestens 3 Zeichen lang sein.';
-    }
-
-    const total = getDifficultyTotal(values);
-    if (total !== 100) {
-      nextErrors.difficulty =
-        'Die Summe der Schwierigkeitsgrade (einfach + mittel + schwer) muss exakt 100% ergeben.';
-    }
-
-    return nextErrors;
-  };
-
-  const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-
-    // 🔹 count: darf leer sein (''), sonst number
-    if (name === 'count') {
-      const raw = value;
-      setFormValues((prev) => {
-        const next: GenerateRequestFormValues = {
-        ...prev,
-        count: raw === '' ? '' : Number(raw),
-        };
-        setErrors(validate(next));
-        return next;
-      });
-      return;
-    }
-
-    // 🔹 difficultyDistribution: easy/medium/hard dürfen ebenfalls leer sein
-    if (name.startsWith('difficultyDistribution.')) {
-      const key =
-        name.split('.')[1] as keyof GenerateRequestFormValues['difficultyDistribution'];
-      const raw = value;
-      setFormValues((prev) => {
-        const next: GenerateRequestFormValues = {
-        ...prev,
-        difficultyDistribution: {
-          ...prev.difficultyDistribution,
-          [key]: raw === '' ? '' : Number(raw),
-        },
-        };
-        setErrors(validate(next));
-        return next;
-      });
-      return;
-    }
-
-    setFormValues((prev) => {
-      const next: GenerateRequestFormValues = { ...prev, [name]: value } as GenerateRequestFormValues;
-      setErrors(validate(next));
-      return next;
-    });
-  };
-
-  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const language = event.target.value as Language;
-    setFormValues((prev) => {
-      const next: GenerateRequestFormValues = { ...prev, language };
-      setErrors(validate(next));
-      return next;
-    });
-  };
-
-  const handleTypeToggle = (type: QuestionType) => {
-    setFormValues((prev) => {
-      const isSelected = prev.types.includes(type);
-      const nextTypes = isSelected
-        ? prev.types.filter((t) => t !== type)
-        : [...prev.types, type];
-
-      return {
-        ...prev,
-        types: nextTypes,
-      };
-    });
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const validationErrors = validate(formValues);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setShowSuccessMessage(false);
-      return;
-    }
-
-    console.log('GenerateRequest form values:', formValues);
-    setShowSuccessMessage(true);
-
-    if (onSubmit) {
-      onSubmit(formValues);
-    }
-  };
+  // Hook verwaltet alle Formular-Logik: Eingaben, Validierung, Submit
+  const {
+    formValues,
+    displayValues,
+    errors,
+    showSuccessMessage,
+    isLoading: formIsLoading,
+    handleInputChange,
+    handleBlur,
+    handleKeyDown,
+    handleLanguageChange,
+    handleTypeToggle,
+    handleSubmit,
+  } = useGenerateForm({ onSubmit, isLoading });
 
   return (
     <div className="card">
@@ -174,6 +38,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             Thema *
           </label>
           <input
+            // Input-Feld für das Thema der Fragen
             id="topic"
             name="topic"
             className={`form-input${errors.topic ? ' form-input--error' : ''}`}
@@ -189,6 +54,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
         </div>
 
         <div className="form-row">
+          {/* Dropdown-Menü für die Sprache der Fragen */}
           <label className="form-label" htmlFor="language">
             Sprache
           </label>
@@ -204,6 +70,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           </select>
         </div>
 
+        {/* Eingabefeld für die Anzahl der Fragen */}
         <div className="form-row">
           <label className="form-label" htmlFor="count">
             Anzahl Fragen
@@ -211,13 +78,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           <input
             id="count"
             name="count"
-            className="form-input"
-            type="number"
-            min={1}
-            max={50}
-            value={formValues.count}
+            className={`form-input${errors.count ? ' form-input--error' : ''}`}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={displayValues.count}
             onChange={handleInputChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
           />
+          {errors.count && (
+            <p className="form-error-message">{errors.count}</p>
+          )}
         </div>
 
         <div className="form-row">
@@ -226,6 +98,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             Wählen Sie einen oder mehrere Fragetypen aus, die generiert werden sollen. 
             Sie können mehrere Optionen gleichzeitig auswählen.
           </p>
+          {/* Checkboxen für alle verfügbaren Fragetypen - mehrere können ausgewählt werden */}
           <div className="checkbox-group">
             {QUESTION_TYPE_OPTIONS.map((type) => (
               <label key={type} className="form-label">
@@ -239,10 +112,14 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               </label>
             ))}
           </div>
+          {errors.types && (
+            <p className="form-error-message">{errors.types}</p>
+          )}
         </div>
 
         <div className="form-row">
           <p className="form-section-title">Schwierigkeitsverteilung (%)</p>
+          {/* Drei Eingabefelder für die Prozent-Verteilung - Summe muss 100% ergeben */}
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-easy">
               Einfach (%)
@@ -251,14 +128,19 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-easy"
               name="difficultyDistribution.easy"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyEasy || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.easy}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyEasy}
               onChange={handleInputChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
+            {errors.difficultyEasy && (
+              <p className="form-error-message">{errors.difficultyEasy}</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-medium">
@@ -268,14 +150,19 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-medium"
               name="difficultyDistribution.medium"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyMedium || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.medium}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyMedium}
               onChange={handleInputChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
+            {errors.difficultyMedium && (
+              <p className="form-error-message">{errors.difficultyMedium}</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-hard">
@@ -285,14 +172,19 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-hard"
               name="difficultyDistribution.hard"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyHard || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.hard}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyHard}
               onChange={handleInputChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
+            {errors.difficultyHard && (
+              <p className="form-error-message">{errors.difficultyHard}</p>
+            )}
           </div>
           <p className="form-helper">
             Die Summe aus Einfach, Mittel und Schwer muss 100% ergeben.
@@ -302,12 +194,13 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           )}
         </div>
 
+        {/* Button ist deaktiviert, wenn gerade geladen wird oder Fehler vorhanden sind */}
         <button 
           type="submit" 
           className="primary-button form-submit-button"
-          disabled={isLoading}
+          disabled={formIsLoading || Object.keys(errors).length > 0}
         >
-          {isLoading ? 'Wird generiert...' : 'Fragen generieren'}
+          {formIsLoading ? 'Wird generiert...' : 'Fragen generieren'}
         </button>
       </form>
       {showSuccessMessage && (
