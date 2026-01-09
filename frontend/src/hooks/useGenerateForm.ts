@@ -33,6 +33,8 @@ interface UseGenerateFormReturn {
   ) => void;
   // Wird aufgerufen, wenn Benutzer ein Eingabefeld verlässt
   handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
+  // Pfeiltasten-Handler für Zahlenfelder (↑/↓)
+  handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   handleLanguageChange: (event: ChangeEvent<HTMLSelectElement>) => void;
   // Toggelt Fragetyp (hinzufügen/entfernen)
   handleTypeToggle: (type: QuestionType) => void;
@@ -146,6 +148,45 @@ export const useGenerateForm = ({
     }
   };
 
+  // Pfeiltasten-Handler für Zahlenfelder (↑ erhöht, ↓ verringert)
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name, value } = event.target as HTMLInputElement;
+    
+    // Nur bei Zahlenfeldern und Pfeiltasten reagieren
+    if ((name === 'count' || name.startsWith('difficultyDistribution.')) && 
+        (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      
+      // Aktuellen Wert als Zahl parsen
+      const currentValue = value === '' ? 0 : Number(value);
+      if (Number.isNaN(currentValue)) {
+        return;
+      }
+
+      // Schrittweite: 1 für count, 1 für difficulty
+      const step = 1;
+      let newValue: number;
+
+      if (event.key === 'ArrowUp') {
+        newValue = currentValue + step;
+      } else {
+        newValue = Math.max(0, currentValue - step);
+      }
+
+      // Grenzen setzen
+      if (name === 'count') {
+        newValue = Math.max(1, Math.min(50, newValue));
+      } else {
+        // difficulty: 0-100
+        newValue = Math.max(0, Math.min(100, newValue));
+      }
+
+      // Wert aktualisieren
+      const newValueString = String(newValue);
+      handleNumericField(name, newValueString);
+    }
+  };
+
   // Ändert Sprache
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const language = event.target.value as Language;
@@ -196,6 +237,7 @@ export const useGenerateForm = ({
     isLoading,
     handleInputChange,
     handleBlur,
+    handleKeyDown,
     handleLanguageChange,
     handleTypeToggle,
     handleSubmit,

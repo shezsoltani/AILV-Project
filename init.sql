@@ -239,6 +239,7 @@ FEEDBACK:
 
 Attempt {{ attempt }} – please fix the issue.
 {% endif %}
+$$
 );
 
 -- IMPROVE (en)
@@ -266,6 +267,7 @@ FEEDBACK:
 
 Attempt {{ attempt }} – please fix the issue.
 {% endif %}
+$$
 );
 
 

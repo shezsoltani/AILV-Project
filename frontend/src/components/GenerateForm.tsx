@@ -24,6 +24,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
     isLoading: formIsLoading,
     handleInputChange,
     handleBlur,
+    handleKeyDown,
     handleLanguageChange,
     handleTypeToggle,
     handleSubmit,
@@ -84,6 +85,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             value={displayValues.count}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
           />
           {errors.count && (
             <p className="form-error-message">{errors.count}</p>
@@ -134,6 +136,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               value={displayValues.difficultyEasy}
               onChange={handleInputChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
             {errors.difficultyEasy && (
               <p className="form-error-message">{errors.difficultyEasy}</p>
@@ -155,6 +158,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               value={displayValues.difficultyMedium}
               onChange={handleInputChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
             {errors.difficultyMedium && (
               <p className="form-error-message">{errors.difficultyMedium}</p>
@@ -176,6 +180,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               value={displayValues.difficultyHard}
               onChange={handleInputChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
             />
             {errors.difficultyHard && (
               <p className="form-error-message">{errors.difficultyHard}</p>
