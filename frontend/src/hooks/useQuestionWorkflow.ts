@@ -1,42 +1,47 @@
-import { useState, useEffect } from 'react';
+// src/hooks/useQuestionWorkflow.ts
+import { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type { GenerateRequestFormValues } from '../types/generate';
 import { generateQuestions, finalizeQuestions } from '../services/api';
 import { calculateQuestionDiff } from '../utils/questionUtils';
+import { extractErrorMessage } from '../utils/errorUtils';
+import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME, ESCAPE_KEY } from '../constants/appConstants';
 
-// Verwaltet den kompletten Workflow: Fragen generieren, bearbeiten und finalisieren
+// Verwaltet Workflow: Fragen generieren, bearbeiten und finalisieren
 export function useQuestionWorkflow() {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  // Original-Fragen für Diff-Berechnung (nur Änderungen senden)
   const [originalQuestions, setOriginalQuestions] = useState<GeneratedQuestion[]>([]);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // Ref für setTimeout cleanup
+  const timeoutRef = useRef<number | null>(null);
 
+  // Sendet Formular ans Backend und öffnet Modal mit generierten Fragen
   const handleFormSubmit = async (values: GenerateRequestFormValues) => {
     setIsLoading(true);
     setErrorMessage(null); 
 
     try {
       const result = await generateQuestions(values);
-      // Originale Fragen speichern, um später Änderungen zu erkennen
+      // Prüfen, ob Fragen vorhanden sind und alle eine gültige ID haben
+      if (!result.questions || result.questions.length === 0) {
+        throw new Error('Keine Fragen wurden generiert.');
+      }
+      if (result.questions.some(q => !q.id)) {
+        throw new Error('Ungültige Fragen-Response: Fehlende IDs');
+      }
+      // Original-Fragen speichern für spätere Diff-Berechnung
       setQuestions(result.questions);
       setOriginalQuestions(result.questions);
       setRequestId(result.requestId);
       setIsModalOpen(true);
     } catch (error) {
       console.error('Fehler beim Generieren der Fragen:', error);
-      let errorText = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
-      
-      if (error instanceof Error) {
-        errorText = error.message;
-      } else if (typeof error === 'string') {
-        errorText = error;
-      }
-      
-      setErrorMessage(errorText);
-      // Modal darf nicht geöffnet werden, wenn ein Fehler vorliegt
+      setErrorMessage(extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.GENERATE_FAILED));
       setIsModalOpen(false);
     } finally {
       setIsLoading(false);
@@ -44,6 +49,11 @@ export function useQuestionWorkflow() {
   };
 
   const handleCloseModal = () => {
+    // Timeout löschen, falls noch aktiv
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setIsModalOpen(false);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -52,7 +62,7 @@ export function useQuestionWorkflow() {
   // ESC-Taste schließt das Modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) {
+      if (e.key === ESCAPE_KEY && isModalOpen) {
         setIsModalOpen(false);
         setErrorMessage(null);
         setSuccessMessage(null);
@@ -65,6 +75,7 @@ export function useQuestionWorkflow() {
     }
   }, [isModalOpen]);
 
+  // Aktualisiert einzelne Frage im Array (findet per ID)
   const handleQuestionChange = (updatedQuestion: GeneratedQuestion) => {
     setQuestions((prevQuestions) =>
       prevQuestions.map((q) =>
@@ -73,14 +84,15 @@ export function useQuestionWorkflow() {
     );
   };
 
+  // Sendet nur Änderungen ans Backend und finalisiert Fragen
   const handleFinalizeQuestions = async () => {
     if (!requestId) {
-      setErrorMessage('Keine Request-ID vorhanden.');
+      setErrorMessage(DEFAULT_ERROR_MESSAGES.NO_REQUEST_ID);
       return;
     }
 
     if (questions.length === 0) {
-      setErrorMessage('Keine Fragen zum Finalisieren vorhanden.');
+      setErrorMessage(DEFAULT_ERROR_MESSAGES.NO_QUESTIONS);
       return;
     }
 
@@ -89,42 +101,55 @@ export function useQuestionWorkflow() {
     setSuccessMessage(null);
 
     try {
-      // Nur die Änderungen an die API senden
+      // Nur Änderungen senden (optimiert Datenübertragung)
       const finalizeQuestionsArray = calculateQuestionDiff(questions, originalQuestions);
+      
+      // Prüfen, ob es Änderungen gibt
+      if (finalizeQuestionsArray.length === 0) {
+        setErrorMessage('Keine Änderungen wurden vorgenommen.');
+        setIsLoading(false);
+        return;
+      }
+
       const response = await finalizeQuestions({
         request_id: requestId,
         questions: finalizeQuestionsArray,
       });
 
-      // Erfolg: Zeige Erfolgsmeldung und setze States zurück
       setErrorMessage(null);
       setSuccessMessage(
         `${response.message} (${response.finalized_count} Fragen finalisiert)`
       );
       
-      // Nach 2 Sekunden alles zurücksetzen, damit die Erfolgsmeldung sichtbar bleibt
-      setTimeout(() => {
+      // Nach 2 Sekunden zurücksetzen (Erfolgsmeldung bleibt sichtbar)
+      // Alten Timeout löschen, falls vorhanden
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
         setQuestions([]);
         setOriginalQuestions([]);
         setRequestId(null);
         setSuccessMessage(null);
         setIsModalOpen(false);
-      }, 2000);
+        timeoutRef.current = null;
+      }, SUCCESS_MESSAGE_DISPLAY_TIME);
     } catch (error) {
       console.error('Fehler beim Finalisieren der Fragen:', error);
-      let errorText = 'Ein Fehler ist beim Finalisieren aufgetreten.';
-      
-      if (error instanceof Error) {
-        errorText = error.message;
-      } else if (typeof error === 'string') {
-        errorText = error;
-      }
-      
-      setErrorMessage(errorText);
+      setErrorMessage(extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.FINALIZE_FAILED));
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Cleanup: Timeout löschen beim Unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     // States

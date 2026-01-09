@@ -1,15 +1,13 @@
-import React, { FormEvent, useState, ChangeEvent } from 'react';
-import type {
-  GenerateRequestFormValues,
-  Language,
-  QuestionType,
-} from '../types/generate';
+// src/components/GenerateForm.tsx
+// Eingabeformular für die Generierung von Prüfungsfragen
+
+import React from 'react';
+import type { GenerateRequestFormValues } from '../types/generate';
 import {
   QUESTION_TYPE_OPTIONS,
-  DEFAULT_FORM_VALUES,
   getQuestionTypeLabel,
 } from '../constants/formConstants';
-import { validate, type ValidationErrors } from '../validators/generateValidator';
+import { useGenerateForm } from '../hooks/useGenerateForm';
 
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
@@ -17,106 +15,19 @@ interface GenerateFormProps {
 }
 
 export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading = false }) => {
-  const [formValues, setFormValues] =
-    useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
-
-  const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-
-    // Anzahl-Feld: leer lassen erlaubt, sonst als Zahl speichern
-    if (name === 'count') {
-      const raw = value;
-      setFormValues((prev) => {
-        const next: GenerateRequestFormValues = {
-        ...prev,
-        count: raw === '' ? '' : Number(raw),
-        };
-        setErrors(validate(next));
-        return next;
-      });
-      return;
-    }
-
-    // Schwierigkeitsverteilung: auch hier dürfen Felder leer bleiben
-    if (name.startsWith('difficultyDistribution.')) {
-      const key =
-        name.split('.')[1] as keyof GenerateRequestFormValues['difficultyDistribution'];
-      const raw = value;
-      setFormValues((prev) => {
-        const next: GenerateRequestFormValues = {
-        ...prev,
-        difficultyDistribution: {
-          ...prev.difficultyDistribution,
-          [key]: raw === '' ? '' : Number(raw),
-        },
-        };
-        setErrors(validate(next));
-        return next;
-      });
-      return;
-    }
-
-    // Nur für topic-Feld (String)
-    if (name === 'topic') {
-      setFormValues((prev) => {
-        const next: GenerateRequestFormValues = { ...prev, topic: value };
-        setErrors(validate(next));
-        return next;
-      });
-      return;
-    }
-
-    // Fallback für unbekannte Felder (sollte nicht vorkommen)
-    console.warn(`Unbekanntes Formularfeld: ${name}`);
-  };
-
-  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const language = event.target.value as Language;
-    setFormValues((prev) => {
-      const next: GenerateRequestFormValues = { ...prev, language };
-      setErrors(validate(next));
-      return next;
-    });
-  };
-
-  // Fragetypen können mehrfach ausgewählt werden
-  const handleTypeToggle = (type: QuestionType) => {
-    setFormValues((prev) => {
-      const isSelected = prev.types.includes(type);
-      const nextTypes = isSelected
-        ? prev.types.filter((t) => t !== type)
-        : [...prev.types, type];
-
-      return {
-        ...prev,
-        types: nextTypes,
-      };
-    });
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    // Formular validieren bevor es abgeschickt wird
-    const validationErrors = validate(formValues);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setShowSuccessMessage(false);
-      return;
-    }
-
-    console.log('GenerateRequest form values:', formValues);
-    setShowSuccessMessage(true);
-
-    if (onSubmit) {
-      onSubmit(formValues);
-    }
-  };
+  // Hook verwaltet alle Formular-Logik: Eingaben, Validierung, Submit
+  const {
+    formValues,
+    displayValues,
+    errors,
+    showSuccessMessage,
+    isLoading: formIsLoading,
+    handleInputChange,
+    handleBlur,
+    handleLanguageChange,
+    handleTypeToggle,
+    handleSubmit,
+  } = useGenerateForm({ onSubmit, isLoading });
 
   return (
     <div className="card">
@@ -126,6 +37,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             Thema *
           </label>
           <input
+            // Input-Feld für das Thema der Fragen
             id="topic"
             name="topic"
             className={`form-input${errors.topic ? ' form-input--error' : ''}`}
@@ -141,6 +53,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
         </div>
 
         <div className="form-row">
+          {/* Dropdown-Menü für die Sprache der Fragen */}
           <label className="form-label" htmlFor="language">
             Sprache
           </label>
@@ -156,6 +69,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           </select>
         </div>
 
+        {/* Eingabefeld für die Anzahl der Fragen */}
         <div className="form-row">
           <label className="form-label" htmlFor="count">
             Anzahl Fragen
@@ -163,13 +77,17 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           <input
             id="count"
             name="count"
-            className="form-input"
-            type="number"
-            min={1}
-            max={50}
-            value={formValues.count}
+            className={`form-input${errors.count ? ' form-input--error' : ''}`}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={displayValues.count}
             onChange={handleInputChange}
+            onBlur={handleBlur}
           />
+          {errors.count && (
+            <p className="form-error-message">{errors.count}</p>
+          )}
         </div>
 
         <div className="form-row">
@@ -178,6 +96,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             Wählen Sie einen oder mehrere Fragetypen aus, die generiert werden sollen. 
             Sie können mehrere Optionen gleichzeitig auswählen.
           </p>
+          {/* Checkboxen für alle verfügbaren Fragetypen - mehrere können ausgewählt werden */}
           <div className="checkbox-group">
             {QUESTION_TYPE_OPTIONS.map((type) => (
               <label key={type} className="form-label">
@@ -191,10 +110,14 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               </label>
             ))}
           </div>
+          {errors.types && (
+            <p className="form-error-message">{errors.types}</p>
+          )}
         </div>
 
         <div className="form-row">
           <p className="form-section-title">Schwierigkeitsverteilung (%)</p>
+          {/* Drei Eingabefelder für die Prozent-Verteilung - Summe muss 100% ergeben */}
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-easy">
               Einfach (%)
@@ -203,14 +126,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-easy"
               name="difficultyDistribution.easy"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyEasy || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.easy}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyEasy}
               onChange={handleInputChange}
+              onBlur={handleBlur}
             />
+            {errors.difficultyEasy && (
+              <p className="form-error-message">{errors.difficultyEasy}</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-medium">
@@ -220,14 +147,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-medium"
               name="difficultyDistribution.medium"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyMedium || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.medium}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyMedium}
               onChange={handleInputChange}
+              onBlur={handleBlur}
             />
+            {errors.difficultyMedium && (
+              <p className="form-error-message">{errors.difficultyMedium}</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="difficulty-hard">
@@ -237,14 +168,18 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
               id="difficulty-hard"
               name="difficultyDistribution.hard"
               className={`form-input${
-                errors.difficulty ? ' form-input--error' : ''
+                errors.difficultyHard || errors.difficulty ? ' form-input--error' : ''
               }`}
-              type="number"
-              min={0}
-              max={100}
-              value={formValues.difficultyDistribution.hard}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.difficultyHard}
               onChange={handleInputChange}
+              onBlur={handleBlur}
             />
+            {errors.difficultyHard && (
+              <p className="form-error-message">{errors.difficultyHard}</p>
+            )}
           </div>
           <p className="form-helper">
             Die Summe aus Einfach, Mittel und Schwer muss 100% ergeben.
@@ -254,12 +189,13 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           )}
         </div>
 
+        {/* Button ist deaktiviert, wenn gerade geladen wird oder Fehler vorhanden sind */}
         <button 
           type="submit" 
           className="primary-button form-submit-button"
-          disabled={isLoading}
+          disabled={formIsLoading || Object.keys(errors).length > 0}
         >
-          {isLoading ? 'Wird generiert...' : 'Fragen generieren'}
+          {formIsLoading ? 'Wird generiert...' : 'Fragen generieren'}
         </button>
       </form>
       {showSuccessMessage && (

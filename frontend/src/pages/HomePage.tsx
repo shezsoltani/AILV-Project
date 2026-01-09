@@ -1,9 +1,12 @@
+// Startseite - Die erste Seite, die Benutzer sehen
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
+  // Hook zum Navigieren zwischen Seiten
   const navigate = useNavigate();
 
+  // Wenn der Button geklickt wird, wechseln wir zur Generierungsseite
   const handleGenerateClick = () => {
     navigate('/generate');
   };

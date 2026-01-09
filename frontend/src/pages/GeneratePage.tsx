@@ -4,6 +4,7 @@ import { QuestionsList } from '../components/QuestionsList';
 import { useQuestionWorkflow } from '../hooks/useQuestionWorkflow';
 
 const GeneratePage: React.FC = () => {
+  // Dieser Hook verwaltet den kompletten Workflow: Formular absenden, Fragen anzeigen, finalisieren
   const {
     questions,
     isModalOpen,
@@ -31,11 +32,13 @@ const GeneratePage: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Das Hauptformular zum Eingeben der Generierungsanforderungen */}
       <div className="page-form">
         <GenerateForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       </div>
 
-      
+      {/* Modal öffnet sich, sobald Fragen generiert wurden */}
       {isModalOpen && (
         <div className="questions-modal-overlay" role="dialog" aria-modal="true">
           <div className="questions-modal">
@@ -75,11 +78,13 @@ const GeneratePage: React.FC = () => {
               </div>
             )}
 
+            {/* Liste aller generierten Fragen - hier können sie bearbeitet werden */}
             <QuestionsList
               questions={questions}
               onQuestionChange={handleQuestionChange}
             />
 
+            {/* Buttons zum Speichern oder Schließen */}
             <div className="questions-modal-actions">
               <button
                 type="button"

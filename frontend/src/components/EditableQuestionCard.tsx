@@ -1,4 +1,6 @@
 // src/components/EditableQuestionCard.tsx
+// Einzelne Frage-Karte, die bearbeitet werden kann
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
@@ -67,6 +69,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
 
   return (
     <article className="question-card">
+      {/* Header zeigt Fragetyp und Schwierigkeitsgrad (kann geändert werden) */}
       <header className="question-header">
         <span className="question-type">Typ: {localQuestion.type}</span>
         <select
@@ -98,6 +101,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
       {localQuestion.type === 'MCQ' && localQuestion.choices && (
         <div className="question-choices-container">
           <label className="question-choices-label">Antwortmöglichkeiten:</label>
+          {/* Für jede Antwortmöglichkeit eine Textarea - richtige Antwort wird grün markiert */}
           {localQuestion.choices.map((choice, index) => {
             const isCorrect = showCorrectAnswer && localQuestion.correct_index === index;
             return (
