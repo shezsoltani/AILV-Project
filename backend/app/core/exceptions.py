@@ -38,3 +38,24 @@ class LLMAPIError(Exception):
         self.detail = detail
 
 
+class ArchiveNotFoundError(Exception):
+    def __init__(self, request_id: str | None = None, detail: str | None = None):
+        if request_id and detail:
+            message = f"Archive not found for request_id='{request_id}': {detail}"
+        elif request_id:
+            message = f"Archive not found for request_id='{request_id}'"
+        elif detail:
+            message = f"Archive not found: {detail}"
+        else:
+            message = "Archive not found"
+        super().__init__(message)
+        self.request_id = request_id
+        self.detail = detail
+
+
+class ArchiveServiceError(Exception):
+    def __init__(self, message: str, detail: str | None = None):
+        super().__init__(f"Archive service error: {message}")
+        self.message = message
+        self.detail = detail
+

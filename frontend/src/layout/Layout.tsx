@@ -1,3 +1,5 @@
+// src/layout/Layout.tsx
+// Layout-Komponente für die gesamte Anwendung (Header, Navigation, Inhalt)
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -26,6 +28,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <li className="app-nav-item">
                 <Link to="/generate" className="app-nav-link">
                   Fragen generieren
+                </Link>
+              </li>
+              <li className="app-nav-item">
+                <Link to="/archive" className="app-nav-link">
+                  Archiv
                 </Link>
               </li>
             </ul>

@@ -1,9 +1,12 @@
+// src/services/api.ts
 import type { GenerateRequestFormValues } from '../types/generate';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type {
   GenerateResponseDto,
   FinalizeRequest,
   FinalizeResponse,
+  ArchiveTopicsResponse,
+  ArchiveQuestionsResponse,
 } from '../types/api';
 import { toNumber } from '../utils/numberUtils';
 import { handleApiError } from '../utils/apiUtils';
@@ -86,3 +89,29 @@ export async function finalizeQuestions(
   );
 }
 
+// Archive API Functions
+export async function getArchiveTopics(): Promise<ArchiveTopicsResponse> {
+  return await apiCall<ArchiveTopicsResponse>(
+    `${API_BASE_URL}/api/archive/topics`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+export async function getArchiveQuestions(
+  requestId: string
+): Promise<ArchiveQuestionsResponse> {
+  return await apiCall<ArchiveQuestionsResponse>(
+    `${API_BASE_URL}/api/archive/${requestId}/questions`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}

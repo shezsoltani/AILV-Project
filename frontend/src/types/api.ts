@@ -1,3 +1,5 @@
+// src/types/api.ts
+// Interfaces für die API-Kommunikation
 import type { GeneratedQuestion } from './generatedQuestion';
 
 // Response DTO für die generateQuestions API
@@ -36,3 +38,23 @@ export interface FinalizeResponse {
   message: string;
 }
 
+// Archive Types
+export interface ArchiveTopic {
+  request_id: string;  // UUID
+  topic: string;
+  language: string;
+  question_count: number;
+  created_at: string;  // ISO datetime string
+  finalized_at: string;  // ISO datetime string
+}
+
+export interface ArchiveTopicsResponse {
+  topics: ArchiveTopic[];
+}
+
+export interface ArchiveQuestionsResponse {
+  request_id: string;  // UUID
+  topic: string;
+  language: string;
+  questions: GeneratedQuestion[];
+}
