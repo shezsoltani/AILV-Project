@@ -3,17 +3,25 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+import { getQuestionTypeLabel } from '../constants/formConstants';
 
+// Interface für die Props dieser Komponente
 interface EditableQuestionCardProps {
   question: GeneratedQuestion;
-  onQuestionChange: (updatedQuestion: GeneratedQuestion) => void;
+  questionNumber?: number;
+  totalQuestions?: number;
+  onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void;
   showCorrectAnswer?: boolean;
+  readOnly?: boolean;
 }
 
 export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
   question,
+  questionNumber,
+  totalQuestions,
   onQuestionChange,
   showCorrectAnswer = false,
+  readOnly = false,
 }) => {
   const [localQuestion, setLocalQuestion] = useState<GeneratedQuestion>(question);
 
@@ -24,12 +32,15 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
 
   // Änderungen sofort nach oben weitergeben
   const handleQuestionTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (readOnly || !onQuestionChange) return;
     const updated = { ...localQuestion, question: e.target.value };
     setLocalQuestion(updated);
     onQuestionChange(updated);
   };
 
+  // Schwierigkeitsgrad ändern
   const handleDifficultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (readOnly || !onQuestionChange) return;
     const updated = {
       ...localQuestion,
       difficulty: e.target.value as 'easy' | 'medium' | 'hard',
@@ -40,7 +51,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
 
   // Antwortmöglichkeiten für Multiple-Choice-Fragen bearbeiten
   const handleChoiceChange = (index: number, value: string) => {
-    if (!localQuestion.choices) {
+    if (readOnly || !onQuestionChange || !localQuestion.choices) {
       return;
     }
     const updatedChoices = [...localQuestion.choices];
@@ -69,18 +80,26 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
 
   return (
     <article className="question-card">
-      {/* Header zeigt Fragetyp und Schwierigkeitsgrad (kann geändert werden) */}
+      {/* Header zeigt Fragetyp, Schwierigkeitsgrad und Fragenzähler */}
       <header className="question-header">
-        <span className="question-type">Typ: {localQuestion.type}</span>
-        <select
-          value={localQuestion.difficulty}
-          onChange={handleDifficultyChange}
-          className={`question-difficulty-select question-difficulty-${localQuestion.difficulty}`}
-        >
-          <option value="easy">Einfach</option>
-          <option value="medium">Mittel</option>
-          <option value="hard">Schwer</option>
-        </select>
+        <div className="question-header-left">
+          <span className="question-type-badge">{getQuestionTypeLabel(localQuestion.type)}</span>
+          <select
+            value={localQuestion.difficulty}
+            onChange={handleDifficultyChange}
+            disabled={readOnly}
+            className={`question-difficulty-select question-difficulty-${localQuestion.difficulty}`}
+          >
+            <option value="easy">Einfach</option>
+            <option value="medium">Mittel</option>
+            <option value="hard">Schwer</option>
+          </select>
+        </div>
+        {questionNumber && totalQuestions && (
+          <span className="question-number">
+            Frage {questionNumber} von {totalQuestions}
+          </span>
+        )}
       </header>
 
       <div className="question-text-container">
@@ -91,6 +110,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
           id={`question-text-${localQuestion.id}`}
           value={localQuestion.question}
           onChange={handleQuestionTextChange}
+          readOnly={readOnly}
           className="question-text-input"
           rows={3}
           placeholder="Frage eingeben..."
@@ -110,7 +130,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                   htmlFor={`choice-${localQuestion.id}-${index}`} 
                   className="question-choice-label"
                 >
-                  {index + 1}.
+                  {String.fromCharCode(65 + index)})
                 </label>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <textarea
@@ -124,9 +144,12 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                     id={`choice-${localQuestion.id}-${index}`}
                     value={choice}
                     onChange={(e) => {
-                      adjustTextareaHeight(e.target);
-                      handleChoiceChange(index, e.target.value);
+                      if (!readOnly) {
+                        adjustTextareaHeight(e.target);
+                        handleChoiceChange(index, e.target.value);
+                      }
                     }}
+                    readOnly={readOnly}
                     className={`question-choice-input ${isCorrect ? 'question-choice-input--correct' : ''}`}
                     placeholder={`Antwortmöglichkeit ${index + 1}`}
                     rows={1}

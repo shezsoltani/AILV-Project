@@ -14,4 +14,6 @@ export const DEFAULT_ERROR_MESSAGES = {
   INVALID_JSON_RESPONSE: 'Antwort vom Backend konnte nicht als JSON gelesen werden.',
   NO_REQUEST_ID: 'Keine Request-ID vorhanden.',
   NO_QUESTIONS: 'Keine Fragen zum Finalisieren vorhanden.',
+  ARCHIVE_TOPICS_FAILED: 'Fehler beim Laden der Archiv-Themen.',
+  ARCHIVE_QUESTIONS_FAILED: 'Fehler beim Laden der archivierten Fragen.',
 } as const;

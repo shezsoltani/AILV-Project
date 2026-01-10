@@ -75,18 +75,20 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           <label className="form-label" htmlFor="count">
             Anzahl Fragen
           </label>
-          <input
-            id="count"
-            name="count"
-            className={`form-input${errors.count ? ' form-input--error' : ''}`}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={displayValues.count}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-          />
+          <div className="form-input-wrapper form-input-wrapper--numeric">
+            <input
+              id="count"
+              name="count"
+              className={`form-input${errors.count ? ' form-input--error' : ''}`}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={displayValues.count}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
           {errors.count && (
             <p className="form-error-message">{errors.count}</p>
           )}
@@ -101,14 +103,17 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
           {/* Checkboxen für alle verfügbaren Fragetypen - mehrere können ausgewählt werden */}
           <div className="checkbox-group">
             {QUESTION_TYPE_OPTIONS.map((type) => (
-              <label key={type} className="form-label">
+              <label 
+                key={type} 
+                className={`form-label checkbox-label ${formValues.types.includes(type) ? 'checkbox-label--checked' : ''}`}
+              >
                 <input
                   type="checkbox"
                   className="form-input"
                   checked={formValues.types.includes(type)}
                   onChange={() => handleTypeToggle(type)}
                 />
-                {getQuestionTypeLabel(type)}
+                <span>{getQuestionTypeLabel(type)}</span>
               </label>
             ))}
           </div>
@@ -124,20 +129,22 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             <label className="form-label" htmlFor="difficulty-easy">
               Einfach (%)
             </label>
-            <input
-              id="difficulty-easy"
-              name="difficultyDistribution.easy"
-              className={`form-input${
-                errors.difficultyEasy || errors.difficulty ? ' form-input--error' : ''
-              }`}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={displayValues.difficultyEasy}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-            />
+            <div className="form-input-wrapper form-input-wrapper--numeric">
+              <input
+                id="difficulty-easy"
+                name="difficultyDistribution.easy"
+                className={`form-input${
+                  errors.difficultyEasy || errors.difficulty ? ' form-input--error' : ''
+                }`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={displayValues.difficultyEasy}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
             {errors.difficultyEasy && (
               <p className="form-error-message">{errors.difficultyEasy}</p>
             )}
@@ -146,20 +153,22 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             <label className="form-label" htmlFor="difficulty-medium">
               Mittel (%)
             </label>
-            <input
-              id="difficulty-medium"
-              name="difficultyDistribution.medium"
-              className={`form-input${
-                errors.difficultyMedium || errors.difficulty ? ' form-input--error' : ''
-              }`}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={displayValues.difficultyMedium}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-            />
+            <div className="form-input-wrapper form-input-wrapper--numeric">
+              <input
+                id="difficulty-medium"
+                name="difficultyDistribution.medium"
+                className={`form-input${
+                  errors.difficultyMedium || errors.difficulty ? ' form-input--error' : ''
+                }`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={displayValues.difficultyMedium}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
             {errors.difficultyMedium && (
               <p className="form-error-message">{errors.difficultyMedium}</p>
             )}
@@ -168,20 +177,22 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
             <label className="form-label" htmlFor="difficulty-hard">
               Schwer (%)
             </label>
-            <input
-              id="difficulty-hard"
-              name="difficultyDistribution.hard"
-              className={`form-input${
-                errors.difficultyHard || errors.difficulty ? ' form-input--error' : ''
-              }`}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={displayValues.difficultyHard}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-            />
+            <div className="form-input-wrapper form-input-wrapper--numeric">
+              <input
+                id="difficulty-hard"
+                name="difficultyDistribution.hard"
+                className={`form-input${
+                  errors.difficultyHard || errors.difficulty ? ' form-input--error' : ''
+                }`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={displayValues.difficultyHard}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
             {errors.difficultyHard && (
               <p className="form-error-message">{errors.difficultyHard}</p>
             )}

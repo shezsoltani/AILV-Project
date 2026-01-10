@@ -29,6 +29,31 @@
   margin: 0 auto;
   text-align: center;
   padding: var(--spacing-2xl) var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.15s ease-out;
+}
+
+.home .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, #7c3aed 100%);
+  opacity: 0.6;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .home-title {
@@ -39,6 +64,10 @@
   letter-spacing: -0.03em;
   line-height: 1.3;
   max-width: 100%;
+  background: linear-gradient(135deg, var(--color-text-primary) 0%, #1e293b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .home-description {
@@ -52,7 +81,7 @@
 }
 
 .home-actions {
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
 }
 
 /* Page Styles */
@@ -116,6 +145,32 @@
   margin-bottom: var(--spacing-xs);
 }
 
+.form-input-wrapper {
+  position: relative;
+}
+
+.form-input-wrapper--numeric::after {
+  content: '';
+  position: absolute;
+  right: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 3L2 7h8L6 3zm0 6l4-4H2l4 4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.form-input-wrapper--numeric:hover::after {
+  opacity: 0.6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232563eb' d='M6 3L2 7h8L6 3zm0 6l4-4H2l4 4z'/%3E%3C/svg%3E");
+}
+
 .form-input,
 .form-textarea,
 .form select {
@@ -128,6 +183,10 @@
   background: var(--color-bg-card);
   color: var(--color-text-primary);
   transition: all var(--transition-base);
+}
+
+.form-input-wrapper--numeric .form-input {
+  padding-right: calc(var(--spacing-lg) + 1.5rem);
 }
 
 .form-input:focus,
@@ -160,22 +219,61 @@
 .checkbox-group label {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   cursor: pointer;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-base);
-  font-weight: 500;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  user-select: none;
 }
 
 .checkbox-group label:hover {
-  background-color: var(--color-primary-light);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(219, 234, 254, 0.5) 100%);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+  transform: translateY(-1px);
+}
+
+.checkbox-group label:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
 }
 
 .checkbox-group input[type="checkbox"] {
   width: 1.25rem;
   height: 1.25rem;
   cursor: pointer;
+  accent-color: var(--color-primary);
+  margin: 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.checkbox-label--checked {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  color: var(--color-primary);
+}
+
+.checkbox-label--checked:hover {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.checkbox-label--checked span {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
   accent-color: var(--color-primary);
 }
 

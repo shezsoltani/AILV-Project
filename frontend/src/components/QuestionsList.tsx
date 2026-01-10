@@ -7,12 +7,14 @@ import { EditableQuestionCard } from './EditableQuestionCard';
 // Definiert, welche Daten (Props) diese Komponente von außen erhält
 interface QuestionsListProps {
   questions: GeneratedQuestion[]; // Array aller generierten Fragen
-  onQuestionChange: (updatedQuestion: GeneratedQuestion) => void; // Callback bei Frageänderung
+  onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void; // Funktion bei Frageänderung (optional für read-only)
+  readOnly?: boolean; // Wenn true, werden Fragen nicht editierbar angezeigt
 }
 
 export const QuestionsList: React.FC<QuestionsListProps> = ({
   questions,
   onQuestionChange,
+  readOnly = false,
 }) => {
   // State für die Anzeige der richtigen Antworten (nur bei MCQ-Fragen relevant)
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(false);
@@ -24,18 +26,28 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({
 
   return (
     <section className="questions-section">
-      <p className="questions-description">
-        Die Generierung der Prüfungsfragen ist abgeschlossen. Die Inhalte, Schwierigkeitsgrade und Antwortoptionen können nun überprüft, editiert und final gespeichert werden.
-      </p>
+      {!readOnly && (
+        <p className="questions-description">
+          Die Generierung der Prüfungsfragen ist abgeschlossen. Die Inhalte, Schwierigkeitsgrade und Antwortoptionen können nun überprüft, editiert und final gespeichert werden.
+        </p>
+      )}
+      {readOnly && (
+        <p className="questions-description">
+          Archivierte Fragen (nur lesend)
+        </p>
+      )}
 
       {/* Für jede Frage wird eine bearbeitbare Karte gerendert */}
       <div className="questions-list">
-        {questions.map((q) => (
+        {questions.map((q, index) => (
           <EditableQuestionCard
             key={q.id}
             question={q}
+            questionNumber={index + 1}
+            totalQuestions={questions.length}
             onQuestionChange={onQuestionChange}
             showCorrectAnswer={showCorrectAnswer}
+            readOnly={readOnly}
           />
         ))}
       </div>
