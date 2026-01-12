@@ -16,7 +16,7 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({
   onQuestionChange,
   readOnly = false,
 }) => {
-  // State für die Anzeige der richtigen Antworten (nur bei MCQ-Fragen relevant)
+  // State für die Anzeige der richtigen Antworten (bei MCQ und TRUE_FALSE-Fragen relevant)
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(false);
 
   // Wenn keine Fragen vorhanden sind, nichts anzeigen
@@ -52,8 +52,8 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({
         ))}
       </div>
 
-      {/* Button nur anzeigen, wenn es mindestens eine MCQ-Frage mit richtiger Antwort gibt */}
-      {questions.some((q) => q.type === 'MCQ' && q.correct_index !== undefined) && (
+      {/* Button anzeigen, wenn es mindestens eine MCQ oder TRUE_FALSE-Frage mit richtiger Antwort gibt */}
+      {questions.some((q) => (q.type === 'MCQ' || q.type === 'TRUE_FALSE') && q.correct_index !== undefined) && (
         <div style={{ marginTop: 'var(--spacing-lg)', textAlign: 'center' }}>
           <button
             type="button"
