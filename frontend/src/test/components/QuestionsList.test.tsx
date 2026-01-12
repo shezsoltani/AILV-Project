@@ -30,4 +30,10 @@ describe('QuestionsList Component', () => {
     
     expect(screen.getByText(/Antwort ausblenden/i)).toBeInTheDocument();
   });
+
+  it('sollte nichts rendern (null), wenn die Fragen-Liste leer ist', () => {
+    const { container } = render(<QuestionsList questions={[]} />);
+    // container.firstChild ist null, wenn die Komponente bei [] nichts zurückgibt
+    expect(container.firstChild).toBeNull();
+  });
 });
