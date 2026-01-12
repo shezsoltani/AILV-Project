@@ -10,6 +10,7 @@ class FinalQuestion(BaseModel):
     stem: Optional[str] = None
     choices: Optional[list] = None
     correct_index: Optional[int] = None
+    answer: Optional[str] = None  # for SHORT_ANSWER: correct answer
     rationale: Optional[str] = None
 
 class FinalizeQuestionsRequest(BaseModel):

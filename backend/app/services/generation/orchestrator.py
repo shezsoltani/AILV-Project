@@ -85,6 +85,7 @@ async def generate_questions(
             difficulty=q.difficulty,
             choices=q.choices,
             correct_index=q.correct_index,
+            answer=q.answer,
             rationale=q.rationale,
         )
         for q in stored_questions

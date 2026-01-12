@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS generated_questions (
   stem TEXT,
   choices JSONB,
   correct_index INT,
+  answer TEXT,                      -- for SHORT_ANSWER: correct answer
   rationale TEXT,
   learning_objective TEXT NULL,
   bloom_level VARCHAR(50) NULL,
@@ -64,6 +65,7 @@ CREATE TABLE IF NOT EXISTS questions (
   stem TEXT,
   choices JSONB,                      -- for MCQ: array of choices
   correct_index INT,                  -- index into choices (0-based)
+  answer TEXT,                        -- for SHORT_ANSWER: correct answer
   rationale TEXT,
   learning_objective TEXT NULL,
   bloom_level VARCHAR(50) NULL,
@@ -130,13 +132,14 @@ Erzeuge daraus vollständige Prüfungsfragen zum Thema "{{topic}}".
 Regeln:
 - Schreibe jede Frage in der Sprache: {{language}}
 - type bestimmt das Format:
-  - MCQ: 1 Frage + 4-6 Antwortoptionen, genau 1 richtig
-  - Kurzantwort: 1 Frage + 1 kurze, korrekte Antwort
-  - TRUE_FALSE: 1 Frage + 2 Antwortoptionen(TRUE und FALSE), genau 1 richtig
+  - MCQ: 1 Frage + 4-6 Antwortoptionen, genau 1 richtig. Die rationale enthält eine Begründung, warum die richtige Antwort korrekt ist.
+  - Kurzantwort: 1 Frage + 1 kurze, korrekte Antwort. Die korrekte Antwort wird im Feld "answer" gespeichert.
+  - TRUE_FALSE: 1 Frage + 2 Antwortoptionen(TRUE und FALSE), genau 1 richtig. Die rationale enthält eine Begründung, warum die richtige Antwort korrekt ist.
 - difficulty beachten (Komplexität & Umfang)
 
 Antwortformat: JSON-Array mit Objekten:
-{ "stem": "Fragetext...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "…", "difficulty": "..."}
+- MCQ: { "stem": "Fragetext...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "Begründung...", "difficulty": "..."}
+- Kurzantwort: { "stem": "Fragetext...", "type": "SHORT_ANSWER", "answer": "Korrekte Antwort hier", "difficulty": "..."}
 
 {% if previous_error is defined and previous_error %}
 FEEDBACK ZUM LETZTEN VERSUCH:
@@ -225,13 +228,14 @@ Generate complete exam questions from it on the topic "{{topic}}".
 Rules:
 - Write each question in the language: {{language}}
 - type determines the format:
-  - MCQ: 1 question + 4-6 answer options, exactly 1 correct
-  - Short answer: 1 question + 1 short, correct answer
-  - TRUE_FALSE: 1 question + 2 answer options (TRUE and FALSE), exactly 1 correct
+  - MCQ: 1 question + 4-6 answer options, exactly 1 correct. The rationale contains an explanation of why the correct answer is right.
+  - Short answer: 1 question + 1 short, correct answer. The correct answer is stored in the "answer" field.
+  - TRUE_FALSE: 1 question + 2 answer options (TRUE and FALSE), exactly 1 correct. The rationale contains an explanation of why the correct answer is right.
 - Consider difficulty (complexity & scope)
 
 Response format: JSON array with objects:
-{ "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "...", "difficulty": "..."}
+- MCQ: { "stem": "Question text...", "type": "MCQ", "choices": ["A","B","C","D"], "correct_index": 2, "rationale": "Explanation...", "difficulty": "..."}
+- Short answer: { "stem": "Question text...", "type": "SHORT_ANSWER", "answer": "Correct answer here", "difficulty": "..."}
 
 {% if previous_error is defined and previous_error %}
 FEEDBACK:

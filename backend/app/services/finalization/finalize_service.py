@@ -33,6 +33,7 @@ def finalize_questions(
                 stem=q.stem or gq.stem,
                 choices=q.choices or gq.choices,
                 correct_index=q.correct_index or gq.correct_index,
+                answer=q.answer or gq.answer,
                 rationale=q.rationale or gq.rationale,
             )
         )

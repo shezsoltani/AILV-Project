@@ -111,6 +111,7 @@ class GeneratedQuestion(Base):
     stem = Column(Text, nullable=True)
     choices = Column(JSONB, nullable=True)
     correct_index = Column(Integer, nullable=True)
+    answer = Column(Text, nullable=True)  # for SHORT_ANSWER: correct answer
     rationale = Column(Text, nullable=True)
 
     learning_objective = Column(Text, nullable=True)
@@ -153,6 +154,7 @@ class Question(Base):
     stem = Column(Text, nullable=True)
     choices = Column(JSONB, nullable=True)
     correct_index = Column(Integer, nullable=True)
+    answer = Column(Text, nullable=True)  # for SHORT_ANSWER: correct answer
     rationale = Column(Text, nullable=True)
 
     learning_objective = Column(Text, nullable=True)

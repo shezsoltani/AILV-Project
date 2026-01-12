@@ -1,3 +1,4 @@
+// src/utils/questionUtils.ts
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type { FinalQuestion } from '../types/api';
 
@@ -21,6 +22,7 @@ export function calculateQuestionDiff(
       if (q.type) finalQuestion.type = q.type;
       if (q.choices) finalQuestion.choices = q.choices;
       if (q.correct_index !== undefined) finalQuestion.correct_index = q.correct_index;
+      if (q.answer) finalQuestion.answer = q.answer;
       if (q.rationale) finalQuestion.rationale = q.rationale;
       
       return finalQuestion;
@@ -55,6 +57,9 @@ export function calculateQuestionDiff(
     
     if (q.correct_index !== originalQ.correct_index) {
       finalQuestion.correct_index = q.correct_index;
+    }
+    if (q.answer !== originalQ.answer) {
+      finalQuestion.answer = q.answer;
     }
     if (q.rationale !== originalQ.rationale) {
       finalQuestion.rationale = q.rationale;

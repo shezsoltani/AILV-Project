@@ -21,6 +21,7 @@ export interface FinalQuestion {
   stem?: string;
   choices?: string[];
   correct_index?: number;
+  answer?: string;  // Für SHORT_ANSWER: korrekte Antwort
   rationale?: string;
 }
 
