@@ -125,8 +125,8 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
         />
       </div>
 
-      {/* Nur bei Multiple-Choice-Fragen die Antwortmöglichkeiten anzeigen */}
-      {localQuestion.type === 'MCQ' && localQuestion.choices && (
+      {/* Bei Multiple-Choice und Wahr/Falsch-Fragen die Antwortmöglichkeiten anzeigen */}
+      {(localQuestion.type === 'MCQ' || localQuestion.type === 'TRUE_FALSE') && localQuestion.choices && (
         <div className="question-choices-container">
           <label className="question-choices-label">Antwortmöglichkeiten:</label>
           {/* Für jede Antwortmöglichkeit eine Textarea - richtige Antwort wird grün markiert */}
