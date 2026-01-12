@@ -45,6 +45,7 @@ export interface ArchiveTopic {
   topic: string;
   language: string;
   question_count: number;
+  types: string[];  // Fragetypen (MCQ, SHORT_ANSWER, TRUE_FALSE)
   created_at: string;  // ISO datetime string
   finalized_at: string;  // ISO datetime string
 }

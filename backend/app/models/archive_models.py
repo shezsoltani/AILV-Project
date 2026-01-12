@@ -15,6 +15,7 @@ class ArchiveTopicResponse(BaseModel):
     topic: str
     language: str
     question_count: int
+    types: List[str] = Field(default_factory=list)  # Fragetypen (MCQ, SHORT_ANSWER, TRUE_FALSE)
     created_at: datetime
     finalized_at: datetime
 
