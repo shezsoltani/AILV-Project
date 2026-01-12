@@ -3,7 +3,7 @@ from uuid import UUID
 from ...core.exceptions import LLMAPIError
 from ..templateService import get_template_by_stage, render_template
 from ..llm_client import call_llm
-from ..persistence.prompt_repo import insert_prompt_entry
+from ...persistence.prompt_repo import insert_prompt_entry
 
 async def run_stage(
     db: Session,

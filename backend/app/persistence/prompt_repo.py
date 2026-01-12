@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from ...models.sql_models import PromptEntry
+from ..models.sql_models import PromptEntry
 from uuid import UUID
 
 def insert_prompt_entry(

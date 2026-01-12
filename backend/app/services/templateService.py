@@ -11,9 +11,6 @@ def get_template_by_stage(db: Session, stage: str, language: str = "de") -> str:
     if stage is None:
         raise PromptTemplateNotFound(stage=stage, language=language)
 
-    stage_norm = stage.strip()
-    lang_norm = (language or "de").strip()
-
     # case-insensitive Vergleich 
     tmpl_obj = (
         db.query(PromptTemplate)
@@ -29,7 +26,7 @@ def get_template_by_stage(db: Session, stage: str, language: str = "de") -> str:
     if value is None:
         raise PromptTemplateNotFound(stage=stage, language=language)
 
-    # defensive: ensure string and trim leading CRLF/Whitespace
+    # ensure string and trim leading CRLF/Whitespace
     if not isinstance(value, str):
         value = str(value)
 

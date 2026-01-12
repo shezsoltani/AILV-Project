@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
-from ...models.sql_models import GeneratedQuestion as ORMGeneratedQuestion
+from ..models.sql_models import GeneratedQuestion as ORMGeneratedQuestion
 
 from uuid import UUID
 from sqlalchemy.orm import Session
 from typing import List
 
-from ...models.sql_models import GeneratedQuestion as ORMGeneratedQuestion
+from ..models.sql_models import GeneratedQuestion as ORMGeneratedQuestion
 
 
 def store_generated_questions(

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..models.generate_models import GenerateRequest, GenerateResponse
 from ..services.generation.orchestrator import generate_questions
 from ..services.validators.request_validator import GenerateRequestValidator
-from ..models.finalization_models import FinalizeQuestionsRequest, FinalQuestion, FinalizeQuestionsResponse
+from ..models.finalization_models import FinalizeQuestionsRequest, FinalizeQuestionsResponse
 from ..services.finalization.finalize_service import finalize_questions
 
 
@@ -29,14 +29,14 @@ async def generate(
 
 @router.post("/finalize", response_model=FinalizeQuestionsResponse)
 def finalize_questions_endpoint(
-    payload: FinalizeQuestionsRequest,
+    req: FinalizeQuestionsRequest,
     db: Session = Depends(get_db),
 ):
     try:
-        count = finalize_questions(db=db, payload=payload)
+        count = finalize_questions(db=db, req=req)
         return FinalizeQuestionsResponse(
             success=True,
-            request_id=payload.request_id,
+            request_id=req.request_id,
             finalized_count=count,
             message="Questions finalized successfully",
         )

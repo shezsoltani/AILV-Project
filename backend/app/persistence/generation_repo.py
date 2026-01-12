@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from ...models.sql_models import GenerationRequest as ORMGenReq
-from ...models.generate_models import (
+from ..models.sql_models import GenerationRequest as ORMGenReq
+from ..models.generate_models import (
     GenerateRequest
 )
 
