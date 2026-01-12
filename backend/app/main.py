@@ -11,8 +11,11 @@ from .core.exceptions import (
     SkeletonValidationError, 
     LLMAPIError,
     ImproveValidationError,
-    ContentValidationError)
+    ContentValidationError,
+    ArchiveNotFoundError,
+    ArchiveServiceError)
 from .api.routes_generate import router as generate_router
+from .api.routes_archive import router as archive_router
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +94,24 @@ async def handle_llm_api_error(request: Request, exc: LLMAPIError):
         content={"error": "llm_api_error", "detail": exc.message}
     )
 
+@app.exception_handler(ArchiveNotFoundError)
+async def handle_archive_not_found_error(request: Request, exc: ArchiveNotFoundError):
+    return JSONResponse(
+        status_code=404,
+        content={"error": "archive_not_found", "detail": str(exc)}
+    )
+
+@app.exception_handler(ArchiveServiceError)
+async def handle_archive_service_error(request: Request, exc: ArchiveServiceError):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "archive_service_error", "detail": str(exc)}
+    )
+
 @app.get("/health")
 def health():
     return {"status": "ok", "message": "Backend läuft!"}
 
 # --- API-Routen registrieren ---
 app.include_router(generate_router, prefix="/api")
+app.include_router(archive_router, prefix="/api")

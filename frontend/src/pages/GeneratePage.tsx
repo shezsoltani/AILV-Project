@@ -1,48 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { GenerateForm } from '../components/GenerateForm';
 import { QuestionsList } from '../components/QuestionsList';
-import type { GeneratedQuestion } from '../types/generatedQuestion';
-import { generateQuestions } from '../services/api';
-import type { GenerateRequestFormValues } from '../types/generate';
+import { useQuestionWorkflow } from '../hooks/useQuestionWorkflow';
 
 const GeneratePage: React.FC = () => {
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleFormSubmit = async (values: GenerateRequestFormValues) => {
-    console.log('handleFormSubmit wurde aufgerufen mit:', values);
-    setIsLoading(true);
-    setErrorMessage(null);
-    //setIsModalOpen(false); 
-
-    try {
-      const result = await generateQuestions(values);
-      setQuestions(result);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error('Fehler beim Generieren der Fragen:', error);
-      let errorText = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
-      
-      if (error instanceof Error) {
-        errorText = error.message;
-      } else if (typeof error === 'string') {
-        errorText = error;
-      }
-      
-      setErrorMessage(errorText);
-      // Modal darf nicht geöffnet werden, wenn ein Fehler vorliegt
-      setIsModalOpen(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  // Dieser Hook verwaltet den kompletten Workflow: Formular absenden, Fragen anzeigen, finalisieren
+  const {
+    questions,
+    isModalOpen,
+    errorMessage,
+    successMessage,
+    isLoading,
+    handleFormSubmit,
+    handleCloseModal,
+    handleQuestionChange,
+    handleFinalizeQuestions,
+  } = useQuestionWorkflow();
 
   return (
     <div className="page">
@@ -51,20 +24,22 @@ const GeneratePage: React.FC = () => {
         Hier können Sie das Eingabeformular für die Generierung von Prüfungsfragen verwenden.
         Geben Sie Ihre Anforderungen ein und lassen Sie die KI passende Fragen erstellen.
       </p>
-      {/* Fehlerbanner sichtbar über dem Formular */}
-      {errorMessage && (
+      {/* Fehlerbanner sichtbar über dem Formular (nur wenn Modal nicht offen) */}
+      {errorMessage && !isModalOpen && (
         <div className="error-banner" role="alert">
           <div className="error-banner-content">
             <strong>Fehler:</strong> {errorMessage}
           </div>
         </div>
       )}
+      
+      {/* Das Hauptformular zum Eingeben der Generierungsanforderungen */}
       <div className="page-form">
         <GenerateForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       </div>
 
-      
-      {isModalOpen && !errorMessage && (
+      {/* Modal öffnet sich, sobald Fragen generiert wurden */}
+      {isModalOpen && (
         <div className="questions-modal-overlay" role="dialog" aria-modal="true">
           <div className="questions-modal">
             <div className="questions-modal-header">
@@ -79,13 +54,51 @@ const GeneratePage: React.FC = () => {
               </button>
             </div>
 
-            <QuestionsList questions={questions} />
+            {errorMessage && (
+              <div className="error-banner" role="alert" style={{ margin: '1rem' }}>
+                <div className="error-banner-content">
+                  <strong>Fehler:</strong> {errorMessage}
+                </div>
+              </div>
+            )}
+            {successMessage && (
+              <div
+                className="success-banner"
+                role="alert"
+                style={{
+                  margin: '1rem',
+                  padding: '1rem',
+                  backgroundColor: '#d4edda',
+                  color: '#155724',
+                  borderRadius: '4px',
+                  border: '1px solid #c3e6cb',
+                }}
+              >
+                <strong>Erfolg:</strong> {successMessage}
+              </div>
+            )}
 
+            {/* Liste aller generierten Fragen - hier können sie bearbeitet werden */}
+            <QuestionsList
+              questions={questions}
+              onQuestionChange={handleQuestionChange}
+            />
+
+            {/* Buttons zum Speichern oder Schließen */}
             <div className="questions-modal-actions">
               <button
                 type="button"
                 className="primary-button"
+                onClick={handleFinalizeQuestions}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Wird gespeichert...' : 'Fragen speichern'}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
                 onClick={handleCloseModal}
+                disabled={isLoading}
               >
                 Schließen
               </button>

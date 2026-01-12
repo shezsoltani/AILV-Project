@@ -1,40 +1,69 @@
 // src/components/QuestionsList.tsx
-import React from 'react';
+// Container, der alle generierten Fragen anzeigt und verwaltet.
+import React, { useState } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+import { EditableQuestionCard } from './EditableQuestionCard';
 
+// Definiert, welche Daten (Props) diese Komponente von außen erhält
 interface QuestionsListProps {
-  questions: GeneratedQuestion[];
+  questions: GeneratedQuestion[]; // Array aller generierten Fragen
+  onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void; // Funktion bei Frageänderung (optional für read-only)
+  readOnly?: boolean; // Wenn true, werden Fragen nicht editierbar angezeigt
 }
 
-export const QuestionsList: React.FC<QuestionsListProps> = ({ questions }) => {
+export const QuestionsList: React.FC<QuestionsListProps> = ({
+  questions,
+  onQuestionChange,
+  readOnly = false,
+}) => {
+  // State für die Anzeige der richtigen Antworten (nur bei MCQ-Fragen relevant)
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(false);
+
+  // Wenn keine Fragen vorhanden sind, nichts anzeigen
   if (questions.length === 0) {
     return null;
   }
 
   return (
     <section className="questions-section">
-      <p className="questions-description">
-        Die KI hat die Struktur der Prüfungsfragen generiert (Typ und Schwierigkeitsgrad). Der eigentliche Frage-Text wird in einem späteren Schritt erzeugt.
-      </p>
+      {!readOnly && (
+        <p className="questions-description">
+          Die Generierung der Prüfungsfragen ist abgeschlossen. Die Inhalte, Schwierigkeitsgrade und Antwortoptionen können nun überprüft, editiert und final gespeichert werden.
+        </p>
+      )}
+      {readOnly && (
+        <p className="questions-description">
+          Archivierte Fragen (nur lesend)
+        </p>
+      )}
 
+      {/* Für jede Frage wird eine bearbeitbare Karte gerendert */}
       <div className="questions-list">
-        {questions.map((q, idx) => (
-          <article key={`${q.question}-${idx}`} className="question-card">
-            <header className="question-header">
-              <span className="question-type">Typ: {q.type}</span>
-              <span
-                className={`question-difficulty question-difficulty-${q.difficulty}`}
-              >
-                {q.difficulty === 'easy' && 'Einfach'}
-                {q.difficulty === 'medium' && 'Mittel'}
-                {q.difficulty === 'hard' && 'Schwer'}
-              </span>
-            </header>
-
-            <p className="question-text">{q.question}</p>
-          </article>
+        {questions.map((q, index) => (
+          <EditableQuestionCard
+            key={q.id}
+            question={q}
+            questionNumber={index + 1}
+            totalQuestions={questions.length}
+            onQuestionChange={onQuestionChange}
+            showCorrectAnswer={showCorrectAnswer}
+            readOnly={readOnly}
+          />
         ))}
       </div>
+
+      {/* Button nur anzeigen, wenn es mindestens eine MCQ-Frage mit richtiger Antwort gibt */}
+      {questions.some((q) => q.type === 'MCQ' && q.correct_index !== undefined) && (
+        <div style={{ marginTop: 'var(--spacing-lg)', textAlign: 'center' }}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setShowCorrectAnswer(!showCorrectAnswer)}
+          >
+            {showCorrectAnswer ? 'Antwort ausblenden' : 'Richtige Antwort anzeigen'}
+          </button>
+        </div>
+      )}
     </section>
   );
 };

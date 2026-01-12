@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from uuid import UUID
+from uuid import UUID, uuid4
 from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, SkeletonValidationError
 from ..validators.skeleton_validator import validate_skeleton
@@ -27,6 +27,10 @@ async def generate_valid_skeleton(
 
         try:
             skeleton = safe_parse_json(llm_response)
+            # Füge jedem Skeleton-Item eine UUID hinzu (Template generiert kein id)
+            for item in skeleton:
+                if "id" not in item:
+                    item["id"] = str(uuid4())
             validate_skeleton(skeleton, expected_count)
             return skeleton  # Erfolg
 
