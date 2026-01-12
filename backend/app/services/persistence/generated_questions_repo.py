@@ -29,6 +29,7 @@ def store_generated_questions(
             stem=q.get("stem"),
             choices=q.get("choices"),
             correct_index=q.get("correct_index"),
+            answer=q.get("answer"),
             rationale=q.get("rationale"),
         )
         objs.append(obj)

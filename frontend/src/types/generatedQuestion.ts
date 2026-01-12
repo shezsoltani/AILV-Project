@@ -10,5 +10,6 @@ export interface GeneratedQuestion {
   difficulty: QuestionDifficulty;
   choices?: string[];        // Optionale Auswahlmöglichkeiten
   correct_index?: number;    // Index der richtigen Antwort
+  answer?: string;           // Für SHORT_ANSWER: korrekte Antwort
   rationale?: string;        // Begründung für die Antwort
 }
