@@ -16,6 +16,7 @@ from .core.exceptions import (
     ArchiveServiceError)
 from .api.routes_generate import router as generate_router
 from .api.routes_archive import router as archive_router
+from .api.routes_finalize import router as finalize_router
 
 logger = logging.getLogger(__name__)
 
@@ -115,3 +116,4 @@ def health():
 # --- API-Routen registrieren ---
 app.include_router(generate_router, prefix="/api")
 app.include_router(archive_router, prefix="/api")
+app.include_router(finalize_router, prefix="/api")

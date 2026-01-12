@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
 
-from ...models.sql_models import GenerationRequest, Question
-
+from ..models.sql_models import GenerationRequest, Question
 
 # Holt ein Thema und alle zugehörigen finalisierten Fragen aus der Datenbank
 def get_archive_questions(db: Session, request_id: UUID) -> tuple[GenerationRequest | None, List[Question]]:

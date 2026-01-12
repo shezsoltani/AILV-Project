@@ -13,7 +13,7 @@ from ...models.archive_models import (
 from ...models.generate_models import GeneratedQuestion
 from ...models.sql_models import Question, GenerationRequest
 from ...core.exceptions import ArchiveNotFoundError, ArchiveServiceError
-from ..persistence.archive_repo import (
+from ...persistence.archive_repo import (
     get_archive_questions,
 )
 
