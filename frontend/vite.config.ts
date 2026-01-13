@@ -7,7 +7,7 @@ export default defineConfig({
   // ... andere Konfigurationen
   define: {
     // Hier definieren wir die Variable für die Testumgebung
-    'import.meta.env.VITE_API_BASE': JSON.stringify('http://localhost:8000/api'),
+    'import.meta.env.VITE_API_BASE': JSON.stringify('http://localhost:8000'),
   },
   server: {
     host: '0.0.0.0',
