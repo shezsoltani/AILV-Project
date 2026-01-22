@@ -10,19 +10,16 @@ router = APIRouter()
 
 def get_validator():
     return GenerateRequestValidator()
-
+    
 @router.post("/generate", response_model=GenerateResponse)
 async def generate(
     req: GenerateRequest,
     validator: GenerateRequestValidator = Depends(get_validator),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    try:
-        validator.validate(req)
-        result = await generate_questions(req, db) 
-        return result
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    validator.validate(req)
+    return await generate_questions(req, db)
+
 
 
 

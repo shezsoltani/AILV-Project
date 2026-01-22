@@ -8,6 +8,7 @@ from ...persistence.question_repo import (
     add_final_question,
     delete_generated_questions_by_request,
 )
+from ...core.exceptions import FinalizeStateError
 
 def finalize_questions(
     *,
@@ -17,7 +18,9 @@ def finalize_questions(
     generated = get_generated_questions_by_request(db, req.request_id)
 
     if not generated:
-        raise RuntimeError("No generated questions found")
+        raise FinalizeStateError(
+            "No generated questions found for this request"
+        )
 
     gq_map = {q.id: q for q in generated}
     finalized_count = 0
