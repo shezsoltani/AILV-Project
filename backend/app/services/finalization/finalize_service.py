@@ -27,18 +27,19 @@ def finalize_questions(
         if not gq:
             continue
 
-        final_question = Question(
-            request_id=gq.request_id,
-            prompt_id=gq.prompt_id,
-            type=q.type or gq.type,
-            difficulty=q.difficulty or gq.difficulty,
-            stem=q.stem or gq.stem,
-            choices=q.choices or gq.choices,
-            correct_index=q.correct_index or gq.correct_index,
-            rationale=q.rationale or gq.rationale,
+        db.add(
+            Question(
+                request_id=gq.request_id,
+                prompt_id=gq.prompt_id,
+                type=q.type or gq.type,
+                difficulty=q.difficulty or gq.difficulty,
+                stem=q.stem or gq.stem,
+                choices=q.choices or gq.choices,
+                correct_index=q.correct_index or gq.correct_index,
+                answer=q.answer or gq.answer,
+                rationale=q.rationale or gq.rationale,
+            )
         )
-
-        add_final_question(db, final_question)
         finalized_count += 1
 
     # alles atomar speichern

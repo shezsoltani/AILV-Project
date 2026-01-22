@@ -27,6 +27,7 @@ class GeneratedQuestion(BaseModel):
 
     choices: Optional[List[str]] = None
     correct_index: Optional[int] = None
+    answer: Optional[str] = None  # for SHORT_ANSWER: correct answer
     rationale: Optional[str] = None
 
 class GenerateResponse(BaseModel):

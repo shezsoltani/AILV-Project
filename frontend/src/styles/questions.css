@@ -258,6 +258,56 @@
   border-top: 1px solid #e0e0e0;
 }
 
+/* Question Answer Container (für SHORT_ANSWER) */
+.question-answer-container {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid #e0e0e0;
+}
+
+.question-answer-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family);
+  line-height: 1.5;
+}
+
+.question-answer-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  background: #f8f9fa;
+  color: var(--color-text-primary);
+  transition: all var(--transition-base);
+  resize: none;
+  line-height: 1.5;
+  min-height: 3rem;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.question-answer-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.question-answer-input:hover {
+  border-color: #d0d7de;
+  background: #ffffff;
+}
+
+.question-answer-input::placeholder {
+  color: var(--color-text-muted);
+}
+
 .question-choices-label {
   display: block;
   font-size: var(--font-size-sm);

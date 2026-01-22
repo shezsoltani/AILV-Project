@@ -42,6 +42,7 @@ def get_all_finalized_topics(db: Session) -> ArchiveTopicsResponse:
                     topic=req.topic,
                     language=req.language,
                     question_count=question_count,
+                    types=req.types or [],  # Fragetypen aus GenerationRequest
                     created_at=req.created_at,
                     finalized_at=finalized_at,
                 )
@@ -80,6 +81,7 @@ def get_questions_for_request(
                 difficulty=q.difficulty or "",
                 choices=q.choices,
                 correct_index=q.correct_index,
+                answer=q.answer,
                 rationale=q.rationale,
             )
             for q in questions

@@ -1,10 +1,11 @@
+// Seite für die Generierung von Prüfungsfragen
 import React from 'react';
 import { GenerateForm } from '../components/GenerateForm';
 import { QuestionsList } from '../components/QuestionsList';
 import { useQuestionWorkflow } from '../hooks/useQuestionWorkflow';
 
 const GeneratePage: React.FC = () => {
-  // Dieser Hook verwaltet den kompletten Workflow: Formular absenden, Fragen anzeigen, finalisieren
+  //  Hook verwaltet den kompletten Workflow: Formular absenden, Fragen anzeigen, finalisieren
   const {
     questions,
     isModalOpen,
@@ -17,6 +18,7 @@ const GeneratePage: React.FC = () => {
     handleFinalizeQuestions,
   } = useQuestionWorkflow();
 
+  // Rendern der Seite
   return (
     <div className="page">
       <h1 className="page-title">Fragen generieren</h1>
@@ -33,7 +35,7 @@ const GeneratePage: React.FC = () => {
         </div>
       )}
       
-      {/* Das Hauptformular zum Eingeben der Generierungsanforderungen */}
+      {/*  Hauptformular zum Eingeben der Generierungsanforderungen */}
       <div className="page-form">
         <GenerateForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       </div>
@@ -43,7 +45,7 @@ const GeneratePage: React.FC = () => {
         <div className="questions-modal-overlay" role="dialog" aria-modal="true">
           <div className="questions-modal">
             <div className="questions-modal-header">
-              <h2>Generierte Fragen-Struktur</h2>
+              <h2>Generierte Fragen</h2>
               <button
                 type="button"
                 className="questions-modal-close"

@@ -21,6 +21,7 @@ export interface FinalQuestion {
   stem?: string;
   choices?: string[];
   correct_index?: number;
+  answer?: string;  // Für SHORT_ANSWER: korrekte Antwort
   rationale?: string;
 }
 
@@ -44,6 +45,7 @@ export interface ArchiveTopic {
   topic: string;
   language: string;
   question_count: number;
+  types: string[];  // Fragetypen (MCQ, SHORT_ANSWER, TRUE_FALSE)
   created_at: string;  // ISO datetime string
   finalized_at: string;  // ISO datetime string
 }

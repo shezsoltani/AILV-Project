@@ -1,0 +1,49 @@
+import React from 'react'; // Expliziter Import für Vitest
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { ArchiveTopicCard } from '../../components/ArchiveTopicCard';
+
+describe('ArchiveTopicCard Component', () => {
+  const mockTopic = {
+    request_id: '123-abc',
+    topic: 'Quantenphysik',
+    language: 'de',
+    question_count: 5,
+    types: ['MCQ'],
+    created_at: '2026-01-10T10:00:00Z',
+    finalized_at: '2026-01-10T11:00:00Z',
+  };
+
+  const mockOnSelect = vi.fn(); // Eine Fake-Funktion zum Überprüfen von Aufrufen
+  const mockFormatDate = (d: string) => d; // Einfacher Formatter für den Test
+
+  it('sollte den Titel und die Anzahl der Fragen anzeigen', () => {
+    render(
+      <ArchiveTopicCard 
+        topic={mockTopic} 
+        onSelect={mockOnSelect} 
+        formatDate={mockFormatDate} 
+      />
+    );
+
+    // Prüfen, ob der Text im Dokument ist
+    expect(screen.getByText('Quantenphysik')).toBeInTheDocument();
+    expect(screen.getByText(/5 Fragen/i)).toBeInTheDocument();
+  });
+
+  it('sollte onSelect aufrufen, wenn die Karte angeklickt wird', () => {
+    render(
+      <ArchiveTopicCard 
+        topic={mockTopic} 
+        onSelect={mockOnSelect} 
+        formatDate={mockFormatDate} 
+      />
+    );
+
+    const card = screen.getByRole('button');
+    fireEvent.click(card);
+
+    // Prüfen, ob die Funktion mit der richtigen ID aufgerufen wurde
+    expect(mockOnSelect).toHaveBeenCalledWith('123-abc');
+  });
+});

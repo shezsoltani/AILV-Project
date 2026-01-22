@@ -61,6 +61,14 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
     onQuestionChange(updated);
   };
 
+  // Erwartete Antwort für Kurzantwort-Fragen bearbeiten
+  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (readOnly || !onQuestionChange) return;
+    const updated = { ...localQuestion, answer: e.target.value };
+    setLocalQuestion(updated);
+    onQuestionChange(updated);
+  };
+
   // Automatische Höhenanpassung für Textareas
   const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
 
@@ -76,7 +84,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
         adjustTextareaHeight(textarea);
       }
     });
-  }, [localQuestion.choices]);
+  }, [localQuestion.choices, localQuestion.answer]);
 
   return (
     <article className="question-card">
@@ -117,8 +125,8 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
         />
       </div>
 
-      {/* Nur bei Multiple-Choice-Fragen die Antwortmöglichkeiten anzeigen */}
-      {localQuestion.type === 'MCQ' && localQuestion.choices && (
+      {/* Bei Multiple-Choice und Wahr/Falsch-Fragen die Antwortmöglichkeiten anzeigen */}
+      {(localQuestion.type === 'MCQ' || localQuestion.type === 'TRUE_FALSE') && localQuestion.choices && (
         <div className="question-choices-container">
           <label className="question-choices-label">Antwortmöglichkeiten:</label>
           {/* Für jede Antwortmöglichkeit eine Textarea - richtige Antwort wird grün markiert */}
@@ -161,6 +169,39 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Bei Kurzantwort-Fragen die erwartete Antwort anzeigen */}
+      {localQuestion.type === 'SHORT_ANSWER' && (
+        <div className="question-answer-container">
+          <label 
+            htmlFor={`answer-${localQuestion.id}`} 
+            className="question-answer-label"
+          >
+            Erwartete Antwort:
+          </label>
+          <textarea
+            ref={(el) => {
+              const key = `answer-${localQuestion.id}`;
+              textareaRefs.current[key] = el;
+              if (el) {
+                adjustTextareaHeight(el);
+              }
+            }}
+            id={`answer-${localQuestion.id}`}
+            value={localQuestion.answer || ''}
+            onChange={(e) => {
+              if (!readOnly) {
+                adjustTextareaHeight(e.target);
+                handleAnswerChange(e);
+              }
+            }}
+            readOnly={readOnly}
+            className="question-answer-input"
+            placeholder="Erwartete Antwort eingeben..."
+            rows={2}
+          />
         </div>
       )}
     </article>

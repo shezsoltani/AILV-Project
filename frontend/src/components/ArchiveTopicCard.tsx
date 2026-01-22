@@ -3,12 +3,13 @@
 
 import React from 'react';
 import type { ArchiveTopic } from '../types/api';
+import { getQuestionTypeLabel } from '../constants/formConstants';
 
 // Interface für die Props dieser Komponente
 interface ArchiveTopicCardProps {
   topic: ArchiveTopic; // Archiv-Thema, das angezeigt werden soll
-  onSelect: (requestId: string) => void; // Callback-Funktion bei Klick/Auswahl
-  formatDate: (dateString: string) => string; // Funktion zum Formatieren von Datumsstrings
+  onSelect: (requestId: string) => void; 
+  formatDate: (dateString: string) => string; 
 }
 
 export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
@@ -47,6 +48,11 @@ export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
               <span className="archive-topic-meta-badge archive-topic-meta-badge--language">
                 {topic.language.toUpperCase()}
               </span>
+              {topic.types && topic.types.length > 0 && topic.types.map((type, index) => (
+                <span key={index} className="archive-topic-meta-badge archive-topic-meta-badge--type">
+                  {getQuestionTypeLabel(type as 'MCQ' | 'SHORT_ANSWER' | 'TRUE_FALSE')}
+                </span>
+              ))}
               <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
                 {topic.question_count} {topic.question_count === 1 ? 'Frage' : 'Fragen'}
               </span>
@@ -55,7 +61,6 @@ export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
           
           {/* Metadaten des Themas: Zeitstempel */}
           <div className="archive-topic-meta">
-
             {/* Zeitstempel: Erstellt und Finalisiert */}
             <div className="archive-topic-timestamp">
               <div className="archive-topic-timestamp-item">
