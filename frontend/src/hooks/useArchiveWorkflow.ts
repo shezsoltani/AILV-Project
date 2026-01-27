@@ -3,8 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { getArchiveTopics, getArchiveQuestions } from '../services/api';
-import { extractErrorMessage } from '../utils/errorUtils';
-import { DEFAULT_ERROR_MESSAGES } from '../constants/appConstants';
+import { getUserFriendlyMessage } from '../utils/errorUtils';
 import type { ArchiveTopic } from '../types/api';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
@@ -31,9 +30,7 @@ export function useArchiveWorkflow() {
         setTopics(response.topics);
       } catch (error) {
         console.error('Fehler beim Laden der Archiv-Themen:', error);
-        setTopicsError(
-          extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.ARCHIVE_TOPICS_FAILED)
-        );
+        setTopicsError(getUserFriendlyMessage(error));
       } finally {
         setIsLoadingTopics(false);
       }
@@ -60,9 +57,7 @@ export function useArchiveWorkflow() {
         setSelectedTopic(response.topic);
       } catch (error) {
         console.error('Fehler beim Laden der archivierten Fragen:', error);
-        setQuestionsError(
-          extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.ARCHIVE_QUESTIONS_FAILED)
-        );
+        setQuestionsError(getUserFriendlyMessage(error));
         setArchivedQuestions([]);
         setSelectedTopic(null);
       } finally {

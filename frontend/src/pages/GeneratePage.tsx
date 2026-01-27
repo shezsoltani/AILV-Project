@@ -26,18 +26,14 @@ const GeneratePage: React.FC = () => {
         Hier können Sie das Eingabeformular für die Generierung von Prüfungsfragen verwenden.
         Geben Sie Ihre Anforderungen ein und lassen Sie die KI passende Fragen erstellen.
       </p>
-      {/* Fehlerbanner sichtbar über dem Formular (nur wenn Modal nicht offen) */}
-      {errorMessage && !isModalOpen && (
-        <div className="error-banner" role="alert">
-          <div className="error-banner-content">
-            <strong>Fehler:</strong> {errorMessage}
-          </div>
-        </div>
-      )}
-      
+
       {/*  Hauptformular zum Eingeben der Generierungsanforderungen */}
       <div className="page-form">
-        <GenerateForm onSubmit={handleFormSubmit} isLoading={isLoading} />
+        <GenerateForm
+          onSubmit={handleFormSubmit}
+          isLoading={isLoading}
+          submitError={!isModalOpen ? errorMessage : null}
+        />
       </div>
 
       {/* Modal öffnet sich, sobald Fragen generiert wurden */}
@@ -63,22 +59,6 @@ const GeneratePage: React.FC = () => {
                 </div>
               </div>
             )}
-            {successMessage && (
-              <div
-                className="success-banner"
-                role="alert"
-                style={{
-                  margin: '1rem',
-                  padding: '1rem',
-                  backgroundColor: '#d4edda',
-                  color: '#155724',
-                  borderRadius: '4px',
-                  border: '1px solid #c3e6cb',
-                }}
-              >
-                <strong>Erfolg:</strong> {successMessage}
-              </div>
-            )}
 
             {/* Liste aller generierten Fragen - hier können sie bearbeitet werden */}
             <QuestionsList
@@ -88,6 +68,23 @@ const GeneratePage: React.FC = () => {
 
             {/* Buttons zum Speichern oder Schließen */}
             <div className="questions-modal-actions">
+              {successMessage && (
+                <div
+                  className="success-banner"
+                  role="alert"
+                  style={{
+                    width: '100%',
+                    marginBottom: '1rem',
+                    padding: '1rem',
+                    backgroundColor: '#d4edda',
+                    color: '#155724',
+                    borderRadius: '4px',
+                    border: '1px solid #c3e6cb',
+                  }}
+                >
+                  <strong>Erfolg:</strong> {successMessage}
+                </div>
+              )}
               <button
                 type="button"
                 className="primary-button"

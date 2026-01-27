@@ -12,9 +12,14 @@ import { useGenerateForm } from '../hooks/useGenerateForm';
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
   isLoading?: boolean;
+  submitError?: string | null;
 }
 
-export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading = false }) => {
+export const GenerateForm: React.FC<GenerateFormProps> = ({
+  onSubmit,
+  isLoading = false,
+  submitError = null,
+}) => {
   // Hook verwaltet alle Formular-Logik: Eingaben, Validierung, Submit
   const {
     formValues,
@@ -213,8 +218,17 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({ onSubmit, isLoading 
         >
           {formIsLoading ? 'Wird generiert...' : 'Fragen generieren'}
         </button>
+
+        {/* Backend-/Submit-Fehler direkt beim Button anzeigen, damit niemand nach oben scrollen muss */}
+        {submitError && (
+          <div className="error-banner" role="alert" style={{ marginTop: '1rem' }}>
+            <div className="error-banner-content">
+              <strong>Fehler:</strong> {submitError}
+            </div>
+          </div>
+        )}
       </form>
-      {showSuccessMessage && (
+      {showSuccessMessage && !submitError && (
         <p className="form-success-message">Formulardaten erfasst</p>
       )}
     </div>
