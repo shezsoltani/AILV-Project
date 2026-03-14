@@ -7,14 +7,21 @@ import uuid
 from datetime import datetime
 from .base import Base
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.uuid_generate_v4())
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now(),
+        nullable=False,
+    )
+
 class PromptTemplate(Base):
     __tablename__ = "prompt_templates"
-
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        server_default=func.uuid_generate_v4()
-    )
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.uuid_generate_v4())
     stage = Column(String(50), nullable=False)
     language = Column(String(8), nullable=False, server_default="de")
     template = Column(Text, nullable=False)

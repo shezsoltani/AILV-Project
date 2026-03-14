@@ -8,7 +8,7 @@ from .core.exceptions import (AppError)
 from .api.routes_generate import router as generate_router
 from .api.routes_archive import router as archive_router
 from .api.routes_finalize import router as finalize_router
-
+from .api.routes_authentification import router as auth_router
 logger = logging.getLogger(__name__)
 
 ALLOWED_ORIGINS = [
@@ -29,7 +29,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 @app.on_event("startup")
@@ -55,3 +55,4 @@ def health():
 app.include_router(generate_router, prefix="/api")
 app.include_router(archive_router, prefix="/api")
 app.include_router(finalize_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")

@@ -16,6 +16,7 @@ async def generate(
     req: GenerateRequest,
     validator: GenerateRequestValidator = Depends(get_validator),
     db: Session = Depends(get_db),
+  # user_id: str = Depends(get_current_user)
 ):
     validator.validate(req)
     return await generate_questions(req, db)
