@@ -4,9 +4,6 @@ AI-Unterstützung zur Erstellung von LV-Unterlagen
 
 Ein webbasiertes Tool, das Lehrende bei der Erstellung von Lehrveranstaltungsunterlagen unterstützt. Das System zerlegt komplexe Aufgaben automatisch in kleinere Teilschritte, lässt sie von einem Large Language Model (LLM) bearbeiten und überprüft die Ergebnisse automatisch, um konsistente, qualitativ hochwertige Lehrunterlagen zu erstellen.
 
-**Projekt:** Innovation Lab 1, Wintersemester 2025/2026, FH Technikum Wien  
-**Supervisor:** Christoph Redl
-
 ---
 
 ## Überblick
