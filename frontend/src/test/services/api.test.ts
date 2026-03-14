@@ -23,8 +23,9 @@ describe('API Services', () => {
     
     (fetch as any).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(mockResponse),
+      status: 200,
       headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify(mockResponse)),
     });
 
     await generateQuestions(validFormValues);
@@ -48,6 +49,6 @@ describe('API Services', () => {
 
     // Wir suchen nur nach dem Hauptteil der Fehlermeldung per Regex.
     // Das 'i' am Ende steht für case-insensitive (Groß-/Kleinschreibung egal).
-    await expect(generateQuestions(validFormValues)).rejects.toThrow(/Backend-Fehler/i);
+    await expect(generateQuestions(validFormValues)).rejects.toThrow(/Server kaputt/i);
   });
 });

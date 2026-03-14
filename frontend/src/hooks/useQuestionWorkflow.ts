@@ -4,7 +4,7 @@ import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type { GenerateRequestFormValues } from '../types/generate';
 import { generateQuestions, finalizeQuestions } from '../services/api';
 import { calculateQuestionDiff } from '../utils/questionUtils';
-import { extractErrorMessage } from '../utils/errorUtils';
+import { getUserFriendlyMessage } from '../utils/errorUtils';
 import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME, ESCAPE_KEY } from '../constants/appConstants';
 
 // Verwaltet Workflow: Fragen generieren, bearbeiten und finalisieren
@@ -41,7 +41,8 @@ export function useQuestionWorkflow() {
       setIsModalOpen(true);
     } catch (error) {
       console.error('Fehler beim Generieren der Fragen:', error);
-      setErrorMessage(extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.GENERATE_FAILED));
+      // Verwende getUserFriendlyMessage für bessere Fehlermeldungen
+      setErrorMessage(getUserFriendlyMessage(error));
       setIsModalOpen(false);
     } finally {
       setIsLoading(false);
@@ -117,9 +118,8 @@ export function useQuestionWorkflow() {
       });
 
       setErrorMessage(null);
-      setSuccessMessage(
-        `${response.message} (${response.finalized_count} Fragen finalisiert)`
-      );
+      const count = response.finalized_count;
+      setSuccessMessage(`${count} ${count === 1 ? 'Frage' : 'Fragen'} gespeichert. Sie finden sie im Archiv.`);
       
       // Nach 2 Sekunden zurücksetzen (Erfolgsmeldung bleibt sichtbar)
       // Alten Timeout löschen, falls vorhanden
@@ -136,7 +136,8 @@ export function useQuestionWorkflow() {
       }, SUCCESS_MESSAGE_DISPLAY_TIME);
     } catch (error) {
       console.error('Fehler beim Finalisieren der Fragen:', error);
-      setErrorMessage(extractErrorMessage(error, DEFAULT_ERROR_MESSAGES.FINALIZE_FAILED));
+      // Verwende getUserFriendlyMessage für bessere Fehlermeldungen
+      setErrorMessage(getUserFriendlyMessage(error));
     } finally {
       setIsLoading(false);
     }
