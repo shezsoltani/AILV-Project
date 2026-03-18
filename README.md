@@ -43,6 +43,8 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
    ```env
    OPENAI_API_KEY=ihr-api-key-hier
    OPENAI_MODEL_NAME=gpt-4o
+   JWT_SECRET_KEY= ihr-secret-key-hier
+   JWT_ALGORITHM=HS256
    ```
    
    **Option 2: Environment-Variable direkt setzen**

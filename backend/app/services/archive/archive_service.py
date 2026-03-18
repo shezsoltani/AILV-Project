@@ -17,9 +17,8 @@ from ...persistence.archive_repo import (
     get_archive_questions,
 )
 
-
 # Liefert alle finalisierten Themen mit Anzahl Fragen und Zeitstempeln
-def get_all_finalized_topics(db: Session) -> ArchiveTopicsResponse:
+def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsResponse:
     try:
         results = (
             db.query(
@@ -28,6 +27,7 @@ def get_all_finalized_topics(db: Session) -> ArchiveTopicsResponse:
                 func.max(Question.created_at).label("finalized_at"),
             )
             .join(Question, Question.request_id == GenerationRequest.id)
+            .filter(GenerationRequest.user_id == user_id)
             .group_by(GenerationRequest.id)
             .order_by(GenerationRequest.created_at.desc())
             .all()

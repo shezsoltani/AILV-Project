@@ -17,9 +17,10 @@ from ...core.exceptions import PromptStateError
 async def generate_questions(
     req: GenerateRequest,
     db: Session,
+    user_id: UUID
 ) -> GenerateResponse:
     # Request speichern
-    db_req = create_generation_request_db(db, req)
+    db_req = create_generation_request_db(db, req, user_id)
 
     base_context = {
         "topic": req.topic,

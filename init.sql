@@ -12,7 +12,7 @@ CREATE TABLE users (
 
 CREATE TABLE IF NOT EXISTS generation_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   topic TEXT NOT NULL,
   language VARCHAR(10) NOT NULL,
   count INT NOT NULL DEFAULT 1,
