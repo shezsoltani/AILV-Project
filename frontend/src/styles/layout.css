@@ -22,9 +22,14 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-xl);
-  max-width: 1440px;
+  max-width: 1560px;
   margin: 0 auto;
   width: 100%;
+}
+
+.app-brand {
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .app-header-title {
@@ -49,6 +54,11 @@
 .app-nav {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-xl);
+  margin-left: auto;
+  padding-right: var(--spacing-lg);
+  flex: 1;
 }
 
 .app-nav-list {
@@ -56,7 +66,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .app-nav-item {
@@ -67,20 +77,55 @@
   color: var(--color-text-secondary);
   text-decoration: none;
   font-size: var(--font-size-base);
-  font-weight: 500;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-md);
+  font-weight: 600;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 999px;
   cursor: pointer;
   transition: all var(--transition-base);
   position: relative;
+  white-space: nowrap;
 }
 
 .app-nav-link:hover {
   color: var(--color-primary);
-  background-color: var(--color-primary-light);
+  background-color: rgba(37, 99, 235, 0.06);
 }
 
 .app-nav-link:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.app-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.app-auth-button {
+  color: var(--color-text-primary);
+  background: #ffffff;
+  border: 1px solid #d7e1f0;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing-sm) + 2px) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.app-auth-button:hover {
+  border-color: #bfd0e8;
+  background: #fbfdff;
+  transform: translateY(-1px);
+}
+
+.app-auth-button:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -138,15 +183,29 @@
 
   .app-nav {
     width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-left: 0;
+    padding-right: 0;
   }
 
   .app-nav-list {
-    width: 100%;
+    width: auto;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
+  .app-auth-actions {
+    width: auto;
+    flex-wrap: wrap;
+  }
+
   .app-nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .app-auth-button {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
   }
@@ -160,6 +219,15 @@
 @media (max-width: 480px) {
   .app-header {
     padding: var(--spacing-md);
+  }
+
+  .app-nav {
+    gap: var(--spacing-md);
+  }
+
+  .app-nav-list,
+  .app-auth-actions {
+    width: 100%;
   }
 
   .app-content {

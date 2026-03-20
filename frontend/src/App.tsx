@@ -5,6 +5,8 @@ import Layout from './layout/Layout';
 import HomePage from './pages/HomePage';
 import GeneratePage from './pages/GeneratePage';
 import ArchivePage from './pages/ArchivePage';
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
 
 const App: React.FC = () => {
   return (
@@ -13,6 +15,8 @@ const App: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/generate" element={<GeneratePage />} />
         <Route path="/archive" element={<ArchivePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </Layout>
   );

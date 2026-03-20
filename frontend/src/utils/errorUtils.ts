@@ -40,3 +40,19 @@ export const getUserFriendlyMessage = (error: unknown): string => {
 
   return 'Ein unerwarteter Fehler ist aufgetreten.';
 };
+
+export const getRegistrationErrorMessage = (error: unknown): string => {
+  if (error instanceof ApiError && error.statusCode === 409) {
+    const normalizedMessage = error.message.toLowerCase();
+
+    if (normalizedMessage.includes('username')) {
+      return 'Dieser Benutzername ist bereits vergeben.';
+    }
+
+    if (normalizedMessage.includes('email')) {
+      return 'Diese E-Mail-Adresse ist bereits registriert.';
+    }
+  }
+
+  return getUserFriendlyMessage(error);
+};

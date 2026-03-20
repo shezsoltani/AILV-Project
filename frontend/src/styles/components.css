@@ -82,6 +82,10 @@
 
 .home-actions {
   margin-top: var(--spacing-xl);
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 /* Page Styles */

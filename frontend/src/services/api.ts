@@ -123,6 +123,27 @@ export async function finalizeQuestions(
   );
 }
 
+export async function registerUser(
+  username: string,
+  email: string,
+  password: string
+): Promise<void> {
+  await apiCall(
+    `${API_BASE_URL}/api/auth/register`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+      }),
+    }
+  );
+}
+
 // Archive API Functions
 export async function getArchiveTopics(): Promise<ArchiveTopicsResponse> {
   return await apiCall<ArchiveTopicsResponse>(

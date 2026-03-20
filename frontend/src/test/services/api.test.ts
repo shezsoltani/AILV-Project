@@ -51,4 +51,5 @@ describe('API Services', () => {
     // Das 'i' am Ende steht für case-insensitive (Groß-/Kleinschreibung egal).
     await expect(generateQuestions(validFormValues)).rejects.toThrow(/Server kaputt/i);
   });
+
 });

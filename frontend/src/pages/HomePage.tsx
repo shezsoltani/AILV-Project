@@ -11,6 +11,10 @@ const HomePage: React.FC = () => {
     navigate('/generate');
   };
 
+  const handleRegisterClick = () => {
+    navigate('/register');
+  };
+
   return (
     <div className="home">
       <div className="card">
@@ -22,6 +26,9 @@ const HomePage: React.FC = () => {
         <div className="home-actions">
           <button className="primary-button" onClick={handleGenerateClick}>
             Fragen generieren
+          </button>
+          <button className="secondary-button" onClick={handleRegisterClick}>
+            Registrieren
           </button>
         </div>
       </div>
