@@ -1,8 +1,20 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLoginForm } from '../hooks/useLoginForm';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Wenn der Nutzer von einer geschuetzten Seite hierher weitergeleitet wurde, steht dort der Ursprungspfad.
+  const redirectedFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+
+  const PAGE_NAMES: Record<string, string> = {
+    '/generate': 'Fragen generieren',
+    '/archive': 'Archiv',
+  };
+
+  const redirectedFromName = redirectedFrom ? (PAGE_NAMES[redirectedFrom] ?? redirectedFrom) : null;
+
   const {
     formValues,
     errors,
@@ -13,7 +25,7 @@ function LoginPage() {
     handleSubmit,
   } = useLoginForm({
     onSuccess: function () {
-      navigate('/');
+      navigate(redirectedFrom ?? '/');
     },
   });
 
@@ -21,12 +33,20 @@ function LoginPage() {
     <div className="page">
       <h1 className="page-title">Login</h1>
       <p className="page-description">
-        Melden Sie sich an, um geschuetzte Bereiche wie die Generierung und das Archiv zu nutzen.
+        Melden Sie sich an, um auf Funktionen wie Generierung und Archiv zuzugreifen.
       </p>
 
-      <div className="page-form" style={{ maxWidth: '40rem' }}>
+      {redirectedFromName && (
+        <div className="info-banner" role="status">
+          <div className="info-banner-content">
+            Bitte einloggen, um <strong>{redirectedFromName}</strong> zu öffnen.
+          </div>
+        </div>
+      )}
+
+      <div className="page-form" style={{ maxWidth: '48rem' }}>
         <div className="card">
-          <form className="form" onSubmit={handleSubmit} noValidate>
+          <form className="form" onSubmit={handleSubmit} noValidate autoComplete="on">
             <div className="form-row">
               <label className="form-label" htmlFor="username">
                 Benutzername *
@@ -72,7 +92,7 @@ function LoginPage() {
               className="primary-button form-submit-button"
               disabled={isLoading}
             >
-              {isLoading ? 'Login laeuft...' : 'Einloggen'}
+              {isLoading ? 'Login läuft...' : 'Einloggen'}
             </button>
 
             {submitError && (

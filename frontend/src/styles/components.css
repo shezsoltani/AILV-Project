@@ -319,6 +319,60 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
+/* Passwort-Stärke (Registrierung) */
+.password-strength {
+  margin-top: var(--spacing-sm);
+}
+
+.password-strength-bars {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.password-strength-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  transition: background var(--transition-base);
+}
+
+.password-strength--weak .password-strength-bar--filled {
+  background: #ef4444;
+}
+
+.password-strength--medium .password-strength-bar--filled {
+  background: #f59e0b;
+}
+
+.password-strength--strong .password-strength-bar--filled {
+  background: #22c55e;
+}
+
+.password-strength-label {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.password-strength-label strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.password-strength-tips {
+  margin: var(--spacing-xs) 0 0;
+  padding-left: 1.15rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.password-strength-tips li {
+  margin: 0.15rem 0;
+}
+
 .form-success-message {
   margin-top: var(--spacing-lg);
   padding: var(--spacing-md) var(--spacing-lg);
@@ -331,7 +385,8 @@
 
 .form-submit-button {
   margin-top: var(--spacing-md);
-  align-self: flex-start;
+  align-self: stretch;
+  width: 100%;
 }
 
 /* Button Styles */
@@ -453,6 +508,22 @@
 .error-banner-content strong {
   font-weight: 700;
   font-size: var(--font-size-base);
+}
+
+.info-banner {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 2px solid #93c5fd;
+  border-radius: var(--radius-xl);
+  color: #1e40af;
+  box-shadow: var(--shadow-md);
+}
+
+.info-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
 }
 
 /* Modal Styles */

@@ -1,7 +1,8 @@
 // src/context/AuthContext.tsx
 // Zentraler Auth-Context fuer Token, Login, Logout und eine konsistente Login-UX in der ganzen App
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { AuthContextValue } from '../types/auth';
+import { setUnauthorizedHandler } from '../services/apiClient';
 
 // Fester Schluessel, unter dem der Token im localStorage liegt.
 const AUTH_TOKEN_STORAGE_KEY = 'authToken';
@@ -12,9 +13,26 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Liest beim Start einen bereits gespeicherten Token aus dem Browser.
+// Liest den JWT-Payload aus und prueft, ob der Token abgelaufen ist.
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
+// Liest beim Start einen gespeicherten Token aus dem Browser – abgelaufene Tokens werden sofort verworfen.
 function getStoredToken(): string | null {
-  return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+
+  if (token && isTokenExpired(token)) {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    return null;
+  }
+
+  return token;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -31,6 +49,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     setToken(null);
   }
+
+  // Registriert logout als Handler fuer 401-Antworten vom Backend.
+  useEffect(function () {
+    setUnauthorizedHandler(logout);
+  }, []);
 
   // Dieses Objekt wird spaeter allen Kind-Komponenten ueber den Context bereitgestellt.
   function createAuthContextValue(): AuthContextValue {

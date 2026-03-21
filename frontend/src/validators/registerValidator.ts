@@ -22,7 +22,7 @@ export function validateRegisterForm(
   if (!values.email.trim()) {
     errors.email = 'Bitte geben Sie eine E-Mail-Adresse ein.';
   } else if (!isEmailFormatValid(values.email)) {
-    errors.email = 'Bitte geben Sie eine gueltige E-Mail-Adresse ein.';
+    errors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
   }
 
   if (!values.password) {
@@ -32,9 +32,9 @@ export function validateRegisterForm(
   }
 
   if (!values.confirmPassword) {
-    errors.confirmPassword = 'Bitte bestaetigen Sie Ihr Passwort.';
+    errors.confirmPassword = 'Bitte bestätigen Sie Ihr Passwort.';
   } else if (values.password !== values.confirmPassword) {
-    errors.confirmPassword = 'Die Passwoerter stimmen nicht ueberein.';
+    errors.confirmPassword = 'Die Passwörter stimmen nicht überein.';
   }
 
   return errors;

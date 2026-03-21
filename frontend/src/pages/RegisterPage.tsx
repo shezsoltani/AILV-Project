@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
 import { useRegisterForm } from '../hooks/useRegisterForm';
 
 const RegisterPage: React.FC = () => {
@@ -25,7 +26,7 @@ const RegisterPage: React.FC = () => {
 
       <div className="page-form" style={{ maxWidth: '48rem' }}>
         <div className="card">
-          <form className="form" onSubmit={handleSubmit} noValidate>
+          <form className="form" onSubmit={handleSubmit} noValidate autoComplete="on">
             <div className="form-row">
               <label className="form-label" htmlFor="username">
                 Benutzername *
@@ -70,6 +71,10 @@ const RegisterPage: React.FC = () => {
               <label className="form-label" htmlFor="password">
                 Passwort *
               </label>
+              <p id="register-password-tips" className="form-helper" style={{ marginTop: 0 }}>
+                Mindestens 8 Zeichen. Ein starkes Passwort mischt Groß-/Kleinbuchstaben, Ziffern und
+                gern Sonderzeichen.
+              </p>
               <input
                 id="password"
                 name="password"
@@ -80,15 +85,25 @@ const RegisterPage: React.FC = () => {
                 onBlur={handleBlur}
                 autoComplete="new-password"
                 required
+                aria-describedby={[
+                  'register-password-tips',
+                  formValues.password.length > 0 ? 'register-password-strength' : '',
+                  errors.password ? 'register-password-error' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ') || undefined}
               />
+              <PasswordStrengthMeter password={formValues.password} idPrefix="register" />
               {errors.password && (
-                <p className="form-error-message">{errors.password}</p>
+                <p id="register-password-error" className="form-error-message">
+                  {errors.password}
+                </p>
               )}
             </div>
 
             <div className="form-row">
               <label className="form-label" htmlFor="confirmPassword">
-                Passwort bestaetigen *
+                Passwort bestätigen *
               </label>
               <input
                 id="confirmPassword"
@@ -111,7 +126,7 @@ const RegisterPage: React.FC = () => {
               className="primary-button form-submit-button"
               disabled={isLoading}
             >
-              {isLoading ? 'Registrierung laeuft...' : 'Konto erstellen'}
+              {isLoading ? 'Registrierung läuft...' : 'Konto erstellen'}
             </button>
 
             {submitError && (

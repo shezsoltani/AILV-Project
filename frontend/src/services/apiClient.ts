@@ -7,6 +7,13 @@ import { NetworkError, ParseError } from '../errors/AppErrors';
 export const API_BASE_URL = import.meta.env.VITE_API_BASE;
 const AUTH_TOKEN_STORAGE_KEY = 'authToken';
 
+// Wird von AuthContext beim Start gesetzt, damit apiClient bei 401 automatisch ausloggen kann.
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
+
 if (!API_BASE_URL) {
   throw new Error('VITE_API_BASE is not defined');
 }
@@ -69,6 +76,9 @@ export async function apiCall<T>(url: string, options: ApiCallOptions): Promise<
   }
 
   if (!response.ok) {
+    if (response.status === 401 && unauthorizedHandler) {
+      unauthorizedHandler();
+    }
     await handleApiError(response, url); // HTTP-Fehler an einer Stelle in lesbare App-Fehler übersetzen
   }
 

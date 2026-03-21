@@ -25,7 +25,7 @@ describe('ProtectedRoute', () => {
             path="/generate"
             element={
               <ProtectedRoute>
-                <div>Geschuetzte Seite</div>
+                <div>Geschützte Seite</div>
               </ProtectedRoute>
             }
           />
@@ -52,7 +52,7 @@ describe('ProtectedRoute', () => {
             path="/generate"
             element={
               <ProtectedRoute>
-                <div>Geschuetzte Seite</div>
+                <div>Geschützte Seite</div>
               </ProtectedRoute>
             }
           />
@@ -61,6 +61,6 @@ describe('ProtectedRoute', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Geschuetzte Seite')).toBeInTheDocument();
+    expect(screen.getByText('Geschützte Seite')).toBeInTheDocument();
   });
 });
