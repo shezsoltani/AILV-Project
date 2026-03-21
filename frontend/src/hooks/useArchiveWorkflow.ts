@@ -2,7 +2,7 @@
 // Verwaltet Workflow: Archiv-Themen laden, Fragen eines Themas anzeigen
 
 import { useState, useEffect } from 'react';
-import { getArchiveTopics, getArchiveQuestions } from '../services/api';
+import { getArchiveTopics, getArchiveQuestions } from '../services/questionsApi';
 import { getUserFriendlyMessage } from '../utils/errorUtils';
 import type { ArchiveTopic } from '../types/api';
 import type { GeneratedQuestion } from '../types/generatedQuestion';

@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useQuestionWorkflow } from '../../hooks/useQuestionWorkflow';
-import * as api from '../../services/api';
+import * as api from '../../services/questionsApi';
 
 // Wir mocken die API-Services komplett
-vi.mock('../../services/api', () => ({
+vi.mock('../../services/questionsApi', () => ({
   generateQuestions: vi.fn(),
   finalizeQuestions: vi.fn(),
 }));

@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FocusEvent, type FormEvent } from 'react';
-import { registerUser } from '../services/api';
+import { registerUser } from '../services/authApi';
 import type { RegisterFormValues, RegisterValidationErrors } from '../types/auth';
 import { getRegistrationErrorMessage } from '../utils/errorUtils';
 import { validateRegisterForm } from '../validators/registerValidator';

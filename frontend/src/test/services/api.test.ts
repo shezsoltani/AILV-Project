@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateQuestions, loginUser } from '../../services/api';
+import { generateQuestions } from '../../services/questionsApi';
+import { loginUser } from '../../services/authApi';
 
 describe('API Services', () => {
   beforeEach(() => {

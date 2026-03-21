@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FocusEvent, type FormEvent } from 'react';
-import { loginUser } from '../services/api';
+import { loginUser } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
 import type { LoginFormValues, LoginValidationErrors } from '../types/auth';
 import { getLoginErrorMessage } from '../utils/errorUtils';
