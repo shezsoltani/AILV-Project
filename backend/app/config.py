@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-
 @dataclass
 class Settings:
     """Zentrale Konfiguration für die Anwendung."""
@@ -12,6 +11,12 @@ class Settings:
 
     jwt_secret_key: str
     jwt_algorithm: str
+
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    smtp_password: str
+    mail_from: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -31,11 +36,26 @@ class Settings:
 
         jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
 
+        # SMTP (E-Mails)
+        smtp_host = os.getenv("SMTP_HOST")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user = os.getenv("SMTP_USER")
+        smtp_password = os.getenv("SMTP_PASSWORD")
+        mail_from = os.getenv("MAIL_FROM")
+
+        if not all([smtp_host, smtp_user, smtp_password, mail_from]):
+            raise RuntimeError("SMTP configuration incomplete")
+
         return cls(
             openai_api_key=openai_api_key,
             openai_model_name=openai_model_name,
             jwt_secret_key=jwt_secret_key,
-            jwt_algorithm=jwt_algorithm
+            jwt_algorithm=jwt_algorithm,
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            smtp_user=smtp_user,
+            smtp_password=smtp_password,
+            mail_from=mail_from,
         )
 
 # Zentrale Settings-Instanz, importierbar via: from app.config import settings

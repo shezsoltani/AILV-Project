@@ -23,12 +23,18 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/aildb
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL_NAME: ${OPENAI_MODEL_NAME:-gpt-4o}
+
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
     depends_on:
       - db
 
-  
   frontend:
     build: ./frontend
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
