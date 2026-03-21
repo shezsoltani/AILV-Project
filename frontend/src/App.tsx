@@ -1,6 +1,8 @@
 // src/App.tsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 import Layout from './layout/Layout';
 import HomePage from './pages/HomePage';
 import GeneratePage from './pages/GeneratePage';
@@ -13,10 +15,38 @@ const App: React.FC = () => {
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/generate" element={<GeneratePage />} />
-        <Route path="/archive" element={<ArchivePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/generate"
+          element={
+            <ProtectedRoute>
+              <GeneratePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/archive"
+          element={
+            <ProtectedRoute>
+              <ArchivePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <RegisterPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
       </Routes>
     </Layout>
   );

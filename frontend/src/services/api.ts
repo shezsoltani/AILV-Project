@@ -2,6 +2,7 @@
 // API-Client: einheitliche Requests und typisierte Fehler für das Frontend
 import type { GenerateRequestFormValues } from '../types/generate';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+import type { LoginResponse } from '../types/auth';
 import type {
   GenerateResponseDto,
   FinalizeRequest,
@@ -14,15 +15,37 @@ import { handleApiError } from '../utils/apiUtils';
 import { NetworkError, ParseError, ApiError } from '../errors/AppErrors';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE;
+const AUTH_TOKEN_STORAGE_KEY = 'authToken';
 
 if (!API_BASE_URL) {
   throw new Error('VITE_API_BASE is not defined');
+}
+
+interface ApiCallOptions extends RequestInit {
+  token?: string | null;
 }
 
 // Fallback, falls der Server den Content-Type nicht korrekt setzt
 function isLikelyJson(text: string): boolean {
   const trimmed = text.trim();
   return trimmed.startsWith('{') || trimmed.startsWith('[');
+}
+
+// Liest den gespeicherten Token, damit spaetere Requests automatisch authentifiziert werden koennen.
+function getStoredAuthToken(): string | null {
+  return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+}
+
+// Baut Header fuer Requests zusammen und ergaenzt bei Bedarf den Bearer-Token.
+function createRequestHeaders(options: ApiCallOptions): Headers {
+  const headers = new Headers(options.headers);
+  const token = options.token ?? getStoredAuthToken();
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  return headers;
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -46,11 +69,15 @@ async function parseResponse<T>(response: Response): Promise<T> {
   throw new ParseError('Antwort vom Backend hatte ein unerwartetes Format (kein JSON).');
 }
 
-async function apiCall<T>(url: string, options: RequestInit): Promise<T> {
+async function apiCall<T>(url: string, options: ApiCallOptions): Promise<T> {
   let response: Response;
+  const requestOptions: RequestInit = {
+    ...options,
+    headers: createRequestHeaders(options),
+  };
   
   try {
-    response = await fetch(url, options);
+    response = await fetch(url, requestOptions);
   } catch (error) {
     throw new NetworkError('Backend nicht erreichbar. Bitte später erneut versuchen.');
   }
@@ -140,6 +167,26 @@ export async function registerUser(
         email,
         password,
       }),
+    }
+  );
+}
+
+export async function loginUser(
+  username: string,
+  password: string
+): Promise<LoginResponse> {
+  return await apiCall<LoginResponse>(
+    `${API_BASE_URL}/api/auth/login`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+      token: null,
     }
   );
 }

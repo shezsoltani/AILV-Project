@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EditableQuestionCard } from '../../components/EditableQuestionCard';
@@ -27,6 +26,6 @@ describe('EditableQuestionCard Interactions', () => {
   it('sollte im readOnly-Modus keine Bearbeitung zulassen', () => {
     render(<EditableQuestionCard question={mockQuestion as any} readOnly={true} onQuestionChange={() => {}} />);
     const input = screen.getByDisplayValue('Wien');
-    expect(input).toHaveAttribute('readonly');
+    expect(input).toHaveAttribute('readOnly');
   });
 });

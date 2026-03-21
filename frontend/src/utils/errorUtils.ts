@@ -56,3 +56,11 @@ export const getRegistrationErrorMessage = (error: unknown): string => {
 
   return getUserFriendlyMessage(error);
 };
+
+export function getLoginErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.statusCode === 401) {
+    return 'Benutzername oder Passwort sind nicht korrekt.';
+  }
+
+  return getUserFriendlyMessage(error);
+}
