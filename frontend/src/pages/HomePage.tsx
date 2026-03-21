@@ -1,15 +1,10 @@
 // Startseite - Die erste Seite, die Benutzer sehen
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
-  // Hook zum Navigieren zwischen Seiten
-  const navigate = useNavigate();
-
-  // Wenn der Button geklickt wird, wechseln wir zur Generierungsseite
-  const handleGenerateClick = () => {
-    navigate('/generate');
-  };
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="home">
@@ -20,9 +15,18 @@ const HomePage: React.FC = () => {
           Nutzen Sie die Kraft der KI, um maßgeschneiderte Fragen zu generieren.
         </p>
         <div className="home-actions">
-          <button className="primary-button" onClick={handleGenerateClick}>
+          <Link to="/generate" className="primary-button">
             Fragen generieren
-          </button>
+          </Link>
+          {isAuthenticated ? (
+            <Link to="/archive" className="secondary-button">
+              Mein Archiv
+            </Link>
+          ) : (
+            <Link to="/register" className="secondary-button">
+              Registrieren
+            </Link>
+          )}
         </div>
       </div>
     </div>

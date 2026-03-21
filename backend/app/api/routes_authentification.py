@@ -13,7 +13,7 @@ from ..services.auth.auth_service import (
     login_user,
 )
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserResponse)

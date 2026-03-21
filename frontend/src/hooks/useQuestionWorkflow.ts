@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type { GenerateRequestFormValues } from '../types/generate';
-import { generateQuestions, finalizeQuestions } from '../services/api';
+import { generateQuestions, finalizeQuestions } from '../services/questionsApi';
 import { calculateQuestionDiff } from '../utils/questionUtils';
 import { getUserFriendlyMessage } from '../utils/errorUtils';
 import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME, ESCAPE_KEY } from '../constants/appConstants';
