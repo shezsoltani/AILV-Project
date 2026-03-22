@@ -1,9 +1,10 @@
 // src/pages/ArchivePage.tsx
-// Seite für das Archiv finalisierter Fragen
+// Liste archivierter Themen. Auswahl lädt die zugehörigen Fragen (nur lesen).
 
 import React from 'react';
 import { QuestionsList } from '../components/QuestionsList';
 import { ArchiveTopicCard } from '../components/ArchiveTopicCard';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { formatDateToGerman } from '../utils/dateUtils';
 import { useArchiveWorkflow } from '../hooks/useArchiveWorkflow';
 
@@ -67,14 +68,7 @@ const ArchivePage: React.FC = () => {
           </div>
         )}
 
-        {/* Fehlerbanner falls beim Laden ein Fehler auftritt */}
-        {questionsError && (
-          <div className="error-banner" role="alert">
-            <div className="error-banner-content">
-              <strong>Fehler:</strong> {questionsError}
-            </div>
-          </div>
-        )}
+        <ErrorBanner message={questionsError} />
 
         {/* Empty-State wenn keine Fragen gefunden wurden */}
         {!isLoadingQuestions && !questionsError && archivedQuestions.length === 0 && (
@@ -113,14 +107,7 @@ const ArchivePage: React.FC = () => {
         </div>
       )}
 
-      {/* Fehlerbanner falls beim Laden ein Fehler auftritt */}
-      {topicsError && (
-        <div className="error-banner" role="alert">
-          <div className="error-banner-content">
-            <strong>Fehler:</strong> {topicsError}
-          </div>
-        </div>
-      )}
+      <ErrorBanner message={topicsError} />
 
       {/* Empty-State wenn noch keine archivierten Themen vorhanden sind */}
       {!isLoadingTopics && !topicsError && topics.length === 0 && (

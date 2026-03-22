@@ -1,11 +1,15 @@
+// src/pages/LoginPage.tsx
+// Login-Seite. Nach erfolgreichem Login: navigate. Optional: Ziel aus location.state.from.
+
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLoginForm } from '../hooks/useLoginForm';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Wenn der Nutzer von einer geschuetzten Seite hierher weitergeleitet wurde, steht dort der Ursprungspfad.
+  // Pfad aus location.state.from, falls gesetzt (Redirect von geschützter Route).
   const redirectedFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
   const PAGE_NAMES: Record<string, string> = {
@@ -95,13 +99,7 @@ function LoginPage() {
               {isLoading ? 'Login läuft...' : 'Einloggen'}
             </button>
 
-            {submitError && (
-              <div className="error-banner" role="alert" style={{ marginTop: '1rem' }}>
-                <div className="error-banner-content">
-                  <strong>Fehler:</strong> {submitError}
-                </div>
-              </div>
-            )}
+            <ErrorBanner message={submitError} style={{ marginTop: '1rem' }} />
 
             <p className="form-helper" style={{ marginBottom: 0 }}>
               Noch kein Konto?{' '}

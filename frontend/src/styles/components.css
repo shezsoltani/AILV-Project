@@ -404,6 +404,8 @@
   letter-spacing: 0.01em;
   position: relative;
   overflow: hidden;
+  /* Entferne Unterstreichung bei Links, die als Buttons gerendert werden */
+  text-decoration: none;
 }
 
 .primary-button::before {
@@ -464,6 +466,8 @@
   transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
   letter-spacing: 0.01em;
+  /* Entferne Unterstreichung bei Links, die als Buttons gerendert werden */
+  text-decoration: none;
 }
 
 .secondary-button:hover {

@@ -1,6 +1,10 @@
+// src/pages/RegisterPage.tsx
+// Registrierungs-Seite. Formular und Passwortstärke-Anzeige.
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { useRegisterForm } from '../hooks/useRegisterForm';
 
 const RegisterPage: React.FC = () => {
@@ -129,13 +133,7 @@ const RegisterPage: React.FC = () => {
               {isLoading ? 'Registrierung läuft...' : 'Konto erstellen'}
             </button>
 
-            {submitError && (
-              <div className="error-banner" role="alert" style={{ marginTop: '1rem' }}>
-                <div className="error-banner-content">
-                  <strong>Fehler:</strong> {submitError}
-                </div>
-              </div>
-            )}
+            <ErrorBanner message={submitError} style={{ marginTop: '1rem' }} />
           </form>
         </div>
       </div>
