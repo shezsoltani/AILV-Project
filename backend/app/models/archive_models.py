@@ -45,3 +45,8 @@ class ArchiveQuestionUpdate(BaseModel):
 
 class UpdateArchiveQuestionsRequest(BaseModel):
     questions: List[ArchiveQuestionUpdate] = Field(default_factory=list)
+
+class ArchiveDeleteResponse(BaseModel):
+    success: bool
+    request_id: UUID
+    message: str

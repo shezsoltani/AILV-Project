@@ -11,7 +11,9 @@ from ..models.archive_models import (
     ArchiveTopicsResponse,
     ArchiveQuestionsResponse,
     UpdateArchiveQuestionsRequest,
+    ArchiveDeleteResponse,
 )
+from ..services.archive.archive_delete_service import delete_archive_entry
 from ..services.archive.archive_read_service import (
     get_all_finalized_topics,
     get_questions_for_request,
@@ -87,3 +89,11 @@ def update_archive_questions_endpoint(
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail="Failed to update archive questions")
+
+@router.delete("/archive/{request_id}", response_model=ArchiveDeleteResponse)
+def delete_archive_entry_endpoint(
+    request_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ArchiveDeleteResponse:
+    return delete_archive_entry(db, request_id, current_user)
