@@ -1,14 +1,16 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from datetime import datetime, timedelta, timezone
+import secrets
 
-from ...models.sql_models import User
+from ...models.sql_models import User, PasswordResetToken
 from ...models.auth_models import UserCreate, UserLogin
 from ...core.auth_utils import (
     hash_password,
     verify_password,
     create_access_token,
 )
-
+from ...core.email_utils import send_reset_email
 
 def register_user(db: Session, req: UserCreate) -> User:
 
@@ -82,3 +84,51 @@ def change_user_password(db: Session, user: User, current_password: str, new_pas
     user.password_hash = hash_password(new_password)
     db.commit()
     db.refresh(user)
+
+async def request_password_reset(db: Session, email: str) -> None:
+    user = db.query(User).filter(User.email == email).first()
+    # Immer gleiches Verhalten nach außen (kein User-Enumeration-Leak)
+    if not user:
+        return
+    raw_token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    reset_entry = PasswordResetToken(
+        user_id=user.id,
+        token=raw_token,
+        expires_at=expires_at,
+        used=False,
+    )
+    db.add(reset_entry)
+    db.commit()
+    await send_reset_email(user.email, raw_token)
+
+def reset_password_with_token(db: Session, token: str, new_password: str) -> None:
+    reset_entry = (
+        db.query(PasswordResetToken)
+        .filter(PasswordResetToken.token == token)
+        .first()
+    )
+    if not reset_entry:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset token",
+        )
+    if reset_entry.used:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token was already used",
+        )
+    if reset_entry.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token expired",
+        )
+    user = db.query(User).filter(User.id == reset_entry.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset token",
+        )
+    user.password_hash = hash_password(new_password)
+    reset_entry.used = True
+    db.commit()
