@@ -8,11 +8,15 @@ from ..models.auth_models import (
     UserResponse,
     TokenResponse,
     PasswordChangeRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
 )
 from ..services.auth.auth_service import (
     register_user,
     login_user,
     change_user_password,
+    request_password_reset,
+    reset_password_with_token,
 )
 from ..core.auth_utils import get_current_user
 from ..models.sql_models import User
@@ -57,3 +61,19 @@ def change_password(
         body.new_password,
     )
     return {"message": "Password updated"}
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    await request_password_reset(db, body.email)
+    # Immer 200, egal ob E-Mail existiert oder nicht
+    return {"message": "If the account exists, a reset email has been sent."}
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+def reset_password(
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    reset_password_with_token(db, body.token, body.new_password)
+    return {"message": "Password has been reset successfully."}
