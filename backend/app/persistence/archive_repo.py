@@ -52,3 +52,13 @@ def update_archive_questions(
             q.answer = update_dict["answer"]
         if "rationale" in update_dict:
             q.rationale = update_dict["rationale"]
+
+def get_generation_request_by_id(db: Session, request_id: UUID) -> GenerationRequest | None:
+    return (
+        db.query(GenerationRequest)
+        .filter(GenerationRequest.id == request_id)
+        .first()
+    )
+def delete_generation_request(db: Session, generation_request: GenerationRequest) -> None:
+    db.delete(generation_request)
+    db.commit()
