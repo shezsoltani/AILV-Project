@@ -1,6 +1,3 @@
-# backend\app\services\archive\archive_service.py
-# Business-Logik für das Archiv - holt Daten aus der DB und bereitet sie fürs Frontend vor
-
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from uuid import UUID
@@ -13,9 +10,8 @@ from ...models.archive_models import (
 from ...models.generate_models import GeneratedQuestion
 from ...models.sql_models import Question, GenerationRequest
 from ...core.exceptions import ArchiveNotFoundError, ArchiveServiceError
-from ...persistence.archive_repo import (
-    get_archive_questions,
-)
+from ...persistence.archive_repo import get_archive_questions
+
 
 # Liefert alle finalisierten Themen mit Anzahl Fragen und Zeitstempeln
 def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsResponse:
@@ -33,7 +29,6 @@ def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsRespons
             .all()
         )
         
-        # Erstellt Response-Objekte für jedes gefundene Thema
         topics = []
         for req, question_count, finalized_at in results:
             topics.append(
@@ -42,7 +37,7 @@ def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsRespons
                     topic=req.topic,
                     language=req.language,
                     question_count=question_count,
-                    types=req.types or [],  # Fragetypen aus GenerationRequest
+                    types=req.types or [],
                     created_at=req.created_at,
                     finalized_at=finalized_at,
                 )
@@ -72,7 +67,6 @@ def get_questions_for_request(
                 detail="No finalized questions found for this request"
             )
         
-        # Wandelt Datenbank-Felder in Frontend-Format um (stem -> question)
         mapped_questions = [
             GeneratedQuestion(
                 id=q.id,
@@ -100,3 +94,4 @@ def get_questions_for_request(
             f"Failed to fetch questions for request {request_id}",
             str(exc)
         )
+

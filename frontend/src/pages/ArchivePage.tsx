@@ -1,5 +1,5 @@
 // src/pages/ArchivePage.tsx
-// Liste archivierter Themen. Auswahl lädt die zugehörigen Fragen (nur lesen).
+// Liste archivierter Themen. Auswahl lädt die zugehörigen Fragen (lesend oder bearbeitbar).
 
 import React from 'react';
 import { QuestionsList } from '../components/QuestionsList';
@@ -9,7 +9,7 @@ import { formatDateToGerman } from '../utils/dateUtils';
 import { useArchiveWorkflow } from '../hooks/useArchiveWorkflow';
 
 const ArchivePage: React.FC = () => {
-  // Hook verwaltet den kompletten Workflow: Themen laden, Fragen eines Themas anzeigen
+  // Hook verwaltet den kompletten Workflow: Themen laden, Fragen eines Themas anzeigen, Bearbeitung
   const {
     topics,
     isLoadingTopics,
@@ -19,8 +19,17 @@ const ArchivePage: React.FC = () => {
     archivedQuestions,
     isLoadingQuestions,
     questionsError,
+    isEditMode,
+    editableQuestions,
+    isSaving,
+    saveError,
+    saveSuccess,
     handleBackToList,
     handleTopicSelect,
+    handleStartEdit,
+    handleArchivedQuestionChange,
+    handleCancelEdit,
+    handleSaveArchivedQuestions,
   } = useArchiveWorkflow();
 
   // Render: Fragen für ausgewähltes Thema anzeigen
@@ -33,7 +42,7 @@ const ArchivePage: React.FC = () => {
             type="button"
             className="secondary-button"
             onClick={handleBackToList}
-            disabled={isLoadingQuestions}
+            disabled={isLoadingQuestions || isSaving}
           >
             <svg
               className="archive-back-icon"
@@ -69,6 +78,14 @@ const ArchivePage: React.FC = () => {
         )}
 
         <ErrorBanner message={questionsError} />
+        <ErrorBanner message={saveError} />
+        {saveSuccess && (
+          <div className="success-banner" role="status">
+            <div className="success-banner-content">
+              <strong>Gespeichert:</strong> Die Fragen wurden erfolgreich aktualisiert.
+            </div>
+          </div>
+        )}
 
         {/* Empty-State wenn keine Fragen gefunden wurden */}
         {!isLoadingQuestions && !questionsError && archivedQuestions.length === 0 && (
@@ -83,9 +100,108 @@ const ArchivePage: React.FC = () => {
           </div>
         )}
 
-        {/* Liste aller archivierten Fragen (nur lesend) */}
+        {/* Liste aller archivierten Fragen */}
         {!isLoadingQuestions && !questionsError && archivedQuestions.length > 0 && (
-          <QuestionsList questions={archivedQuestions} readOnly={true} />
+          <>
+            {/* Aktionsleiste: Edit-Button oder Save/Cancel-Buttons */}
+            {!isEditMode && (
+              <div className="archive-action-bar">
+                <button
+                  type="button"
+                  className="primary-button archive-button-with-icon"
+                  onClick={handleStartEdit}
+                  disabled={isLoadingQuestions || isSaving}
+                >
+                  <svg
+                    className="archive-btn-icon"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6h4.75"
+                    />
+                  </svg>
+                  Bearbeiten
+                </button>
+              </div>
+            )}
+
+            {isEditMode && (
+              <div className="archive-action-bar archive-action-bar--edit">
+                <button
+                  type="button"
+                  className="primary-button archive-button-with-icon"
+                  onClick={handleSaveArchivedQuestions}
+                  disabled={isSaving || editableQuestions.length === 0}
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="archive-btn-spinner" aria-hidden="true" />
+                      Wird gespeichert…
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="archive-btn-icon"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                        />
+                      </svg>
+                      Speichern
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button archive-button-with-icon"
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                >
+                  <svg
+                    className="archive-btn-icon"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18 18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Abbrechen
+                </button>
+              </div>
+            )}
+
+            {/* QuestionsList: Im Edit-Mode bearbeitbar, sonst read-only */}
+            <QuestionsList
+              questions={isEditMode ? editableQuestions : archivedQuestions}
+              onQuestionChange={isEditMode ? handleArchivedQuestionChange : undefined}
+              readOnly={!isEditMode}
+            />
+          </>
         )}
       </div>
     );
