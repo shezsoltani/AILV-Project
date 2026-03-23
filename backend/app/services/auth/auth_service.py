@@ -23,7 +23,10 @@ def register_user(db: Session, req: UserCreate) -> User:
     if existing_username:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Username already exists",
+            detail={
+                "message": "Username already exists",
+                "code": "auth_username_exists",
+            },
         )
 
     existing_email = (
@@ -35,7 +38,10 @@ def register_user(db: Session, req: UserCreate) -> User:
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Email already exists",
+            detail={
+                "message": "Email already exists",
+                "code": "auth_email_exists",
+            },
         )
 
     user = User(
@@ -60,13 +66,19 @@ def login_user(db: Session, req: UserLogin) -> str:
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
+            detail={
+                "message": "Invalid username or password",
+                "code": "auth_invalid_credentials",
+            },
         )
 
     if not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
+            detail={
+                "message": "Invalid username or password",
+                "code": "auth_invalid_credentials",
+            },
         )
 
     token = create_access_token(
@@ -79,7 +91,10 @@ def change_user_password(db: Session, user: User, current_password: str, new_pas
     if not verify_password(current_password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password is incorrect",
+            detail={
+                "message": "Current password is incorrect",
+                "code": "auth_current_password_incorrect",
+            },
         )
     user.password_hash = hash_password(new_password)
     db.commit()

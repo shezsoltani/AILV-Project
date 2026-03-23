@@ -2,10 +2,13 @@
 // Login-Seite. Nach erfolgreichem Login: navigate. Optional: Ziel aus location.state.from.
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { ErrorBanner } from '../components/ErrorBanner';
+import { PasswordVisibilityToggle } from '../components/PasswordVisibilityToggle';
 
 function LoginPage() {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -75,17 +78,23 @@ function LoginPage() {
               <label className="form-label" htmlFor="password">
                 Passwort *
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                className={`form-input${errors.password ? ' form-input--error' : ''}`}
-                value={formValues.password}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                autoComplete="current-password"
-                required
-              />
+              <div className="form-input-wrapper form-input-wrapper--password">
+                <input
+                  id="password"
+                  name="password"
+                  type={isPasswordVisible ? 'text' : 'password'}
+                  className={`form-input${errors.password ? ' form-input--error' : ''}`}
+                  value={formValues.password}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  autoComplete="current-password"
+                  required
+                />
+                <PasswordVisibilityToggle
+                  isVisible={isPasswordVisible}
+                  onToggle={() => setIsPasswordVisible((prev) => !prev)}
+                />
+              </div>
               {errors.password && (
                 <p className="form-error-message">{errors.password}</p>
               )}

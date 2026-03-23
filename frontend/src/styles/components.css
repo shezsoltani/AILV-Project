@@ -182,6 +182,44 @@
   padding-right: calc(var(--spacing-lg) + 1.5rem);
 }
 
+.form-input-wrapper--password .form-input {
+  padding-right: calc(var(--spacing-lg) + 6.5rem);
+}
+
+.password-toggle-button {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-sm);
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-base), color var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle-button:hover {
+  background: var(--color-primary-light);
+}
+
+.password-toggle-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.password-toggle-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: block;
+}
+
 .form-input:focus,
 .form-textarea:focus,
 .form select:focus {
@@ -379,22 +417,32 @@
 }
 
 /* Button Styles */
-.primary-button {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border: none;
+.primary-button,
+.secondary-button {
   padding: var(--spacing-md) var(--spacing-2xl);
   font-size: var(--font-size-base);
   font-weight: 600;
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-base);
-  box-shadow: var(--shadow-md);
   letter-spacing: 0.01em;
-  position: relative;
-  overflow: hidden;
   /* Entferne Unterstreichung bei Links, die als Buttons gerendert werden */
   text-decoration: none;
+}
+
+.primary-button:focus,
+.secondary-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
 }
 
 .primary-button::before {
@@ -424,11 +472,6 @@
   box-shadow: var(--shadow-md);
 }
 
-.primary-button:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
-}
-
 .primary-button:disabled {
   background: var(--color-secondary);
   cursor: not-allowed;
@@ -447,16 +490,7 @@
   background: var(--color-bg-card);
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
-  padding: var(--spacing-md) var(--spacing-2xl);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
-  letter-spacing: 0.01em;
-  /* Entferne Unterstreichung bei Links, die als Buttons gerendert werden */
-  text-decoration: none;
 }
 
 .secondary-button:hover {
@@ -470,75 +504,52 @@
   box-shadow: var(--shadow-sm);
 }
 
-.secondary-button:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
-}
-
 .secondary-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Success Banner Styles */
-.success-banner {
-  margin: var(--spacing-lg) 0;
-  padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border: 2px solid #6ee7b7;
-  border-radius: var(--radius-xl);
-  color: #065f46;
-  box-shadow: var(--shadow-md);
-}
-
-.success-banner-content {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-}
-
-.success-banner-content strong {
-  font-weight: 700;
-  font-size: var(--font-size-base);
-}
-
-/* Error Banner Styles */
-.error-banner {
-  margin: var(--spacing-lg) 0;
-  padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border: 2px solid #fca5a5;
-  border-radius: var(--radius-xl);
-  color: #991b1b;
-  box-shadow: var(--shadow-md);
-}
-
-.error-banner-content {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-}
-
-.error-banner-content strong {
-  font-weight: 700;
-  font-size: var(--font-size-base);
-}
-
+/* Banner Styles */
+.success-banner,
+.error-banner,
 .info-banner {
   margin: var(--spacing-lg) 0;
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border: 2px solid #93c5fd;
   border-radius: var(--radius-xl);
-  color: #1e40af;
   box-shadow: var(--shadow-md);
 }
 
+.success-banner {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #6ee7b7;
+  color: #065f46;
+}
+
+.success-banner-content,
+.error-banner-content,
 .info-banner-content {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-sm);
+}
+
+.error-banner {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 2px solid #fca5a5;
+  color: #991b1b;
+}
+
+.info-banner {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 2px solid #93c5fd;
+  color: #1e40af;
+}
+
+.success-banner-content strong,
+.error-banner-content strong {
+  font-weight: 700;
+  font-size: var(--font-size-base);
 }
 
 /* Modal Styles */

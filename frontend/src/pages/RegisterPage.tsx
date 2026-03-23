@@ -1,13 +1,16 @@
 // src/pages/RegisterPage.tsx
 // Registrierungs-Seite. Formular und Passwortstärke-Anzeige.
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
 import { ErrorBanner } from '../components/ErrorBanner';
+import { PasswordVisibilityToggle } from '../components/PasswordVisibilityToggle';
 import { useRegisterForm } from '../hooks/useRegisterForm';
 
 const RegisterPage: React.FC = () => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const {
     formValues,
@@ -79,24 +82,30 @@ const RegisterPage: React.FC = () => {
                 Mindestens 8 Zeichen. Ein starkes Passwort mischt Groß-/Kleinbuchstaben, Ziffern und
                 gern Sonderzeichen.
               </p>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                className={`form-input${errors.password ? ' form-input--error' : ''}`}
-                value={formValues.password}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                autoComplete="new-password"
-                required
-                aria-describedby={[
-                  'register-password-tips',
-                  formValues.password.length > 0 ? 'register-password-strength' : '',
-                  errors.password ? 'register-password-error' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ') || undefined}
-              />
+              <div className="form-input-wrapper form-input-wrapper--password">
+                <input
+                  id="password"
+                  name="password"
+                  type={isPasswordVisible ? 'text' : 'password'}
+                  className={`form-input${errors.password ? ' form-input--error' : ''}`}
+                  value={formValues.password}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  autoComplete="new-password"
+                  required
+                  aria-describedby={[
+                    'register-password-tips',
+                    formValues.password.length > 0 ? 'register-password-strength' : '',
+                    errors.password ? 'register-password-error' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ') || undefined}
+                />
+                <PasswordVisibilityToggle
+                  isVisible={isPasswordVisible}
+                  onToggle={() => setIsPasswordVisible((prev) => !prev)}
+                />
+              </div>
               <PasswordStrengthMeter password={formValues.password} idPrefix="register" />
               {errors.password && (
                 <p id="register-password-error" className="form-error-message">
@@ -109,17 +118,25 @@ const RegisterPage: React.FC = () => {
               <label className="form-label" htmlFor="confirmPassword">
                 Passwort bestätigen *
               </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                className={`form-input${errors.confirmPassword ? ' form-input--error' : ''}`}
-                value={formValues.confirmPassword}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                autoComplete="new-password"
-                required
-              />
+              <div className="form-input-wrapper form-input-wrapper--password">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={isConfirmPasswordVisible ? 'text' : 'password'}
+                  className={`form-input${errors.confirmPassword ? ' form-input--error' : ''}`}
+                  value={formValues.confirmPassword}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  autoComplete="new-password"
+                  required
+                />
+                <PasswordVisibilityToggle
+                  isVisible={isConfirmPasswordVisible}
+                  onToggle={() => setIsConfirmPasswordVisible((prev) => !prev)}
+                  showLabel="Bestätigungspasswort anzeigen"
+                  hideLabel="Bestätigungspasswort verbergen"
+                />
+              </div>
               {errors.confirmPassword && (
                 <p className="form-error-message">{errors.confirmPassword}</p>
               )}

@@ -133,10 +133,14 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.archive-topic-type-badge,
+.archive-topic-meta-badge--type {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
   border: 1px solid rgba(99, 102, 241, 0.2);
   color: #4338ca;
-  white-space: nowrap;
 }
 
 .archive-topic-meta-row {
@@ -188,12 +192,6 @@
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   border: 1px solid #6ee7b7;
   color: #065f46;
-}
-
-.archive-topic-meta-badge--type {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #4338ca;
 }
 
 .archive-topic-timestamp {

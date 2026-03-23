@@ -1,8 +1,8 @@
 // src/services/apiClient.ts
 // Zentrale Hilfsfunktionen für Backend-Aufrufe: Auth-Header setzen, Antworten lesen und Fehler sauber behandeln.
 
-import { handleApiError } from '../utils/apiUtils';
-import { NetworkError, ParseError } from '../errors/AppErrors';
+import { handleApiError } from '../error-handling/apiErrorParser';
+import { NetworkError, ParseError } from '../error-handling/AppErrors';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE;
 const AUTH_TOKEN_STORAGE_KEY = 'authToken';

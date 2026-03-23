@@ -3,7 +3,7 @@
 
 import { registerUser } from '../services/authApi';
 import type { RegisterFormValues } from '../types/auth';
-import { getRegistrationErrorMessage } from '../utils/errorUtils';
+import { getRegistrationErrorMessage } from '../error-handling/errorMappers';
 import { validateRegisterForm } from '../validators/registerValidator';
 import { useFormWithTouchedValidation } from '../utils/useFormWithTouchedValidation';
 

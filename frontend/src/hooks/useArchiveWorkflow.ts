@@ -1,9 +1,9 @@
 // src/hooks/useArchiveWorkflow.ts
 // Verwaltet Workflow: Archiv-Themen laden, Fragen eines Themas anzeigen, Bearbeitungsmodus
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions } from '../services/questionsApi';
-import { getUserFriendlyMessage } from '../utils/errorUtils';
+import { getUserFriendlyMessage } from '../error-handling/errorMappers';
 import type { ArchiveTopic } from '../types/api';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
@@ -27,6 +27,23 @@ export function useArchiveWorkflow() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
+  const resetSelectedTopicState = useCallback(() => {
+    setArchivedQuestions([]);
+    setEditableQuestions([]);
+    setSelectedTopic(null);
+    setQuestionsError(null);
+    setIsEditMode(false);
+    setSaveError(null);
+    setSaveSuccess(false);
+  }, []);
+
+  const resetQuestionViewBeforeLoad = useCallback(() => {
+    setQuestionsError(null);
+    setSaveError(null);
+    setSaveSuccess(false);
+    setIsEditMode(false);
+  }, []);
+
   // Lade Themen beim Mount
   useEffect(() => {
     const loadTopics = async () => {
@@ -49,22 +66,13 @@ export function useArchiveWorkflow() {
   // Lade Fragen, wenn ein Thema ausgewählt wurde
   useEffect(() => {
     if (!selectedRequestId) {
-      setArchivedQuestions([]);
-      setEditableQuestions([]);
-      setSelectedTopic(null);
-      setQuestionsError(null);
-      setIsEditMode(false);
-      setSaveError(null);
-      setSaveSuccess(false);
+      resetSelectedTopicState();
       return;
     }
 
     const loadQuestions = async () => {
       setIsLoadingQuestions(true);
-      setQuestionsError(null);
-      setSaveError(null);
-      setSaveSuccess(false);
-      setIsEditMode(false);
+      resetQuestionViewBeforeLoad();
       try {
         const response = await getArchiveQuestions(selectedRequestId);
         setArchivedQuestions(response.questions);
@@ -82,7 +90,7 @@ export function useArchiveWorkflow() {
     };
 
     loadQuestions();
-  }, [selectedRequestId]);
+  }, [selectedRequestId, resetQuestionViewBeforeLoad, resetSelectedTopicState]);
 
   // Zurück zur Themen-Liste — Reset erfolgt automatisch über den useEffect
   const handleBackToList = () => {

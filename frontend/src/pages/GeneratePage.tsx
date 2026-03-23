@@ -86,7 +86,7 @@ const GeneratePage: React.FC = () => {
                 type="button"
                 className="primary-button"
                 onClick={handleFinalizeQuestions}
-                disabled={isLoading}
+                disabled={isLoading || Boolean(successMessage)}
               >
                 {isLoading ? 'Wird gespeichert...' : 'Fragen speichern'}
               </button>

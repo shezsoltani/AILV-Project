@@ -4,7 +4,7 @@
 import { loginUser } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
 import type { LoginFormValues } from '../types/auth';
-import { getLoginErrorMessage } from '../utils/errorUtils';
+import { getLoginErrorMessage } from '../error-handling/errorMappers';
 import { validateLoginForm } from '../validators/loginValidator';
 import { useFormWithTouchedValidation } from '../utils/useFormWithTouchedValidation';
 

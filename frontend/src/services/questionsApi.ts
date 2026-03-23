@@ -11,7 +11,7 @@ import type {
   ArchiveQuestionsResponse,
 } from '../types/api';
 import { toNumber } from '../utils/numberUtils';
-import { ApiError } from '../errors/AppErrors';
+import { ApiError } from '../error-handling/AppErrors';
 import { apiCall, API_BASE_URL } from './apiClient';
 
 export async function generateQuestions(

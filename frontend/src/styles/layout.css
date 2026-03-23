@@ -6,7 +6,6 @@
 }
 
 .app-header {
-  background: var(--color-bg-card);
   padding: var(--spacing-lg) var(--spacing-xl);
   box-shadow: var(--shadow-sm);
   position: sticky;
@@ -312,18 +311,16 @@
   }
 
   .app-nav-list {
-    width: auto;
     justify-content: flex-start;
-    flex-wrap: wrap;
   }
 
+  .app-nav-list,
   .app-auth-actions {
     width: auto;
     flex-wrap: wrap;
   }
 
   .app-nav-link {
-    padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
   }
 
@@ -354,7 +351,6 @@
 
   .app-content {
     margin: var(--spacing-sm) var(--spacing-xs) 0;
-    padding: var(--spacing-md);
   }
 }
 
