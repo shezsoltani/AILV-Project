@@ -93,3 +93,31 @@ export async function getArchiveQuestions(
     }
   );
 }
+
+// Sendet bearbeitete Fragen ins Archiv-Update und überträgt nur editierbare Felder.
+export async function updateArchiveQuestions(
+  requestId: string,
+  questions: GeneratedQuestion[]
+): Promise<ArchiveQuestionsResponse> {
+  const payload = {
+    questions: questions.map((q) => ({
+      id: q.id,
+      difficulty: q.difficulty,
+      question: q.question,
+      choices: q.choices,
+      answer: q.answer,
+      rationale: q.rationale,
+    })),
+  };
+
+  return await apiCall<ArchiveQuestionsResponse>(
+    `${API_BASE_URL}/api/archive/${requestId}/questions`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+}
