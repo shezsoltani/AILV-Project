@@ -2,7 +2,7 @@
 // Verwaltet Workflow: Archiv-Themen laden, Fragen eines Themas anzeigen, Bearbeitungsmodus
 
 import { useState, useEffect, useCallback } from 'react';
-import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions } from '../services/questionsApi';
+import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions, deleteArchiveEntry } from '../services/questionsApi';
 import { getUserFriendlyMessage } from '../error-handling/errorMappers';
 import type { ArchiveTopic } from '../types/api';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
@@ -26,6 +26,9 @@ export function useArchiveWorkflow() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false);
 
   const resetSelectedTopicState = useCallback(() => {
     setArchivedQuestions([]);
@@ -35,6 +38,7 @@ export function useArchiveWorkflow() {
     setIsEditMode(false);
     setSaveError(null);
     setSaveSuccess(false);
+    setDeleteError(null);
   }, []);
 
   const resetQuestionViewBeforeLoad = useCallback(() => {
@@ -99,6 +103,7 @@ export function useArchiveWorkflow() {
 
   // Auswahl eines Themas behandeln
   const handleTopicSelect = (requestId: string) => {
+    setDeleteSuccess(false);
     setSelectedRequestId(requestId);
   };
 
@@ -147,6 +152,26 @@ export function useArchiveWorkflow() {
     }
   };
 
+  const handleDeleteArchiveEntry = async (requestId: string) => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    setDeleteSuccess(false);
+
+    try {
+      await deleteArchiveEntry(requestId);
+      setTopics((prev) => prev.filter((t) => t.request_id !== requestId));
+      if (selectedRequestId === requestId) {
+        setSelectedRequestId(null);
+      }
+      setDeleteSuccess(true);
+    } catch (error) {
+      console.error('Fehler beim Löschen des Archiv-Eintrags:', error);
+      setDeleteError(getUserFriendlyMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return {
     // States für Themen-Liste
     topics,
@@ -164,6 +189,9 @@ export function useArchiveWorkflow() {
     isSaving,
     saveError,
     saveSuccess,
+    isDeleting,
+    deleteError,
+    deleteSuccess,
     // Handlers
     handleBackToList,
     handleTopicSelect,
@@ -171,5 +199,6 @@ export function useArchiveWorkflow() {
     handleArchivedQuestionChange,
     handleCancelEdit,
     handleSaveArchivedQuestions,
+    handleDeleteArchiveEntry,
   };
 }

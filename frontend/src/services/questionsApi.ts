@@ -9,6 +9,7 @@ import type {
   FinalizeResponse,
   ArchiveTopicsResponse,
   ArchiveQuestionsResponse,
+  ArchiveDeleteResponse,
 } from '../types/api';
 import { toNumber } from '../utils/numberUtils';
 import { ApiError } from '../error-handling/AppErrors';
@@ -118,6 +119,18 @@ export async function updateArchiveQuestions(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function deleteArchiveEntry(requestId: string): Promise<ArchiveDeleteResponse> {
+  return await apiCall<ArchiveDeleteResponse>(
+    `${API_BASE_URL}/api/archive/${requestId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
   );
 }
