@@ -10,12 +10,16 @@ interface ArchiveTopicCardProps {
   topic: ArchiveTopic; // Archiv-Thema, das angezeigt werden soll
   onSelect: (requestId: string) => void; 
   formatDate: (dateString: string) => string; 
+  onDeleteClick?: (requestId: string) => void;
+  deleteDisabled?: boolean;
 }
 
 export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
   topic,
   onSelect,
   formatDate,
+  onDeleteClick,
+  deleteDisabled = false,
 }) => {
   // Behandlung des Klick-Events auf die Card
   const handleClick = () => {
@@ -41,24 +45,40 @@ export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
     >
       <div className="archive-topic-header">
         <div className="archive-topic-content">
-          {/* Titel und Badges in einer Zeile - Badges rechts oben */}
-          <div className="archive-topic-title-wrapper">
-            <h2 className="archive-topic-title">{topic.topic}</h2>
-            <div className="archive-topic-badges">
-              <span className="archive-topic-meta-badge archive-topic-meta-badge--language">
-                {topic.language.toUpperCase()}
-              </span>
-              {topic.types && topic.types.length > 0 && topic.types.map((type, index) => (
-                <span key={index} className="archive-topic-meta-badge archive-topic-meta-badge--type">
-                  {getQuestionTypeLabel(type as 'MCQ' | 'SHORT_ANSWER' | 'TRUE_FALSE')}
+          <div className="archive-topic-header-row">
+            {/* Titel und Badges in einer Zeile - Badges rechts oben */}
+            <div className="archive-topic-title-wrapper">
+              <h2 className="archive-topic-title">{topic.topic}</h2>
+              <div className="archive-topic-badges">
+                <span className="archive-topic-meta-badge archive-topic-meta-badge--language">
+                  {topic.language.toUpperCase()}
                 </span>
-              ))}
-              <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
-                {topic.question_count} {topic.question_count === 1 ? 'Frage' : 'Fragen'}
-              </span>
+                {topic.types && topic.types.length > 0 && topic.types.map((type, index) => (
+                  <span key={index} className="archive-topic-meta-badge archive-topic-meta-badge--type">
+                    {getQuestionTypeLabel(type as 'MCQ' | 'SHORT_ANSWER' | 'TRUE_FALSE')}
+                  </span>
+                ))}
+                <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
+                  {topic.question_count} {topic.question_count === 1 ? 'Frage' : 'Fragen'}
+                </span>
+              </div>
             </div>
+            {onDeleteClick && (
+              <button
+                type="button"
+                className="secondary-button"
+                aria-label={`Thema ${topic.topic} löschen`}
+                disabled={deleteDisabled}
+                onClick={function (e) {
+                  e.stopPropagation();
+                  onDeleteClick(topic.request_id);
+                }}
+              >
+                Löschen
+              </button>
+            )}
           </div>
-          
+
           {/* Metadaten des Themas: Zeitstempel */}
           <div className="archive-topic-meta">
             {/* Zeitstempel: Erstellt und Finalisiert */}

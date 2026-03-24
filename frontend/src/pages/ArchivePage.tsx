@@ -24,17 +24,83 @@ const ArchivePage: React.FC = () => {
     isSaving,
     saveError,
     saveSuccess,
+    isDeleting,
+    deleteError,
+    deleteSuccess,
     handleBackToList,
     handleTopicSelect,
     handleStartEdit,
     handleArchivedQuestionChange,
     handleCancelEdit,
     handleSaveArchivedQuestions,
+    handleDeleteArchiveEntry,
   } = useArchiveWorkflow();
+
+  const [deleteDialogRequestId, setDeleteDialogRequestId] = React.useState<string | null>(null);
+
+  const openDeleteDialog = (requestId: string) => {
+    setDeleteDialogRequestId(requestId);
+  };
+  const closeDeleteDialog = () => {
+    if (!isDeleting) {
+      setDeleteDialogRequestId(null);
+    }
+  };
+  const confirmDelete = async () => {
+    if (!deleteDialogRequestId) return;
+    await handleDeleteArchiveEntry(deleteDialogRequestId);
+    setDeleteDialogRequestId(null);
+  };
+
+  const deleteConfirmModal =
+    deleteDialogRequestId && (
+      <div
+        className="logout-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="archive-delete-dialog-title"
+        onClick={closeDeleteDialog}
+      >
+        <div
+          className="logout-modal"
+          onClick={function (e) {
+            e.stopPropagation();
+          }}
+        >
+          <div className="logout-modal-body">
+            <h2 id="archive-delete-dialog-title" className="logout-modal-title">
+              Archiv-Eintrag löschen
+            </h2>
+            <p className="logout-modal-description">
+              Dieser Archiv-Eintrag wird unwiderruflich gelöscht. Möchten Sie fortfahren?
+            </p>
+          </div>
+          <div className="logout-modal-footer">
+            <button
+              type="button"
+              className="logout-modal-cancel"
+              onClick={closeDeleteDialog}
+              disabled={isDeleting}
+            >
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              className="logout-modal-confirm"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Wird gelöscht…' : 'Endgültig löschen'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
 
   // Render: Fragen für ausgewähltes Thema anzeigen
   if (selectedRequestId) {
     return (
+      <>
       <div className="page">
         {/* Button zum Zurückkehren zur Themen-Liste */}
         <div className="archive-back-button">
@@ -42,7 +108,7 @@ const ArchivePage: React.FC = () => {
             type="button"
             className="secondary-button"
             onClick={handleBackToList}
-            disabled={isLoadingQuestions || isSaving}
+            disabled={isLoadingQuestions || isSaving || isDeleting}
           >
             <svg
               className="archive-back-icon"
@@ -79,6 +145,7 @@ const ArchivePage: React.FC = () => {
 
         <ErrorBanner message={questionsError} />
         <ErrorBanner message={saveError} />
+        <ErrorBanner message={deleteError} />
         {saveSuccess && (
           <div className="success-banner" role="status">
             <div className="success-banner-content">
@@ -110,7 +177,7 @@ const ArchivePage: React.FC = () => {
                   type="button"
                   className="primary-button archive-button-with-icon"
                   onClick={handleStartEdit}
-                  disabled={isLoadingQuestions || isSaving}
+                  disabled={isLoadingQuestions || isSaving || isDeleting}
                 >
                   <svg
                     className="archive-btn-icon"
@@ -130,6 +197,31 @@ const ArchivePage: React.FC = () => {
                   </svg>
                   Bearbeiten
                 </button>
+                <button
+                  type="button"
+                  className="secondary-button archive-button-with-icon"
+                  onClick={() => openDeleteDialog(selectedRequestId)}
+                  disabled={isLoadingQuestions || isSaving || isDeleting}
+                  aria-label="Archiv-Eintrag löschen"
+                >
+                  <svg
+                    className="archive-btn-icon"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Löschen
+                </button>
               </div>
             )}
 
@@ -139,7 +231,7 @@ const ArchivePage: React.FC = () => {
                   type="button"
                   className="primary-button archive-button-with-icon"
                   onClick={handleSaveArchivedQuestions}
-                  disabled={isSaving || editableQuestions.length === 0}
+                  disabled={isSaving || editableQuestions.length === 0 || isDeleting}
                 >
                   {isSaving ? (
                     <>
@@ -172,7 +264,7 @@ const ArchivePage: React.FC = () => {
                   type="button"
                   className="secondary-button archive-button-with-icon"
                   onClick={handleCancelEdit}
-                  disabled={isSaving}
+                  disabled={isSaving || isDeleting}
                 >
                   <svg
                     className="archive-btn-icon"
@@ -204,11 +296,14 @@ const ArchivePage: React.FC = () => {
           </>
         )}
       </div>
+      {deleteConfirmModal}
+      </>
     );
   }
 
   // Render: Themen-Liste anzeigen (Hauptansicht)
   return (
+    <>
     <div className="page">
       <h1 className="page-title">Ihre Fragensammlung</h1>
       <p className="page-description">
@@ -224,6 +319,15 @@ const ArchivePage: React.FC = () => {
       )}
 
       <ErrorBanner message={topicsError} />
+      <ErrorBanner message={deleteError} />
+
+      {deleteSuccess && (
+        <div className="success-banner" role="status">
+          <div className="success-banner-content">
+            <strong>Gelöscht:</strong> Der Archiv-Eintrag wurde entfernt.
+          </div>
+        </div>
+      )}
 
       {/* Empty-State wenn noch keine archivierten Themen vorhanden sind */}
       {!isLoadingTopics && !topicsError && topics.length === 0 && (
@@ -247,11 +351,15 @@ const ArchivePage: React.FC = () => {
               topic={topic}
               onSelect={handleTopicSelect}
               formatDate={formatDateToGerman}
+              onDeleteClick={openDeleteDialog}
+              deleteDisabled={isDeleting}
             />
           ))}
         </div>
       )}
     </div>
+    {deleteConfirmModal}
+    </>
   );
 };
 
