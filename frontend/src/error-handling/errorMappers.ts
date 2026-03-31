@@ -60,3 +60,14 @@ export function getLoginErrorMessage(error: unknown): string {
 
   return getUserFriendlyMessage(error);
 }
+
+export function getChangePasswordErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.statusCode === 400) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes('current password') || msg.includes('incorrect')) {
+      return 'Das aktuelle Passwort ist nicht korrekt.';
+    }
+  }
+
+  return getUserFriendlyMessage(error);
+}
