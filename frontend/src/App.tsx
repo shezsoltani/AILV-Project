@@ -9,6 +9,7 @@ import GeneratePage from './pages/GeneratePage';
 import ArchivePage from './pages/ArchivePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 const App: React.FC = () => {
   return (
@@ -28,6 +29,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <ArchivePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePasswordPage />
             </ProtectedRoute>
           }
         />

@@ -24,6 +24,18 @@ export interface LoginValidationErrors {
   password?: string;
 }
 
+export interface ChangePasswordFormValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordValidationErrors {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;

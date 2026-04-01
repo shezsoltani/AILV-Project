@@ -64,9 +64,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </ul>
             <div className="app-auth-actions">
               {isAuthenticated ? (
-                <button type="button" className="app-auth-button" onClick={handleLogoutRequest}>
-                  Logout
-                </button>
+                <>
+                  <NavLink
+                    to="/change-password"
+                    className={function ({ isActive }) {
+                      return 'app-nav-link' + (isActive ? ' app-nav-link--active' : '');
+                    }}
+                  >
+                    Passwort ändern
+                  </NavLink>
+                  <button type="button" className="app-auth-button" onClick={handleLogoutRequest}>
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   <NavLink
