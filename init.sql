@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS generation_requests (
   bloom_level VARCHAR(50) NULL,
   target_audience TEXT NULL,
   context_text TEXT NULL,
+  upload_context TEXT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 

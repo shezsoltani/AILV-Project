@@ -45,6 +45,8 @@ class GenerationRequest(Base):
     count = Column(Integer, nullable=False, server_default="1")
     types = Column(JSONB, nullable=False, server_default="[]")
     difficulty_distribution = Column(JSONB, nullable=True)
+    context_text = Column(Text, nullable=True)
+    upload_context = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     user = relationship("User")
     prompt_entries = relationship("PromptEntry", back_populates="generation_request", cascade="all, delete-orphan")

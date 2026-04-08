@@ -12,9 +12,8 @@ from ..services.auth.auth_service import (
     register_user,
     login_user,
 )
-
+#from ..core.email_utils import send_reset_email
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
 
 @router.post("/register", response_model=UserResponse)
 def register(
@@ -25,7 +24,6 @@ def register(
     user = register_user(db, req)
 
     return user
-
 
 @router.post("/login", response_model=TokenResponse)
 def login(
@@ -39,3 +37,9 @@ def login(
         access_token=token,
         token_type="bearer",
     )
+
+#Nur zum Testen verwendet
+#@router.get("/test-email")
+#async def test_email():
+#    await send_reset_email("test@example.com", "dummy-token")
+#    return {"message": "Email sent"}
