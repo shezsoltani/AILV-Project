@@ -27,7 +27,7 @@ async def generate_questions(
         "count": req.count,
         "types": req.types,
         "difficulty_distribution": req.difficulty_distribution,
-        "language": req.language.value,
+        "language": req.language.value
     }
 
     # SKELETON
@@ -48,6 +48,8 @@ async def generate_questions(
         topic=req.topic,
         skeleton=skeleton,
         max_attempts=3,
+        context_text=req.context_text,
+        upload_context=req.upload_context,
     )
 
     # IMPROVE

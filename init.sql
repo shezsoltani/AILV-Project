@@ -144,6 +144,17 @@ Du erhältst das folgende Rohgerüst für Prüfungsfragen:
 
 Erzeuge daraus vollständige Prüfungsfragen zum Thema "{{topic}}".
 
+{% if context_text %}
+Zusätzlicher Kontext vom Nutzer:
+{{ context_text }}
+
+{% endif %}
+{% if upload_context %}
+Inhalt aus hochgeladenem Dokument:
+{{ upload_context }}
+
+{% endif %}
+
 Regeln:
 - Schreibe jede Frage in der Sprache: {{language}}
 - type bestimmt das Format:
@@ -239,6 +250,17 @@ You receive the following raw skeleton for exam questions:
 {{skeleton_data}}
 
 Generate complete exam questions from it on the topic "{{topic}}".
+
+{% if context_text %}
+Additional context from user:
+{{ context_text }}
+
+{% endif %}
+{% if upload_context %}
+Input from uploaded document:
+{{ upload_context }}
+
+{% endif %}
 
 Rules:
 - Write each question in the language: {{language}}

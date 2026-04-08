@@ -5,6 +5,7 @@ from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, ContentValidationError
 from ..validators.content_validator import validate_content
 from .stage_runner import run_stage
+from typing import Optional
 
 async def generate_valid_content(
     db: Session,
@@ -13,12 +14,16 @@ async def generate_valid_content(
     topic: str,
     skeleton: list[dict],
     max_attempts: int = 3,
+    context_text: Optional[str] = None,
+    upload_context: Optional[str] = None,
 ) -> list[dict]:
 
     context = {
         "skeleton_data": json.dumps(skeleton, ensure_ascii=False, indent=2),
         "topic": topic,
         "language": language,
+        "context_text": context_text,
+        "upload_context": upload_context,
     }
 
     last_error: Exception | None = None

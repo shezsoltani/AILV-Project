@@ -13,6 +13,8 @@ def create_generation_request_db(db: Session, req: GenerateRequest, user_id: UUI
         count=req.count,
         types=req.types,
         difficulty_distribution=req.difficulty_distribution,
+        context_text=req.context_text,
+        upload_context=req.upload_context,
     )
     db.add(db_req)
     db.commit()

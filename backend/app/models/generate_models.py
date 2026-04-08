@@ -17,6 +17,8 @@ class GenerateRequest(BaseModel):
         default_factory=lambda: {"easy": 50, "medium": 30, "hard": 20},
         description="Prozentuale Aufteilung der Schwierigkeitsgrade"
     )
+    context_text: Optional[str] = None
+    upload_context: Optional[str] = None
     # -> keine learning_objectives, bloom_level, target_audience, context_text im API-Modell
 
 class GeneratedQuestion(BaseModel):
