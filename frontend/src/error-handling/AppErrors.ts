@@ -1,4 +1,3 @@
-// src/errors/AppErrors.ts
 // Fehlertypen: gemeinsame Error-Klassen für konsistentes Frontend-Error-Handling
 export class AppError extends Error {
   constructor(

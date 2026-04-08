@@ -76,6 +76,25 @@
   min-width: 0;
 }
 
+.archive-topic-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+.archive-topic-header-row .archive-topic-title-wrapper {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.archive-topic-header-row > .secondary-button {
+  flex-shrink: 0;
+}
+
 .archive-topic-title-wrapper {
   display: flex;
   justify-content: space-between;
@@ -133,10 +152,14 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.archive-topic-type-badge,
+.archive-topic-meta-badge--type {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
   border: 1px solid rgba(99, 102, 241, 0.2);
   color: #4338ca;
-  white-space: nowrap;
 }
 
 .archive-topic-meta-row {
@@ -188,12 +211,6 @@
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   border: 1px solid #6ee7b7;
   color: #065f46;
-}
-
-.archive-topic-meta-badge--type {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #4338ca;
 }
 
 .archive-topic-timestamp {
@@ -292,6 +309,50 @@
   flex-shrink: 0;
 }
 
+/* Archive Action Bar */
+.archive-action-bar {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  align-items: center;
+}
+
+.archive-action-bar--edit {
+  padding: var(--spacing-md);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  gap: var(--spacing-md);
+}
+
+/* Icons in Aktions-Buttons (Stroke-Icons, konsistent mit „Zurück“) */
+.archive-button-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.archive-btn-icon {
+  flex-shrink: 0;
+}
+
+.archive-btn-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.secondary-button .archive-btn-spinner {
+  border-color: rgba(37, 99, 235, 0.25);
+  border-top-color: var(--color-primary);
+}
+
 /* Responsive Archive Styles */
 @media (max-width: 768px) {
   .archive-topics-list {
@@ -311,6 +372,16 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
+  }
+
+  .archive-topic-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .archive-topic-header-row > .secondary-button {
+    align-self: flex-end;
   }
 
   .archive-topic-badges {

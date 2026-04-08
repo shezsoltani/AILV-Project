@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type { GenerateRequestFormValues } from '../types/generate';
-import { generateQuestions, finalizeQuestions } from '../services/api';
+import { generateQuestions, finalizeQuestions } from '../services/questionsApi';
 import { calculateQuestionDiff } from '../utils/questionUtils';
-import { getUserFriendlyMessage } from '../utils/errorUtils';
+import { getUserFriendlyMessage } from '../error-handling/errorMappers';
 import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME, ESCAPE_KEY } from '../constants/appConstants';
 
 // Verwaltet Workflow: Fragen generieren, bearbeiten und finalisieren
@@ -19,6 +19,8 @@ export function useQuestionWorkflow() {
   const [isLoading, setIsLoading] = useState(false);
   // Ref für setTimeout cleanup
   const timeoutRef = useRef<number | null>(null);
+  // Verhindert doppelte Finalize-Requests bei schnellen Mehrfach-Events
+  const isFinalizingRef = useRef(false);
 
   // Sendet Formular ans Backend und öffnet Modal mit generierten Fragen
   const handleFormSubmit = async (values: GenerateRequestFormValues) => {
@@ -87,6 +89,10 @@ export function useQuestionWorkflow() {
 
   // Sendet nur Änderungen ans Backend und finalisiert Fragen
   const handleFinalizeQuestions = async () => {
+    if (isFinalizingRef.current || successMessage) {
+      return;
+    }
+
     if (!requestId) {
       setErrorMessage(DEFAULT_ERROR_MESSAGES.NO_REQUEST_ID);
       return;
@@ -97,6 +103,7 @@ export function useQuestionWorkflow() {
       return;
     }
 
+    isFinalizingRef.current = true;
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -120,6 +127,8 @@ export function useQuestionWorkflow() {
       setErrorMessage(null);
       const count = response.finalized_count;
       setSuccessMessage(`${count} ${count === 1 ? 'Frage' : 'Fragen'} gespeichert. Sie finden sie im Archiv.`);
+      // Bereits finalisierte Anfrage sofort invalidieren, um 2. Submit zu verhindern
+      setRequestId(null);
       
       // Nach 2 Sekunden zurücksetzen (Erfolgsmeldung bleibt sichtbar)
       // Alten Timeout löschen, falls vorhanden
@@ -139,6 +148,7 @@ export function useQuestionWorkflow() {
       // Verwende getUserFriendlyMessage für bessere Fehlermeldungen
       setErrorMessage(getUserFriendlyMessage(error));
     } finally {
+      isFinalizingRef.current = false;
       setIsLoading(false);
     }
   };

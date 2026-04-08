@@ -60,3 +60,9 @@ export interface ArchiveQuestionsResponse {
   language: string;
   questions: GeneratedQuestion[];
 }
+
+export interface ArchiveDeleteResponse {
+  success: boolean;
+  request_id: string;  // UUID
+  message: string;
+}

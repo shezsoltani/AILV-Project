@@ -1,5 +1,5 @@
 # app/models/sql_models.py
-from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer, ForeignKey
+from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer, ForeignKey, Boolean
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Uuid
@@ -16,6 +16,15 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token = Column(String(255), unique=True, nullable=False)
+    expires_at = Column(TIMESTAMP, nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    user = relationship("User")
 
 class PromptTemplate(Base):
     __tablename__ = "prompt_templates"

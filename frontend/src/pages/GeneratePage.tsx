@@ -1,11 +1,14 @@
-// Seite für die Generierung von Prüfungsfragen
+// src/pages/GeneratePage.tsx
+// Formular, dann Modal mit generierten Fragen, dann Finalisieren fürs Archiv.
+
 import React from 'react';
 import { GenerateForm } from '../components/GenerateForm';
 import { QuestionsList } from '../components/QuestionsList';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { useQuestionWorkflow } from '../hooks/useQuestionWorkflow';
 
 const GeneratePage: React.FC = () => {
-  //  Hook verwaltet den kompletten Workflow: Formular absenden, Fragen anzeigen, finalisieren
+  // State und Aktionen für Generierung, Modal und Finalize.
   const {
     questions,
     isModalOpen,
@@ -27,7 +30,7 @@ const GeneratePage: React.FC = () => {
         Geben Sie Ihre Anforderungen ein und lassen Sie die KI passende Fragen erstellen.
       </p>
 
-      {/*  Hauptformular zum Eingeben der Generierungsanforderungen */}
+      {/* Hauptformular */}
       <div className="page-form">
         <GenerateForm
           onSubmit={handleFormSubmit}
@@ -52,13 +55,7 @@ const GeneratePage: React.FC = () => {
               </button>
             </div>
 
-            {errorMessage && (
-              <div className="error-banner" role="alert" style={{ margin: '1rem' }}>
-                <div className="error-banner-content">
-                  <strong>Fehler:</strong> {errorMessage}
-                </div>
-              </div>
-            )}
+            <ErrorBanner message={errorMessage} style={{ margin: '1rem' }} />
 
             {/* Liste aller generierten Fragen - hier können sie bearbeitet werden */}
             <QuestionsList
@@ -89,7 +86,7 @@ const GeneratePage: React.FC = () => {
                 type="button"
                 className="primary-button"
                 onClick={handleFinalizeQuestions}
-                disabled={isLoading}
+                disabled={isLoading || Boolean(successMessage)}
               >
                 {isLoading ? 'Wird gespeichert...' : 'Fragen speichern'}
               </button>

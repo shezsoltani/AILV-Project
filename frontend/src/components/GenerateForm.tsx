@@ -1,5 +1,5 @@
 // src/components/GenerateForm.tsx
-// Eingabeformular für die Generierung von Prüfungsfragen
+// Darstellung des Generierungsformulars. Logik: useGenerateForm.
 
 import React from 'react';
 import type { GenerateRequestFormValues } from '../types/generate';
@@ -8,6 +8,14 @@ import {
   getQuestionTypeLabel,
 } from '../constants/formConstants';
 import { useGenerateForm } from '../hooks/useGenerateForm';
+import { ErrorBanner } from './ErrorBanner';
+
+// Drei Felder für die Prozent-Verteilung. Keys müssen zu useGenerateForm passen.
+const DIFFICULTY_FIELDS = [
+  { id: 'difficulty-easy',   name: 'difficultyDistribution.easy',   label: 'Einfach (%)', displayKey: 'difficultyEasy'   as const, errorKey: 'difficultyEasy'   as const },
+  { id: 'difficulty-medium', name: 'difficultyDistribution.medium', label: 'Mittel (%)',  displayKey: 'difficultyMedium' as const, errorKey: 'difficultyMedium' as const },
+  { id: 'difficulty-hard',   name: 'difficultyDistribution.hard',   label: 'Schwer (%)', displayKey: 'difficultyHard'   as const, errorKey: 'difficultyHard'   as const },
+] as const;
 
 interface GenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
@@ -130,78 +138,32 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
         <div className="form-row">
           <p className="form-section-title">Schwierigkeitsverteilung (%)</p>
           {/* Drei Eingabefelder für die Prozent-Verteilung - Summe muss 100% ergeben */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="difficulty-easy">
-              Einfach (%)
-            </label>
-            <div className="form-input-wrapper form-input-wrapper--numeric">
-              <input
-                id="difficulty-easy"
-                name="difficultyDistribution.easy"
-                className={`form-input${
-                  errors.difficultyEasy || errors.difficulty ? ' form-input--error' : ''
-                }`}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={displayValues.difficultyEasy}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-              />
+          {DIFFICULTY_FIELDS.map(({ id, name, label, displayKey, errorKey }) => (
+            <div className="form-group" key={id}>
+              <label className="form-label" htmlFor={id}>
+                {label}
+              </label>
+              <div className="form-input-wrapper form-input-wrapper--numeric">
+                <input
+                  id={id}
+                  name={name}
+                  className={`form-input${
+                    errors[errorKey] || errors.difficulty ? ' form-input--error' : ''
+                  }`}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={displayValues[displayKey]}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              {errors[errorKey] && (
+                <p className="form-error-message">{errors[errorKey]}</p>
+              )}
             </div>
-            {errors.difficultyEasy && (
-              <p className="form-error-message">{errors.difficultyEasy}</p>
-            )}
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="difficulty-medium">
-              Mittel (%)
-            </label>
-            <div className="form-input-wrapper form-input-wrapper--numeric">
-              <input
-                id="difficulty-medium"
-                name="difficultyDistribution.medium"
-                className={`form-input${
-                  errors.difficultyMedium || errors.difficulty ? ' form-input--error' : ''
-                }`}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={displayValues.difficultyMedium}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-            {errors.difficultyMedium && (
-              <p className="form-error-message">{errors.difficultyMedium}</p>
-            )}
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="difficulty-hard">
-              Schwer (%)
-            </label>
-            <div className="form-input-wrapper form-input-wrapper--numeric">
-              <input
-                id="difficulty-hard"
-                name="difficultyDistribution.hard"
-                className={`form-input${
-                  errors.difficultyHard || errors.difficulty ? ' form-input--error' : ''
-                }`}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={displayValues.difficultyHard}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-            {errors.difficultyHard && (
-              <p className="form-error-message">{errors.difficultyHard}</p>
-            )}
-          </div>
+          ))}
           <p className="form-helper">
             Die Summe aus Einfach, Mittel und Schwer muss 100% ergeben.
           </p>
@@ -219,14 +181,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
           {formIsLoading ? 'Wird generiert...' : 'Fragen generieren'}
         </button>
 
-        {/* Backend-/Submit-Fehler direkt beim Button anzeigen, damit niemand nach oben scrollen muss */}
-        {submitError && (
-          <div className="error-banner" role="alert" style={{ marginTop: '1rem' }}>
-            <div className="error-banner-content">
-              <strong>Fehler:</strong> {submitError}
-            </div>
-          </div>
-        )}
+        <ErrorBanner message={submitError} style={{ marginTop: '1rem' }} />
       </form>
       {showSuccessMessage && !submitError && (
         <p className="form-success-message">Formulardaten erfasst</p>

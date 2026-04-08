@@ -36,21 +36,29 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
    ```
 
 2. Umgebungsvariablen konfigurieren:
+
+   Für die Fragegenerierung wird ein OpenAI API-Key benötigt. Zusätzlich benötigt das Backend ein JWT-Secret für Authentifizierung. SMTP-Variablen sind nur nötig, wenn Sie E‑Mail-Funktionen (z. B. Passwort-Reset) aktivieren wollen.
    
-   Der OpenAI API-Key ist für die Fragegenerierung erforderlich. Sie können ihn entweder über eine `.env` Datei im Projekt-Root oder direkt als Environment-Variable setzen:
-   
-   **Option 1: .env Datei (empfohlen)**
-   ```env
-   OPENAI_API_KEY=ihr-api-key-hier
-   OPENAI_MODEL_NAME=gpt-4o
-   JWT_SECRET_KEY= ihr-secret-key-hier
-   JWT_ALGORITHM=HS256
-   ```
+  **Option 1: .env Datei (empfohlen)**
+  ```env
+  OPENAI_API_KEY=ihr-api-key-hier
+  OPENAI_MODEL_NAME=gpt-4o
+  JWT_SECRET_KEY=ihr-secret-key-hier
+  JWT_ALGORITHM=HS256
+  # SMTP (optional, nur wenn E-Mails verschickt werden sollen; z.B. Mailtrap für Tests)
+  SMTP_HOST=sandbox.smtp.mailtrap.io
+  SMTP_PORT=2525
+  SMTP_USER=your_user
+  SMTP_PASSWORD=your_password
+  MAIL_FROM=test@example.com
+  ```
    
    **Option 2: Environment-Variable direkt setzen**
    ```bash
    export OPENAI_API_KEY=ihr-api-key-hier
    export OPENAI_MODEL_NAME=gpt-4o
+   export JWT_SECRET_KEY=ihr-secret-key-hier
+   export JWT_ALGORITHM=HS256
    ```
 
 3. Projekt starten:

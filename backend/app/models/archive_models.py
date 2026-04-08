@@ -3,7 +3,7 @@
 
 from uuid import UUID
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from .generate_models import GeneratedQuestion
@@ -31,3 +31,22 @@ class ArchiveQuestionsResponse(BaseModel):
     topic: str
     language: str
     questions: List[GeneratedQuestion] = Field(default_factory=list)
+
+
+# Models für Update-Request zum Bearbeiten archivierter Fragen
+class ArchiveQuestionUpdate(BaseModel):
+    id: UUID
+    question: str
+    difficulty: str
+    choices: Optional[List[str]] = None
+    answer: Optional[str] = None
+    rationale: Optional[str] = None
+
+
+class UpdateArchiveQuestionsRequest(BaseModel):
+    questions: List[ArchiveQuestionUpdate] = Field(default_factory=list)
+
+class ArchiveDeleteResponse(BaseModel):
+    success: bool
+    request_id: UUID
+    message: str
