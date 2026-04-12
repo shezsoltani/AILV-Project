@@ -14,4 +14,6 @@ export interface GenerateRequestFormValues {
   count: number | '';
   types: QuestionType[];
   difficultyDistribution: DifficultyDistribution;
+  contextText?: string;
+  uploadContext?: string;
 }

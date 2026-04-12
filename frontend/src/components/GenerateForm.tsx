@@ -67,6 +67,26 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
         </div>
 
         <div className="form-row">
+          {/* Optionales Textfeld für manuellen Kontext – wird als context_text an die API übergeben */}
+          <label className="form-label" htmlFor="contextText">
+            Kontext (optional)
+          </label>
+          <textarea
+            id="contextText"
+            name="contextText"
+            className="form-input"
+            placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
+            rows={4}
+            value={formValues.contextText ?? ''}
+            onChange={handleInputChange}
+          />
+          <p className="form-helper">
+            Ergänzende Informationen, die bei der Fragengenerierung berücksichtigt werden sollen.
+          </p>
+        </div>
+
+
+        <div className="form-row">
           {/* Dropdown-Menü für die Sprache der Fragen */}
           <label className="form-label" htmlFor="language">
             Sprache

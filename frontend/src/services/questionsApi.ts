@@ -29,6 +29,9 @@ export async function generateQuestions(
       medium: toNumber(formValues.difficultyDistribution.medium),
       hard: toNumber(formValues.difficultyDistribution.hard),
     },
+    // Optionale Felder: nur mitsenden, wenn befüllt
+    ...(formValues.contextText && { context_text: formValues.contextText }),
+    ...(formValues.uploadContext && { upload_context: formValues.uploadContext }),
   };
 
   const data: GenerateResponseDto = await apiCall<GenerateResponseDto>(

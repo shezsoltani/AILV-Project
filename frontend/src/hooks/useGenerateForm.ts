@@ -39,6 +39,8 @@ interface UseGenerateFormReturn {
   // Toggelt Fragetyp (hinzufügen/entfernen)
   handleTypeToggle: (type: QuestionType) => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  // Wird von T3.2.3 (PDF-Upload) genutzt, um uploadContext zu setzen
+  setUploadContext: (value: string | undefined) => void;
 }
 
 export const useGenerateForm = ({
@@ -132,6 +134,12 @@ export const useGenerateForm = ({
     // Thema-Feld
     if (name === 'topic') {
       updateFormValues((prev) => ({ ...prev, topic: value }));
+      return;
+    }
+
+    // Kontext-Textarea
+    if (name === 'contextText') {
+      updateFormValues((prev) => ({ ...prev, contextText: value || undefined }));
       return;
     }
 
@@ -229,6 +237,11 @@ export const useGenerateForm = ({
     }
   };
 
+  // Setter für uploadContext – wird von T3.2.3 (PDF-Upload) aufgerufen
+  const setUploadContext = (value: string | undefined) => {
+    updateFormValues((prev) => ({ ...prev, uploadContext: value }));
+  };
+
   return {
     formValues,
     displayValues,
@@ -241,5 +254,6 @@ export const useGenerateForm = ({
     handleLanguageChange,
     handleTypeToggle,
     handleSubmit,
+    setUploadContext,
   };
 };

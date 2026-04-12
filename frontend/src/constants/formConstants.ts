@@ -33,5 +33,7 @@ export const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
     medium: 40,
     hard: 20,
   },
+  contextText: undefined,
+  uploadContext: undefined,
 };
 
