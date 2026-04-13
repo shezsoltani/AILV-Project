@@ -114,3 +114,17 @@ class ArchiveServiceError(AppError):
         super().__init__(detail or message)
         self.message = message
 
+class PDFExtractionError(AppError):
+    status_code = 422
+    error_code = "pdf_extraction_error"
+
+    def __init__(self, detail: str):
+        super().__init__(detail)
+
+
+class PDFEncryptedError(AppError):
+    status_code = 422
+    error_code = "pdf_encrypted"
+
+    def __init__(self):
+        super().__init__("The uploaded PDF is encrypted and cannot be processed.")
