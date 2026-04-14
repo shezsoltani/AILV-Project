@@ -11,6 +11,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   // Validierung
   validation_error: 'Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
   context_text_too_long: 'Der Kontexttext ist zu lang. Bitte auf maximal 5.000 Zeichen kürzen.',
+  upload_invalid_type: 'Nur PDF-Dateien sind erlaubt.',
+  upload_file_too_large: 'Die Datei überschreitet die maximale Größe von 5 MB.',
   // Archiv
   archive_not_found: 'Keine archivierten Fragen zu diesem Thema gefunden.',
   archive_service_error: 'Archiv konnte nicht geladen werden. Bitte später erneut versuchen.',
