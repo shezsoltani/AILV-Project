@@ -77,12 +77,15 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
           <textarea
             id="contextText"
             name="contextText"
-            className="form-input"
+            className={`form-input${errors.contextText ? ' form-input--error' : ''}`}
             placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
             rows={4}
             value={formValues.contextText ?? ''}
             onChange={handleInputChange}
           />
+          {errors.contextText && (
+            <p className="form-error-message">{errors.contextText}</p>
+          )}
           <p className="form-helper">
             Ergänzende Informationen, die zusätzlich zum PDF (oder stattdessen) bei der Fragengenerierung berücksichtigt werden sollen.
           </p>
