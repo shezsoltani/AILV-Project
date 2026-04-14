@@ -128,3 +128,16 @@ class PDFEncryptedError(AppError):
 
     def __init__(self):
         super().__init__("The uploaded PDF is encrypted and cannot be processed.")
+
+
+class ContextTextTooLongError(AppError):
+    status_code = 422
+    error_code = "context_text_too_long"
+
+    def __init__(self, max_length: int, actual_length: int):
+        super().__init__(
+            f"context_text exceeds maximum length of {max_length} characters "
+            f"(got {actual_length})."
+        )
+        self.max_length = max_length
+        self.actual_length = actual_length
