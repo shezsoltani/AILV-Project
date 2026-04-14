@@ -72,16 +72,12 @@ export async function finalizeQuestions(
   );
 }
 
-export async function getArchiveTopics(): Promise<ArchiveTopicsResponse> {
-  return await apiCall<ArchiveTopicsResponse>(
-    `${API_BASE_URL}/api/archive/topics`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+export async function getArchiveTopics(searchTerm?: string): Promise<ArchiveTopicsResponse> {
+  const url = new URL(`${API_BASE_URL}/api/archive/topics`);
+  if (searchTerm && searchTerm.trim()) {
+    url.searchParams.set('q', searchTerm.trim());
+  }
+  return await apiCall<ArchiveTopicsResponse>(url.toString(), { method: 'GET' });
 }
 
 export async function getArchiveQuestions(

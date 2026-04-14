@@ -12,6 +12,7 @@ export function useArchiveWorkflow() {
   const [topics, setTopics] = useState<ArchiveTopic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState<boolean>(true);
   const [topicsError, setTopicsError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // State für Fragen eines ausgewählten Themas
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -48,24 +49,32 @@ export function useArchiveWorkflow() {
     setIsEditMode(false);
   }, []);
 
-  // Lade Themen beim Mount
+  // Themen laden – sofort beim Mount, danach mit 300ms Debounce bei Sucheingabe
   useEffect(() => {
-    const loadTopics = async () => {
+    let cancelled = false;
+
+    const load = async () => {
       setIsLoadingTopics(true);
       setTopicsError(null);
       try {
-        const response = await getArchiveTopics();
-        setTopics(response.topics);
+        const response = await getArchiveTopics(searchTerm || undefined);
+        if (!cancelled) setTopics(response.topics);
       } catch (error) {
         console.error('Fehler beim Laden der Archiv-Themen:', error);
-        setTopicsError(getUserFriendlyMessage(error));
+        if (!cancelled) setTopicsError(getUserFriendlyMessage(error));
       } finally {
-        setIsLoadingTopics(false);
+        if (!cancelled) setIsLoadingTopics(false);
       }
     };
 
-    loadTopics();
-  }, []);
+    // Erster Load ohne Verzögerung, Suchanfragen mit 300ms Debounce
+    const delay = searchTerm ? 300 : 0;
+    const timer = setTimeout(load, delay);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
 
   // Lade Fragen, wenn ein Thema ausgewählt wurde
   useEffect(() => {
@@ -177,6 +186,8 @@ export function useArchiveWorkflow() {
     topics,
     isLoadingTopics,
     topicsError,
+    searchTerm,
+    setSearchTerm,
     // States für Fragen
     selectedRequestId,
     selectedTopic,
