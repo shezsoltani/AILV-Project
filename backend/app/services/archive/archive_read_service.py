@@ -1,5 +1,6 @@
+from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from uuid import UUID
 
 from ...models.archive_models import (
@@ -13,10 +14,12 @@ from ...core.exceptions import ArchiveNotFoundError, ArchiveServiceError
 from ...persistence.archive_repo import get_archive_questions
 
 
-# Liefert alle finalisierten Themen mit Anzahl Fragen und Zeitstempeln
-def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsResponse:
+# Liefert alle finalisierten Themen mit Anzahl Fragen und Zeitstempeln.
+# Wenn q gesetzt ist, werden nur Themen zurückgegeben, deren Titel oder
+# Frageninhalt (stem, answer, rationale) den Suchbegriff enthalten (case-insensitiv).
+def get_all_finalized_topics(db: Session, user_id: UUID, q: Optional[str] = None) -> ArchiveTopicsResponse:
     try:
-        results = (
+        query = (
             db.query(
                 GenerationRequest,
                 func.count(Question.id).label("question_count"),
@@ -24,6 +27,21 @@ def get_all_finalized_topics(db: Session, user_id: UUID) -> ArchiveTopicsRespons
             )
             .join(Question, Question.request_id == GenerationRequest.id)
             .filter(GenerationRequest.user_id == user_id)
+        )
+
+        if q and q.strip():
+            term = f"%{q.strip()}%"
+            query = query.filter(
+                or_(
+                    GenerationRequest.topic.ilike(term),
+                    Question.stem.ilike(term),
+                    Question.answer.ilike(term),
+                    Question.rationale.ilike(term),
+                )
+            )
+
+        results = (
+            query
             .group_by(GenerationRequest.id)
             .order_by(GenerationRequest.created_at.desc())
             .all()
