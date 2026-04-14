@@ -9,6 +9,7 @@ import {
 } from '../constants/formConstants';
 import { useGenerateForm } from '../hooks/useGenerateForm';
 import { ErrorBanner } from './ErrorBanner';
+import { PdfUpload } from './PdfUpload';
 
 // Drei Felder für die Prozent-Verteilung. Keys müssen zu useGenerateForm passen.
 const DIFFICULTY_FIELDS = [
@@ -41,6 +42,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
     handleLanguageChange,
     handleTypeToggle,
     handleSubmit,
+    setUploadContext,
   } = useGenerateForm({ onSubmit, isLoading });
 
   return (
@@ -67,9 +69,10 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
         </div>
 
         <div className="form-row">
+          <p className="form-section-title">Manueller Kontext</p>
           {/* Optionales Textfeld für manuellen Kontext – wird als context_text an die API übergeben */}
           <label className="form-label" htmlFor="contextText">
-            Kontext (optional)
+            Zusätzlicher Text (optional)
           </label>
           <textarea
             id="contextText"
@@ -81,7 +84,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
             onChange={handleInputChange}
           />
           <p className="form-helper">
-            Ergänzende Informationen, die bei der Fragengenerierung berücksichtigt werden sollen.
+            Ergänzende Informationen, die zusätzlich zum PDF (oder stattdessen) bei der Fragengenerierung berücksichtigt werden sollen.
           </p>
         </div>
 
@@ -191,6 +194,34 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
             <p className="form-error-message">{errors.difficulty}</p>
           )}
         </div>
+
+        {/* === START: UPLOAD-BEREICH FÜR PDF === */}
+        <div className="form-row" style={{ padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
+          <p className="form-section-title" style={{ marginTop: 0 }}>Dokumenten-Kontext (PDF)</p>
+          <PdfUpload onExtractedText={setUploadContext} />
+          
+          {formValues.uploadContext && (
+            <div style={{ marginTop: '1rem' }}>
+              <label className="form-label">Extrahierter Text bereit für die Generierung</label>
+              <textarea
+                className="form-input"
+                readOnly
+                rows={5}
+                value={formValues.uploadContext}
+                style={{ backgroundColor: '#edf2f7', color: '#4a5568', cursor: 'not-allowed' }}
+              />
+              <button
+                type="button"
+                className="primary-button"
+                style={{ marginTop: '1rem', backgroundColor: '#e53e3e' }}
+                onClick={() => setUploadContext(undefined)}
+              >
+                PDF-Kontext entfernen
+              </button>
+            </div>
+          )}
+        </div>
+        {/* === ENDE: UPLOAD-BEREICH === */}
 
         {/* Button ist deaktiviert, wenn gerade geladen wird oder Fehler vorhanden sind */}
         <button 

@@ -14,8 +14,7 @@ export const PdfUpload: React.FC<PdfUploadProps> = ({ onExtractedText }) => {
   });
 
   return (
-    <div className="card" style={{ marginBottom: '1.5rem' }}>
-      <h3 className="form-section-title" style={{ marginTop: 0 }}>PDF hochladen</h3>
+    <div className="pdf-upload-container" style={{ marginBottom: '1.5rem' }}>
       <p className="form-helper" style={{ marginBottom: '1rem', fontStyle: 'normal' }}>
         Optional: Wählen Sie eine PDF-Datei aus, um deren Inhalt als Kontext für die Fragengenerierung zu nutzen.
       </p>
