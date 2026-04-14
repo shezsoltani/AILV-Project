@@ -43,6 +43,7 @@ export interface UploadPdfResponse {
   filename: string;
   char_count: number;
   extracted_text: string;
+  was_truncated: boolean;
 }
 
 // Archive Types

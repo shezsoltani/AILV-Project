@@ -9,7 +9,7 @@ interface PdfUploadProps {
 
 export const PdfUpload: React.FC<PdfUploadProps> = ({ onExtractedText }) => {
   // Komplette Logik ist im Hook gekapselt
-  const { file, loading, error, handleFileChange, handleUpload } = usePdfUpload({ 
+  const { file, loading, error, wasTruncated, handleFileChange, handleUpload } = usePdfUpload({
     onExtractedText 
   });
 
@@ -20,6 +20,21 @@ export const PdfUpload: React.FC<PdfUploadProps> = ({ onExtractedText }) => {
       </p>
       
       <ErrorBanner message={error} style={{ marginBottom: '1rem' }} />
+      {wasTruncated && (
+        <div
+          role="status"
+          style={{
+            marginBottom: '1rem',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#fff7ed',
+            color: '#9a3412',
+            border: '1px solid #fdba74',
+            borderRadius: '6px',
+          }}
+        >
+          Der PDF-Text wurde auf 5.000 Zeichen gekürzt.
+        </div>
+      )}
       
       <div className="form-row">
         <label className="form-label" htmlFor="pdf-upload">

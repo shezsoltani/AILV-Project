@@ -21,6 +21,7 @@ export interface ValidationErrors {
   topic?: string;
   count?: string;
   types?: string;
+  contextText?: string;
   difficulty?: string;
   difficultyEasy?: string;
   difficultyMedium?: string;
@@ -53,6 +54,11 @@ export const validate = (values: GenerateRequestFormValues): ValidationErrors =>
   // Mindestens ein Fragetyp muss ausgewählt sein
   if (!values.types || values.types.length === 0) {
     errors.types = 'Mindestens ein Fragetyp muss ausgewählt sein.';
+  }
+
+  // Optionaler Kontext darf maximal 5000 Zeichen enthalten
+  if (values.contextText && values.contextText.length > 5000) {
+    errors.contextText = 'Der Kontexttext darf maximal 5.000 Zeichen enthalten.';
   }
 
   // Anzahl Fragen: Minimum 1, Maximum 50, nur Ganzzahlen

@@ -8,6 +8,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   auth_current_password_incorrect: 'Das aktuelle Passwort ist nicht korrekt.',
   // Validierung
   validation_error: 'Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
+  context_text_too_long: 'Der Kontexttext ist zu lang. Bitte auf maximal 5.000 Zeichen kürzen.',
   // Archiv
   archive_not_found: 'Keine archivierten Fragen zu diesem Thema gefunden.',
   archive_service_error: 'Archiv konnte nicht geladen werden. Bitte später erneut versuchen.',
