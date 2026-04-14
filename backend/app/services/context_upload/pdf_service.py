@@ -1,6 +1,6 @@
 import re
 import pymupdf
-from ..core.exceptions import PDFEncryptedError, PDFExtractionError
+from ...core.exceptions import PDFEncryptedError, PDFExtractionError
 
 MAX_EXTRACTED_TEXT_LENGTH = 5000
 

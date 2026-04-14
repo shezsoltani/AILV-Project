@@ -141,3 +141,19 @@ class ContextTextTooLongError(AppError):
         )
         self.max_length = max_length
         self.actual_length = actual_length
+
+class UploadInvalidTypeError(AppError):
+    status_code = 422
+    error_code = "upload_invalid_type"
+
+    def __init__(self):
+        super().__init__("The uploaded file is not a valid PDF.")
+
+class UploadFileTooLargeError(AppError):
+    status_code = 422
+    error_code = "upload_file_too_large"
+
+    def __init__(self, max_mb: int):
+        super().__init__(f"The uploaded file exceeds the maximum size of {max_mb} MB.")
+        self.max_mb = max_mb
+
