@@ -6,6 +6,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   auth_email_exists: 'Diese E-Mail-Adresse ist bereits registriert.',
   auth_invalid_credentials: 'Benutzername oder Passwort sind nicht korrekt.',
   auth_current_password_incorrect: 'Das aktuelle Passwort ist nicht korrekt.',
+  auth_reset_token_invalid: 'Der Reset-Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.',
+  auth_reset_token_expired: 'Der Reset-Link ist abgelaufen. Bitte fordern Sie einen neuen an.',
   // Validierung
   validation_error: 'Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
   context_text_too_long: 'Der Kontexttext ist zu lang. Bitte auf maximal 5.000 Zeichen kürzen.',

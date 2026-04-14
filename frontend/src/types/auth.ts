@@ -36,6 +36,24 @@ export interface ChangePasswordValidationErrors {
   confirmPassword?: string;
 }
 
+export interface ForgotPasswordFormValues {
+  email: string;
+}
+
+export interface ForgotPasswordValidationErrors {
+  email?: string;
+}
+
+export interface ResetPasswordFormValues {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ResetPasswordValidationErrors {
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;
