@@ -14,6 +14,8 @@ const ArchivePage: React.FC = () => {
     topics,
     isLoadingTopics,
     topicsError,
+    searchTerm,
+    setSearchTerm,
     selectedRequestId,
     selectedTopic,
     archivedQuestions,
@@ -310,6 +312,18 @@ const ArchivePage: React.FC = () => {
         Hier finden Sie alle Fragenpakete, die Sie bereits gespeichert haben.
       </p>
 
+      {/* Suchfeld – filtert Themen nach Titel und Frageinhalt */}
+      <div style={{ marginBottom: '1.5rem', maxWidth: '36rem' }}>
+        <input
+          type="search"
+          className="form-input"
+          placeholder="Nach Thema oder Frageinhalt suchen…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Archiv durchsuchen"
+        />
+      </div>
+
       {/* Loading-State während Themen geladen werden */}
       {isLoadingTopics && (
         <div className="archive-loading-state">
@@ -329,16 +343,26 @@ const ArchivePage: React.FC = () => {
         </div>
       )}
 
-      {/* Empty-State wenn noch keine archivierten Themen vorhanden sind */}
+      {/* Empty-State: unterscheidet zwischen Suche ohne Treffer und leerem Archiv */}
       {!isLoadingTopics && !topicsError && topics.length === 0 && (
         <div className="archive-empty-state">
-          <div className="archive-empty-state-icon" aria-hidden="true">
-            📚
-          </div>
-          <p className="archive-empty-state-title">Noch keine archivierten Themen vorhanden</p>
-          <p className="archive-empty-state-description">
-            Generieren und finalisieren Sie Fragen, um sie im Archiv zu sehen.
-          </p>
+          {searchTerm.trim() ? (
+            <>
+              <div className="archive-empty-state-icon" aria-hidden="true">🔍</div>
+              <p className="archive-empty-state-title">Keine Treffer gefunden</p>
+              <p className="archive-empty-state-description">
+                Zu „{searchTerm.trim()}" wurden keine Themen oder Fragen gefunden.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="archive-empty-state-icon" aria-hidden="true">📚</div>
+              <p className="archive-empty-state-title">Noch keine archivierten Themen vorhanden</p>
+              <p className="archive-empty-state-description">
+                Generieren und finalisieren Sie Fragen, um sie im Archiv zu sehen.
+              </p>
+            </>
+          )}
         </div>
       )}
 
