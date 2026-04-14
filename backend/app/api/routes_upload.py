@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from sqlalchemy.orm import Session
 
 from ..models.upload_models import PDFUploadResponse
 from ..services.pdf_service import extract_text_from_pdf
@@ -25,7 +24,7 @@ async def upload_pdf(
         raise HTTPException(status_code=413, detail="PDF exceeds the 10 MB size limit.")
 
     try:
-        text = extract_text_from_pdf(data, filename=file.filename or "upload.pdf")
+        text, was_truncated = extract_text_from_pdf(data, filename=file.filename or "upload.pdf")
     except (PDFEncryptedError, PDFExtractionError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
@@ -33,4 +32,5 @@ async def upload_pdf(
         filename=file.filename or "upload.pdf",
         char_count=len(text),
         extracted_text=text,
+        was_truncated=was_truncated,
     )

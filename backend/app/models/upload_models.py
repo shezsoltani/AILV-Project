@@ -4,3 +4,4 @@ class PDFUploadResponse(BaseModel):
     filename: str
     char_count: int
     extracted_text: str
+    was_truncated: bool
