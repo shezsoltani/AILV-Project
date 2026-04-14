@@ -10,6 +10,8 @@ import ArchivePage from './pages/ArchivePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 const App: React.FC = () => {
   return (
@@ -40,6 +42,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        {/* Öffentliche Auth-Seiten ohne GuestRoute – auch für eingeloggte User zugänglich */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/register"
           element={

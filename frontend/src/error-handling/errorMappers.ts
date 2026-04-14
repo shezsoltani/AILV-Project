@@ -61,6 +61,14 @@ export function getLoginErrorMessage(error: unknown): string {
   return getUserFriendlyMessage(error);
 }
 
+export function getResetPasswordErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.statusCode === 400) {
+    return 'Der Reset-Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.';
+  }
+
+  return getUserFriendlyMessage(error);
+}
+
 export function getChangePasswordErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.statusCode === 400) {
     const msg = error.message.toLowerCase();

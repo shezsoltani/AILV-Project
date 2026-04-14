@@ -111,6 +111,9 @@ function LoginPage() {
             <ErrorBanner message={submitError} style={{ marginTop: '1rem' }} />
 
             <p className="form-helper" style={{ marginBottom: 0 }}>
+              <Link to="/forgot-password">Passwort vergessen?</Link>
+            </p>
+            <p className="form-helper" style={{ marginBottom: 0 }}>
               Noch kein Konto?{' '}
               <Link to="/register">
                 Zur Registrierung

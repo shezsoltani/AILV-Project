@@ -45,6 +45,24 @@ export async function loginUser(
   );
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await apiCall(`${API_BASE_URL}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+    token: null,
+  });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await apiCall(`${API_BASE_URL}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, new_password: newPassword }),
+    token: null,
+  });
+}
+
 export async function changePassword(
   currentPassword: string,
   newPassword: string
