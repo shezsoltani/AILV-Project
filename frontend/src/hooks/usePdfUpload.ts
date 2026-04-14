@@ -2,6 +2,7 @@
 // Kapselt die Logik und den State für das Hochladen von PDF-Dateien
 import { useState } from 'react';
 import { uploadPdf } from '../services/uploadApi';
+import { getUserFriendlyMessage } from '../error-handling/errorMappers';
 
 interface UsePdfUploadProps {
   onExtractedText: (text: string) => void;
@@ -33,8 +34,8 @@ export const usePdfUpload = ({ onExtractedText }: UsePdfUploadProps) => {
       setWasTruncated(response.was_truncated);
       // Callback der Eltern-Komponente auslösen
       onExtractedText(response.extracted_text);
-    } catch (err: any) {
-      setError(err.message || 'Ein Fehler ist beim Upload aufgetreten.');
+    } catch (err: unknown) {
+      setError(getUserFriendlyMessage(err));
       setWasTruncated(false);
     } finally {
       setLoading(false);
