@@ -39,6 +39,12 @@ export interface FinalizeResponse {
   message: string;
 }
 
+export interface UploadPdfResponse {
+  filename: string;
+  char_count: number;
+  extracted_text: string;
+}
+
 // Archive Types
 export interface ArchiveTopic {
   request_id: string;  // UUID
