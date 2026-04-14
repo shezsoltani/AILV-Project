@@ -1,7 +1,8 @@
 # backend\app\api\routes_archive.py
 # API-Endpunkte für das Archiv finalisierter Fragen
 
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
 from ..models.sql_models import User, GenerationRequest
@@ -27,11 +28,12 @@ router = APIRouter()
 
 @router.get("/archive/topics", response_model=ArchiveTopicsResponse)
 def get_archive_topics(
+    q: Optional[str] = Query(default=None, description="Optionaler Suchbegriff für Titel und Frageninhalte"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> ArchiveTopicsResponse:
-    # Gibt alle finalisierten Themen für die Archiv-Übersicht zurück
-    return get_all_finalized_topics(db, user_id=current_user.id)
+    # Gibt finalisierte Themen zurück – gefiltert nach q, falls angegeben
+    return get_all_finalized_topics(db, user_id=current_user.id, q=q)
 
 
 @router.get("/archive/{request_id}/questions", response_model=ArchiveQuestionsResponse)
