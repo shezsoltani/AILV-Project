@@ -10,6 +10,7 @@ from .api.routes_archive import router as archive_router
 from .api.routes_finalize import router as finalize_router
 from .api.routes_authentification import router as auth_router
 from .api.routes_upload import router as upload_router
+from .api.routes_slides import slides_router
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +60,4 @@ app.include_router(archive_router, prefix="/api")
 app.include_router(finalize_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(upload_router, prefix="/api")
+app.include_router(slides_router, prefix="/api")
