@@ -153,7 +153,10 @@ AILV-Project/
 │   ├── database.md
 │   └── sprint3_e2e_test.md
 │
-├── init.sql                   # Datenbank-Schema & Initial-Daten
+├── docs/                      # Datenbank-Schema & Initial-Daten
+│   ├── 01_tables.sql
+│   ├── 02_questions_templates.sql
+│   └── 03_slides_templates.sql
 ├── docker-compose.yml         # Container-Orchestrierung
 └── README.md
 ```
