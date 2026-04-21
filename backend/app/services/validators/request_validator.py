@@ -40,7 +40,7 @@ class GenerateRequestValidator:
                 detail=f"difficulty_distribution muss insgesamt 100 ergeben (aktuell {total}).",
             )
 
-        if len(req.context_text) > MAX_CONTEXT_TEXT_LENGTH:
+        if req.context_text and len(req.context_text) > MAX_CONTEXT_TEXT_LENGTH:
             raise ContextTextTooLongError(
                 max_length=MAX_CONTEXT_TEXT_LENGTH,
                 actual_length=len(req.context_text),
