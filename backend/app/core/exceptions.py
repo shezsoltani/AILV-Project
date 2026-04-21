@@ -157,3 +157,9 @@ class UploadFileTooLargeError(AppError):
         super().__init__(f"The uploaded file exceeds the maximum size of {max_mb} MB.")
         self.max_mb = max_mb
 
+class SlideOutlineValidationError(AppError):
+    status_code = 422
+    error_code = "invalid_slide_outline"
+
+    def __init__(self, detail: str):
+        super().__init__(detail)

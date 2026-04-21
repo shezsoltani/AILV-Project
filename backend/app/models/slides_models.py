@@ -1,6 +1,6 @@
 from uuid import UUID
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 
 from .generate_models import Language
 
@@ -16,3 +16,14 @@ class SlidesGenerateRequest(BaseModel):
 class SlidesGenerateResponse(BaseModel):
     status: str
     request_id: UUID
+
+class SlideOutlineItem(BaseModel):
+    position: int
+    slide_type: Literal["title", "content", "closing"]
+    title: str
+
+class SlideDraft(BaseModel):
+    position: int
+    slide_type: Literal["title", "content", "closing"]
+    title: str
+    bullets: list[str]

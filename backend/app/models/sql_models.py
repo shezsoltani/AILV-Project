@@ -98,3 +98,43 @@ class Question(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     generation_request = relationship("GenerationRequest")
     prompt = relationship("PromptEntry")
+
+class GeneratedSlide(Base):
+    __tablename__ = "generated_slides"
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    request_id = Column(Uuid, ForeignKey("generation_requests.id", ondelete="CASCADE"), nullable=False, index=True)
+    prompt_id = Column(Uuid, ForeignKey("prompts.id", ondelete="CASCADE"), nullable=False)
+    stage = Column(String(50), nullable=False)
+    position = Column(Integer, nullable=False)
+    slide_type = Column(String(50), nullable=True)
+    title = Column(Text, nullable=True)
+    bullets = Column(JSONB, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    generation_request = relationship("GenerationRequest")
+    prompt_entry = relationship("PromptEntry")
+
+
+class SlideDeck(Base):
+    __tablename__ = "slide_decks"
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    request_id = Column(Uuid, ForeignKey("generation_requests.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    slides = relationship("Slide", back_populates="deck", cascade="all, delete-orphan", order_by="Slide.position")
+
+
+class Slide(Base):
+    __tablename__ = "slides"
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    deck_id = Column(Uuid, ForeignKey("slide_decks.id", ondelete="CASCADE"), nullable=False, index=True)
+    position = Column(Integer, nullable=False)
+    slide_type = Column(String(50), nullable=True)
+    title = Column(Text, nullable=True)
+    bullets = Column(JSONB, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    deck = relationship("SlideDeck", back_populates="slides")
