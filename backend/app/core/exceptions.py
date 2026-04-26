@@ -170,3 +170,11 @@ class SlidesContentValidationError(AppError):
 
     def __init__(self, detail: str):
         super().__init__(detail)
+
+
+class SlidesImproveValidationError(AppError):
+    status_code = 422
+    error_code = "invalid_slides_improved_content"
+
+    def __init__(self, detail: str):
+        super().__init__(detail)
