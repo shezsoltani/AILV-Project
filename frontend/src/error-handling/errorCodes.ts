@@ -22,6 +22,10 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   invalid_skeleton: 'Die KI-Antwort hatte ein unerwartetes Format. Bitte versuchen Sie es erneut.',
   invalid_content: 'Die Fragen konnten nicht erstellt werden. Bitte versuchen Sie es erneut.',
   invalid_improved_content: 'Die Fragen konnten nicht verbessert werden. Bitte versuchen Sie es erneut.',
+  invalid_slide_outline: 'Die erzeugte Folienstruktur ist ungültig. Bitte versuchen Sie es erneut.',
+  invalid_slides_content: 'Der erzeugte Folieninhalt ist ungültig. Bitte versuchen Sie es erneut.',
+  invalid_slides_improved_content:
+    'Die verbesserte Folienversion ist ungültig. Bitte versuchen Sie es erneut.',
   // Finalisierung
   finalize_state_error: 'Speichern ist aktuell nicht möglich. Bitte versuchen Sie es erneut.',
 };
