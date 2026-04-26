@@ -12,3 +12,10 @@ export interface SlidesGenerateResponse {
   status: string;
   request_id: string;
 }
+
+export interface SlideDraft {
+  position: number;
+  slide_type: string;
+  title: string;
+  bullets: string[];
+}

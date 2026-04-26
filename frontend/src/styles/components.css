@@ -530,6 +530,50 @@
   transform: none;
 }
 
+/* Slides Preview Styles */
+.slides-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.slides-preview-counter {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.slides-preview-title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  line-height: 1.25;
+  color: var(--color-text-primary);
+}
+
+.slides-preview-bullets {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.slides-preview-bullets li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.slides-preview-bullets li:last-child {
+  margin-bottom: 0;
+}
+
+.slides-preview-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 2px solid var(--color-border-light);
+}
+
 /* Banner Styles */
 .success-banner,
 .error-banner,
