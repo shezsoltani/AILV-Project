@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { ArchivePage } from '../../pages/ArchivePage';
 
 // Mocking des Hooks, um verschiedene Zustände zu simulieren
-vi.mock('../../hooks/useArchiveWorkflow', () => ({
+vi.mock('../../hooks/questions/useArchiveWorkflow', () => ({
   useArchiveWorkflow: () => ({
     topics: [],
     isLoadingTopics: false,

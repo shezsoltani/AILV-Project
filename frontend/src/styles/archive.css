@@ -91,7 +91,7 @@
   margin-bottom: 0;
 }
 
-.archive-topic-header-row > .secondary-button {
+.archive-topic-header-row > .archive-topic-delete-button {
   flex-shrink: 0;
 }
 
@@ -353,6 +353,39 @@
   border-top-color: var(--color-primary);
 }
 
+/* Spezifischer Löschen-Button für Archiv-Karten */
+.archive-topic-delete-button {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: #ffffff;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px; /* Feste Höhe passend zu den Badges */
+}
+
+.archive-topic-delete-button:hover:not(:disabled) {
+  border-color: #bfd0e8;
+  background: #fbfdff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.archive-topic-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-bg-secondary);
+}
+
 /* Responsive Archive Styles */
 @media (max-width: 768px) {
   .archive-topics-list {
@@ -380,7 +413,7 @@
     gap: var(--spacing-sm);
   }
 
-  .archive-topic-header-row > .secondary-button {
+  .archive-topic-header-row > .archive-topic-delete-button {
     align-self: flex-end;
   }
 

@@ -3,9 +3,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PasswordStrengthMeter, PasswordVisibilityToggle } from '../components/auth';
-import { ErrorBanner } from '../components/shared';
-import { useRegisterForm } from '../hooks/useRegisterForm';
+import { PasswordStrengthMeter, PasswordVisibilityToggle } from '../../components/auth';
+import { ErrorBanner } from '../../components/shared';
+import { useRegisterForm } from '../../hooks/auth/useRegisterForm';
 
 export const RegisterPage: React.FC = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);

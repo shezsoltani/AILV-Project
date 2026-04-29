@@ -36,6 +36,10 @@
   border: 1px solid var(--color-border);
 }
 
+.questions-modal--large {
+  width: min(1200px, 100%);
+}
+
 .questions-modal-header {
   display: flex;
   justify-content: space-between;
@@ -88,6 +92,17 @@
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-lg);
   border-top: 2px solid var(--color-border-light);
+}
+
+/* Gestapelte Modals: Der zweite Overlay liegt über dem ersten */
+.questions-modal-overlay ~ .questions-modal-overlay {
+  z-index: 2100;
+}
+
+/* Success-Banner innerhalb eines Modals braucht weniger Außenabstand */
+.success-banner--modal {
+  margin-top: var(--spacing-md);
+  margin-bottom: 0;
 }
 
 /* Responsive Modal Styles */

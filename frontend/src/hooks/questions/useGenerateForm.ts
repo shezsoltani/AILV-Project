@@ -1,4 +1,4 @@
-// src/hooks/useGenerateForm.ts
+// src/hooks/questions/useGenerateForm.ts
 // Verwaltet Formular-State, Validierung und Eingabeverarbeitung
 
 import { useState, FormEvent, ChangeEvent } from 'react';
@@ -6,10 +6,10 @@ import type {
   GenerateRequestFormValues,
   Language,
   QuestionType,
-} from '../types/generate';
-import { DEFAULT_FORM_VALUES } from '../constants/formConstants';
-import { validate, type ValidationErrors } from '../validators/generateValidator';
-import { sanitizeToDigitsOnly } from '../utils/inputSanitizer';
+} from '../../types/generate';
+import { DEFAULT_FORM_VALUES } from '../../constants/formConstants';
+import { validate, type ValidationErrors } from '../../validators/generateValidator';
+import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
 
 interface UseGenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;

@@ -13,6 +13,7 @@ interface ModalProps {
   closeOnOverlayClick?: boolean;
   closeOnEscape?: boolean;
   labelledById?: string;
+  size?: 'default' | 'large';
 }
 
 export function Modal({
@@ -23,6 +24,7 @@ export function Modal({
   closeOnOverlayClick = true,
   closeOnEscape = true,
   labelledById = 'modal-title',
+  size = 'default',
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
@@ -48,7 +50,7 @@ export function Modal({
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <div
-        className="questions-modal"
+        className={`questions-modal${size === 'large' ? ' questions-modal--large' : ''}`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="questions-modal-header">

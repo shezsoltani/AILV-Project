@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDeck, deleteDeck } from '../services/slidesApi';
-import type { DeckDetailResponse } from '../types/slides';
+import { getDeck, deleteDeck } from '../../services/slidesApi';
+import type { DeckDetailResponse } from '../../types/slides';
 
 export function useDeckDetail(deckId: string | undefined) {
   const navigate = useNavigate();

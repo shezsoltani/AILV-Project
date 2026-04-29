@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { forgotPassword } from '../services/authApi';
-import { validateForgotPasswordForm } from '../validators/forgotPasswordValidator';
+import { forgotPassword } from '../../services/authApi';
+import { validateForgotPasswordForm } from '../../validators/forgotPasswordValidator';
 
 export function useForgotPasswordForm() {
   const [email, setEmail] = useState('');

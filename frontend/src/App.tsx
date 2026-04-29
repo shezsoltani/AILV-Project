@@ -3,17 +3,17 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute, GuestRoute } from './components/routing';
 import { Layout } from './layout/Layout';
-import { HomePage } from './pages/HomePage';
-import { GeneratePage } from './pages/GeneratePage';
-import { SlidesGeneratePage } from './pages/SlidesGeneratePage';
-import { ArchivePage } from './pages/ArchivePage';
-import { SlidesArchivePage } from './pages/SlidesArchivePage';
-import { SlidesDeckDetailPage } from './pages/SlidesDeckDetailPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { LoginPage } from './pages/LoginPage';
-import { ChangePasswordPage } from './pages/ChangePasswordPage';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { HomePage } from './pages/core/HomePage';
+import { GeneratePage } from './pages/questions/GeneratePage';
+import { SlidesGeneratePage } from './pages/slides/SlidesGeneratePage';
+import { ArchivePage } from './pages/questions/ArchivePage';
+import { SlidesArchivePage } from './pages/slides/SlidesArchivePage';
+import { SlidesDeckDetailPage } from './pages/slides/SlidesDeckDetailPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 
 export const App: React.FC = () => {
   return (

@@ -2,9 +2,10 @@
 // Orchestrator: schaltet zwischen Themen-Liste und Detail-Ansicht und steuert den Lösch-Dialog.
 
 import React from 'react';
-import { ConfirmDialog } from '../components/shared';
-import { useArchiveWorkflow } from '../hooks/useArchiveWorkflow';
-import { ArchiveTopicListView, ArchiveQuestionDetailView } from './archive';
+import { ConfirmDialog } from '../../components/shared';
+import { useArchiveWorkflow } from '../../hooks/questions/useArchiveWorkflow';
+import { ArchiveTopicListView } from './ArchiveTopicListView';
+import { ArchiveQuestionDetailView } from './ArchiveQuestionDetailView';
 
 export const ArchivePage: React.FC = () => {
   // Hook verwaltet den kompletten Workflow: Themen laden, Fragen eines Themas anzeigen, Bearbeitung

@@ -3,9 +3,9 @@
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { useLoginForm } from '../hooks/useLoginForm';
-import { ErrorBanner } from '../components/shared';
-import { PasswordVisibilityToggle } from '../components/auth';
+import { useLoginForm } from '../../hooks/auth/useLoginForm';
+import { ErrorBanner } from '../../components/shared';
+import { PasswordVisibilityToggle } from '../../components/auth';
 
 export function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);

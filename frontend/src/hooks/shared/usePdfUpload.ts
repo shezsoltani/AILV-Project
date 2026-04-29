@@ -1,8 +1,8 @@
-// src/hooks/usePdfUpload.ts
+// src/hooks/shared/usePdfUpload.ts
 // Kapselt die Logik und den State für das Hochladen von PDF-Dateien
 import { useState } from 'react';
-import { uploadPdf } from '../services/uploadApi';
-import { getUserFriendlyMessage } from '../error-handling/errorMappers';
+import { uploadPdf } from '../../services/uploadApi';
+import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 
 interface UsePdfUploadProps {
   onExtractedText: (text: string) => void;

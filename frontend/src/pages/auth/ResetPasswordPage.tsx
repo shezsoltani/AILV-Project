@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ErrorBanner } from '../components/shared';
-import { PasswordVisibilityToggle } from '../components/auth';
-import { useResetPasswordForm } from '../hooks/useResetPasswordForm';
+import { ErrorBanner } from '../../components/shared';
+import { PasswordVisibilityToggle } from '../../components/auth';
+import { useResetPasswordForm } from '../../hooks/auth/useResetPasswordForm';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();

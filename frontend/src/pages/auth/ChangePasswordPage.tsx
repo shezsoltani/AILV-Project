@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ErrorBanner } from '../components/shared';
-import { PasswordVisibilityToggle } from '../components/auth';
-import { useChangePasswordForm } from '../hooks/useChangePasswordForm';
+import { ErrorBanner } from '../../components/shared';
+import { PasswordVisibilityToggle } from '../../components/auth';
+import { useChangePasswordForm } from '../../hooks/auth/useChangePasswordForm';
 
 export const ChangePasswordPage: React.FC = () => {
   const navigate = useNavigate();

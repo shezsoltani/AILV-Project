@@ -1,6 +1,6 @@
 // src/components/shared/PdfUpload.tsx
 import React from 'react';
-import { usePdfUpload } from '../../hooks/usePdfUpload';
+import { usePdfUpload } from '../../hooks/shared/usePdfUpload';
 import { ErrorBanner } from './ErrorBanner';
 
 interface PdfUploadProps {

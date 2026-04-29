@@ -7,7 +7,7 @@ import {
   QUESTION_TYPE_OPTIONS,
   getQuestionTypeLabel,
 } from '../../constants/formConstants';
-import { useGenerateForm } from '../../hooks/useGenerateForm';
+import { useGenerateForm } from '../../hooks/questions/useGenerateForm';
 import { ErrorBanner, PdfUpload } from '../shared';
 
 // Drei Felder für die Prozent-Verteilung. Keys müssen zu useGenerateForm passen.
@@ -65,29 +65,6 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
           {errors.topic && (
             <p className="form-error-message">{errors.topic}</p>
           )}
-        </div>
-
-        <div className="form-row">
-          <p className="form-section-title">Manueller Kontext</p>
-          {/* Optionales Textfeld für manuellen Kontext – wird als context_text an die API übergeben */}
-          <label className="form-label" htmlFor="contextText">
-            Zusätzlicher Text (optional)
-          </label>
-          <textarea
-            id="contextText"
-            name="contextText"
-            className={`form-input${errors.contextText ? ' form-input--error' : ''}`}
-            placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
-            rows={4}
-            value={formValues.contextText ?? ''}
-            onChange={handleInputChange}
-          />
-          {errors.contextText && (
-            <p className="form-error-message">{errors.contextText}</p>
-          )}
-          <p className="form-helper">
-            Ergänzende Informationen, die zusätzlich zum PDF (oder stattdessen) bei der Fragengenerierung berücksichtigt werden sollen.
-          </p>
         </div>
 
 
@@ -195,6 +172,29 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
           {errors.difficulty && (
             <p className="form-error-message">{errors.difficulty}</p>
           )}
+        </div>
+
+        <div className="form-row">
+          <p className="form-section-title">Manueller Kontext</p>
+          {/* Optionales Textfeld für manuellen Kontext – wird als context_text an die API übergeben */}
+          <label className="form-label" htmlFor="contextText">
+            Zusätzlicher Text (optional)
+          </label>
+          <textarea
+            id="contextText"
+            name="contextText"
+            className={`form-input${errors.contextText ? ' form-input--error' : ''}`}
+            placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
+            rows={4}
+            value={formValues.contextText ?? ''}
+            onChange={handleInputChange}
+          />
+          {errors.contextText && (
+            <p className="form-error-message">{errors.contextText}</p>
+          )}
+          <p className="form-helper">
+            Ergänzende Informationen, die zusätzlich zum PDF (oder stattdessen) bei der Fragengenerierung berücksichtigt werden sollen.
+          </p>
         </div>
 
         {/* === START: UPLOAD-BEREICH FÜR PDF === */}

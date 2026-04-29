@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useForgotPasswordForm } from '../hooks/useForgotPasswordForm';
+import { useForgotPasswordForm } from '../../hooks/auth/useForgotPasswordForm';
 
 export const ForgotPasswordPage: React.FC = () => {
   const { email, emailError, isLoading, isSuccess, handleChange, handleBlur, handleSubmit } =

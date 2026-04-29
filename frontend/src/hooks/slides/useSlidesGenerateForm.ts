@@ -1,20 +1,20 @@
-// src/hooks/useSlidesGenerateForm.ts
+// src/hooks/slides/useSlidesGenerateForm.ts
 // Verwaltet State, Validierung und Submit für das Folien-Generierungsformular.
 
 import { useState, type ChangeEvent } from 'react';
-import type { Language } from '../types/generate';
+import type { Language } from '../../types/generate';
 import type {
   SlidesGenerateRequest,
   SlidesGenerateResponse,
-} from '../types/slides';
+} from '../../types/slides';
 import {
   validate,
   type SlidesValidationErrors,
-} from '../validators/slidesGenerateValidator';
-import { useFormWithTouchedValidation } from './useFormWithTouchedValidation';
-import { generateSlides, finalizeSlides } from '../services/slidesApi';
-import { getUserFriendlyMessage } from '../error-handling/errorMappers';
-import { sanitizeToDigitsOnly } from '../utils/inputSanitizer';
+} from '../../validators/slidesGenerateValidator';
+import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
+import { generateSlides, finalizeSlides } from '../../services/slidesApi';
+import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
+import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
 
 export interface SlidesFormValues {
   topic: string;

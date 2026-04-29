@@ -1,7 +1,7 @@
 import React from 'react';
-import { GenerateForm, QuestionsList } from '../components/generate';
-import { ErrorBanner, Modal } from '../components/shared';
-import { useQuestionWorkflow } from '../hooks/useQuestionWorkflow';
+import { GenerateForm, QuestionsList } from '../../components/generate';
+import { ErrorBanner, Modal } from '../../components/shared';
+import { useQuestionWorkflow } from '../../hooks/questions/useQuestionWorkflow';
 
 export const GeneratePage: React.FC = () => {
   const {

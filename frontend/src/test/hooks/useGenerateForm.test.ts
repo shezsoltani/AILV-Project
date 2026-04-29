@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useGenerateForm } from '../../hooks/useGenerateForm';
+import { useGenerateForm } from '../../hooks/questions/useGenerateForm';
 import { DEFAULT_FORM_VALUES } from '../../constants/formConstants';
 
 describe('useGenerateForm Hook', () => {

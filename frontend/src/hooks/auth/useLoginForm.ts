@@ -1,12 +1,12 @@
-// src/hooks/useLoginForm.ts
+// src/hooks/auth/useLoginForm.ts
 // Kümmert sich um Login-Logik
 
-import { loginUser } from '../services/authApi';
-import { useAuth } from '../context/AuthContext';
-import type { LoginFormValues } from '../types/auth';
-import { getLoginErrorMessage } from '../error-handling/errorMappers';
-import { validateLoginForm } from '../validators/loginValidator';
-import { useFormWithTouchedValidation } from './useFormWithTouchedValidation';
+import { loginUser } from '../../services/authApi';
+import { useAuth } from '../../context/AuthContext';
+import type { LoginFormValues } from '../../types/auth';
+import { getLoginErrorMessage } from '../../error-handling/errorMappers';
+import { validateLoginForm } from '../../validators/loginValidator';
+import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
 
 const INITIAL_VALUES: LoginFormValues = {
   username: '',

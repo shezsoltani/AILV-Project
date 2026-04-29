@@ -2,16 +2,18 @@
 // Archivseite für gespeicherte Foliendecks.
 
 import React from 'react';
-import { SlidesDeckCard } from '../components/slides';
-import { ErrorBanner } from '../components/shared';
-import { listDecks } from '../services/slidesApi';
-import type { DeckListItem } from '../types/slides';
-import { formatDateToGerman } from '../utils/dateUtils';
+import { SlidesDeckCard } from '../../components/slides';
+import { ErrorBanner, ConfirmDialog } from '../../components/shared';
+import { listDecks, deleteDeck } from '../../services/slidesApi';
+import type { DeckListItem } from '../../types/slides';
+import { formatDateToGerman } from '../../utils/dateUtils';
 
 export const SlidesArchivePage: React.FC = () => {
   const [decks, setDecks] = React.useState<DeckListItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [deleteDeckId, setDeleteDeckId] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   React.useEffect(() => {
     async function loadDecks() {
@@ -31,6 +33,29 @@ export const SlidesArchivePage: React.FC = () => {
 
     loadDecks();
   }, []);
+
+  const handleDeleteClick = (deckId: string) => {
+    setDeleteDeckId(deckId);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteDeckId) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteDeck(deleteDeckId);
+      setDecks(decks.filter((d) => d.id !== deleteDeckId));
+      setDeleteDeckId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Foliendeck konnte nicht gelöscht werden.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDeckId(null);
+  };
 
   return (
     <div className="page">
@@ -69,10 +94,20 @@ export const SlidesArchivePage: React.FC = () => {
               key={deck.id}
               deck={deck}
               formatDate={formatDateToGerman}
+              onDeleteClick={handleDeleteClick}
+              deleteDisabled={isDeleting}
             />
           ))}
         </div>
       )}
+      <ConfirmDialog
+        isOpen={!!deleteDeckId}
+        title="Foliendeck löschen"
+        description="Sind Sie sicher, dass Sie dieses Foliendeck dauerhaft löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+        confirmLabel={isDeleting ? 'Lösche...' : 'Löschen'}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 };

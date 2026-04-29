@@ -1,11 +1,11 @@
-// src/hooks/useArchiveWorkflow.ts
+// src/hooks/questions/useArchiveWorkflow.ts
 // Verwaltet Workflow: Archiv-Themen laden, Fragen eines Themas anzeigen, Bearbeitungsmodus
 
 import { useState, useEffect, useCallback } from 'react';
-import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions, deleteArchiveEntry } from '../services/questionsApi';
-import { getUserFriendlyMessage } from '../error-handling/errorMappers';
-import type { ArchiveTopic } from '../types/api';
-import type { GeneratedQuestion } from '../types/generatedQuestion';
+import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions, deleteArchiveEntry } from '../../services/questionsApi';
+import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
+import type { ArchiveTopic } from '../../types/api';
+import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
 export function useArchiveWorkflow() {
   // State für Themen-Liste

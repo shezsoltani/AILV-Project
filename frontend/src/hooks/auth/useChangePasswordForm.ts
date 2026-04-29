@@ -1,9 +1,9 @@
-import { changePassword } from '../services/authApi';
-import { useAuth } from '../context/AuthContext';
-import type { ChangePasswordFormValues } from '../types/auth';
-import { getChangePasswordErrorMessage } from '../error-handling/errorMappers';
-import { validateChangePasswordForm } from '../validators/changePasswordValidator';
-import { useFormWithTouchedValidation } from './useFormWithTouchedValidation';
+import { changePassword } from '../../services/authApi';
+import { useAuth } from '../../context/AuthContext';
+import type { ChangePasswordFormValues } from '../../types/auth';
+import { getChangePasswordErrorMessage } from '../../error-handling/errorMappers';
+import { validateChangePasswordForm } from '../../validators/changePasswordValidator';
+import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
 
 const INITIAL_VALUES: ChangePasswordFormValues = {
   currentPassword: '',

@@ -48,24 +48,25 @@ export const SlidesDeckCard: React.FC<SlidesDeckCardProps> = ({
                 <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
                   {deck.slide_count} {deck.slide_count === 1 ? 'Folie' : 'Folien'}
                 </span>
+                {onDeleteClick && (
+                  <button
+                    type="button"
+                    className="archive-topic-delete-button"
+                    style={{ marginLeft: 'var(--spacing-sm)' }}
+                    aria-label={`Deck ${deck.name} löschen`}
+                    disabled={deleteDisabled}
+                    onClick={function (e) {
+                      e.stopPropagation();
+                      onDeleteClick(deck.id);
+                    }}
+                  >
+                    Löschen
+                  </button>
+                )}
               </div>
             </div>
 
-            {onDeleteClick && (
-              <button
-                type="button"
-                className="secondary-button"
-                aria-label={`Deck ${deck.name} löschen`}
-                disabled={deleteDisabled}
-                onClick={function (e) {
-                  e.stopPropagation();
-                  onDeleteClick(deck.id);
-                }}
-              >
-                Löschen
-              </button>
-            )}
-          </div>
+            </div>
 
           <div className="archive-topic-meta">
             <div className="archive-topic-timestamp">

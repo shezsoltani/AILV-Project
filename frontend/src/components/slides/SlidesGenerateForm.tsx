@@ -2,7 +2,7 @@
 // Darstellung des Folien-Generierungsformulars. Logik: useSlidesGenerateForm.
 
 import React from 'react';
-import type { UseSlidesGenerateFormReturn } from '../../hooks/useSlidesGenerateForm';
+import type { UseSlidesGenerateFormReturn } from '../../hooks/slides/useSlidesGenerateForm';
 import { ErrorBanner, PdfUpload } from '../shared';
 
 interface SlidesGenerateFormProps {

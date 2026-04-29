@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { SlideDraft } from '../types/slides';
-import { SlidesPreview } from '../components/slides/SlidesPreview';
-import { ErrorBanner, ConfirmDialog } from '../components/shared';
-import { formatDateToGerman } from '../utils/dateUtils';
-import { useDeckDetail } from '../hooks/useDeckDetail';
+import type { SlideDraft } from '../../types/slides';
+import { SlidesPreview } from '../../components/slides/SlidesPreview';
+import { ErrorBanner, ConfirmDialog, Modal } from '../../components/shared';
+import { formatDateToGerman } from '../../utils/dateUtils';
+import { useDeckDetail } from '../../hooks/slides/useDeckDetail';
 
 export const SlidesDeckDetailPage: React.FC = () => {
   const { deckId } = useParams<{ deckId: string }>();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(true);
   const {
     deck,
     isLoading,
@@ -114,7 +115,26 @@ export const SlidesDeckDetailPage: React.FC = () => {
         </button>
       </div>
 
-      <SlidesPreview slides={slideDrafts} />
+      {/* Folien-Vorschau im Modal */}
+      <Modal
+        isOpen={isPreviewOpen}
+        title={deck.name}
+        onClose={() => setIsPreviewOpen(false)}
+        size="large"
+        labelledById="deck-preview-title"
+      >
+        <SlidesPreview slides={slideDrafts} />
+
+        <div className="questions-modal-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setIsPreviewOpen(false)}
+          >
+            Schließen
+          </button>
+        </div>
+      </Modal>
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

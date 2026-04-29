@@ -1,11 +1,11 @@
-// src/hooks/useRegisterForm.ts
+// src/hooks/auth/useRegisterForm.ts
 // Kümmert sich um Registrierungslogik
 
-import { registerUser } from '../services/authApi';
-import type { RegisterFormValues } from '../types/auth';
-import { getRegistrationErrorMessage } from '../error-handling/errorMappers';
-import { validateRegisterForm } from '../validators/registerValidator';
-import { useFormWithTouchedValidation } from './useFormWithTouchedValidation';
+import { registerUser } from '../../services/authApi';
+import type { RegisterFormValues } from '../../types/auth';
+import { getRegistrationErrorMessage } from '../../error-handling/errorMappers';
+import { validateRegisterForm } from '../../validators/registerValidator';
+import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
 
 const INITIAL_VALUES: RegisterFormValues = {
   username: '',

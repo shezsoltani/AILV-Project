@@ -1,27 +1,30 @@
 // src/pages/SlidesGeneratePage.tsx
-// Seite für die Folien-Generierung. Steuert Formular, Vorschau und erneutes Generieren.
+// Seite für die Folien-Generierung. Formular bleibt sichtbar, Vorschau öffnet sich im Modal.
 
 import React, { useState } from 'react';
-import { SlidesGenerateForm, SlidesPreview, SlidesSaveDialog } from '../components/slides';
-import { ErrorBanner } from '../components/shared';
-import { useSlidesGenerateForm } from '../hooks/useSlidesGenerateForm';
-import type { SlidesGenerateResponse } from '../types/slides';
+import { SlidesGenerateForm, SlidesPreview, SlidesSaveDialog } from '../../components/slides';
+import { ErrorBanner, Modal } from '../../components/shared';
+import { useSlidesGenerateForm } from '../../hooks/slides/useSlidesGenerateForm';
+import type { SlidesGenerateResponse } from '../../types/slides';
 
 export const SlidesGeneratePage: React.FC = () => {
   const [generationResponse, setGenerationResponse] = useState<SlidesGenerateResponse | null>(null);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
 
-  // Nach erfolgreichem Submit: Vorschau anzeigen und Formularwerte im Hook behalten.
+  // Nach erfolgreichem Submit: Vorschau-Modal anzeigen.
   function handleGenerationSuccess(response: SlidesGenerateResponse): void {
     setGenerationResponse(response);
   }
 
   const form = useSlidesGenerateForm({ onSuccess: handleGenerationSuccess });
 
-  // Zeigt das Formular wieder an, ohne den Formular-State zu löschen.
-  function handleEditInputs(): void {
+  // Schließt das Vorschau-Modal und kehrt zum Formular zurück.
+  function handleDismissPreview(): void {
     setGenerationResponse(null);
   }
+
+  // Modal ist geöffnet, sobald eine Generierungsantwort vorliegt.
+  const isPreviewOpen = generationResponse !== null;
 
   return (
     <div className="page">
@@ -31,9 +34,20 @@ export const SlidesGeneratePage: React.FC = () => {
         oder eine PDF-Datei hinterlegen, die bei der Foliengenerierung berücksichtigt werden.
       </p>
 
-      {generationResponse ? (
-        <div className="page-form" aria-live="polite">
-          <div className="card">
+      <div className="page-form">
+        <SlidesGenerateForm form={form} />
+      </div>
+
+      {/* Vorschau-Modal – erscheint nach erfolgreicher Generierung */}
+      <Modal
+        isOpen={isPreviewOpen}
+        title="Generierte Folien"
+        onClose={handleDismissPreview}
+        size="large"
+        labelledById="slides-preview-title"
+      >
+        {generationResponse && (
+          <>
             <SlidesPreview slides={generationResponse.slides} />
 
             <div className="slides-preview__meta">
@@ -42,7 +56,10 @@ export const SlidesGeneratePage: React.FC = () => {
               </p>
 
               {form.isSaved && (
-                <div className="success-banner" style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#e6f4ea', color: '#1e8e3e', borderRadius: '4px' }}>
+                <div
+                  className="success-banner success-banner--modal"
+                  role="alert"
+                >
                   <strong>Erfolg!</strong> Die Folien wurden dauerhaft gespeichert.
                 </div>
               )}
@@ -51,7 +68,7 @@ export const SlidesGeneratePage: React.FC = () => {
                 <button
                   type="button"
                   className="secondary-button"
-                  onClick={handleEditInputs}
+                  onClick={handleDismissPreview}
                   disabled={form.isSubmitting}
                 >
                   Eingaben ändern
@@ -88,24 +105,21 @@ export const SlidesGeneratePage: React.FC = () => {
             </div>
 
             <ErrorBanner message={form.submitError} />
-          </div>
+          </>
+        )}
+      </Modal>
 
-          <SlidesSaveDialog
-            isOpen={isSaveDialogOpen}
-            onClose={() => setIsSaveDialogOpen(false)}
-            onSave={async (name) => {
-              await form.saveSlides(name);
-              setIsSaveDialogOpen(false);
-            }}
-            defaultTopic={form.formValues.topic}
-            isSaving={form.isSaving}
-          />
-        </div>
-      ) : (
-        <div className="page-form">
-          <SlidesGenerateForm form={form} />
-        </div>
-      )}
+      {/* Speichern-Dialog – wird aus dem Vorschau-Modal heraus geöffnet */}
+      <SlidesSaveDialog
+        isOpen={isSaveDialogOpen}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onSave={async (name) => {
+          await form.saveSlides(name);
+          setIsSaveDialogOpen(false);
+        }}
+        defaultTopic={form.formValues.topic}
+        isSaving={form.isSaving}
+      />
     </div>
   );
 };

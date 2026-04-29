@@ -60,8 +60,8 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  padding: clamp(1.5rem, 3.5vw, 2.5rem);
-  min-height: clamp(260px, 32vw, 360px);
+  padding: clamp(2rem, 4vw, 3rem);
+  min-height: clamp(320px, 38vw, 440px);
   background: var(--color-bg);
   border: 1px solid var(--color-border-light);
   animation: slidesPreviewFade 200ms ease-out;
@@ -111,7 +111,7 @@
 
 .slides-preview__title {
   margin: 0;
-  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-size: clamp(1.5rem, 3.5vw, 2.125rem);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -119,7 +119,7 @@
 }
 
 .slides-preview__frame--title .slides-preview__title {
-  font-size: clamp(1.625rem, 3.6vw, 2.25rem);
+  font-size: clamp(1.875rem, 4vw, 2.625rem);
 }
 
 .slides-preview__bullets {
@@ -128,9 +128,9 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   line-height: 1.7;
 }
 

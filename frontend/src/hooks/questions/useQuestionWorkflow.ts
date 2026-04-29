@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import type { GeneratedQuestion } from '../types/generatedQuestion';
-import type { GenerateRequestFormValues } from '../types/generate';
-import { generateQuestions, finalizeQuestions } from '../services/questionsApi';
-import { calculateQuestionDiff } from '../utils/questionUtils';
-import { getUserFriendlyMessage } from '../error-handling/errorMappers';
-import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME } from '../constants/appConstants';
+import type { GeneratedQuestion } from '../../types/generatedQuestion';
+import type { GenerateRequestFormValues } from '../../types/generate';
+import { generateQuestions, finalizeQuestions } from '../../services/questionsApi';
+import { calculateQuestionDiff } from '../../utils/questionUtils';
+import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
+import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME } from '../../constants/appConstants';
 
 // Verwaltet den Daten-Workflow: Fragen generieren, bearbeiten, finalisieren.
 // UI-spezifischer Modal-State liegt bewusst NICHT mehr hier, sondern auf der Page.
