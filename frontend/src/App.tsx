@@ -8,6 +8,7 @@ import { GeneratePage } from './pages/GeneratePage';
 import { SlidesGeneratePage } from './pages/SlidesGeneratePage';
 import { ArchivePage } from './pages/ArchivePage';
 import { SlidesArchivePage } from './pages/SlidesArchivePage';
+import { SlidesDeckDetailPage } from './pages/SlidesDeckDetailPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { LoginPage } from './pages/LoginPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
@@ -40,6 +41,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <SlidesArchivePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/slides/archive/:deckId"
+          element={
+            <ProtectedRoute>
+              <SlidesDeckDetailPage />
             </ProtectedRoute>
           }
         />

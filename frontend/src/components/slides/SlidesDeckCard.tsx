@@ -2,6 +2,7 @@
 // Kachel für ein gespeichertes Foliendeck im Folien-Archiv.
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { DeckListItem } from '../../types/slides';
 
 interface SlidesDeckCardProps {
@@ -17,8 +18,26 @@ export const SlidesDeckCard: React.FC<SlidesDeckCardProps> = ({
   onDeleteClick,
   deleteDisabled = false,
 }) => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => navigate(`/slides/archive/${deck.id}`);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleNavigate();
+    }
+  };
+
   return (
-    <div className="archive-topic-card">
+    <div 
+      className="archive-topic-card" 
+      onClick={handleNavigate}
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      aria-label={`Foliendeck ${deck.name} ansehen`}
+    >
       <div className="archive-topic-header">
         <div className="archive-topic-content">
           <div className="archive-topic-header-row">
