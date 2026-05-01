@@ -87,6 +87,7 @@ async def generate_slides(
             slide_type=s.slide_type,
             title=s.title,
             bullets=s.bullets or [],
+            examples=s.examples or [],
         )
         for s in stored_slides
     ]

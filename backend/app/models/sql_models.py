@@ -107,6 +107,7 @@ class GeneratedSlide(Base):
     slide_type = Column(String(50), nullable=True)
     title = Column(Text, nullable=True)
     bullets = Column(JSONB, nullable=True)
+    examples = Column(JSONB, nullable=True, server_default="[]")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     generation_request = relationship("GenerationRequest")
@@ -133,6 +134,7 @@ class Slide(Base):
     slide_type = Column(String(50), nullable=True)
     title = Column(Text, nullable=True)
     bullets = Column(JSONB, nullable=True)
+    examples = Column(JSONB, nullable=True, server_default="[]")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     deck = relationship("SlideDeck", back_populates="slides")

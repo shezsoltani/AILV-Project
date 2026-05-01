@@ -25,6 +25,7 @@ def create_slide_deck(
             slide_type=s.get("slide_type"),
             title=s.get("title"),
             bullets=s.get("bullets"),
+            examples=s.get("examples", []),
         )
         db.add(slide)
 
@@ -79,6 +80,7 @@ def update_slide_deck_slides(
             slide_type=s.get("slide_type"),
             title=s.get("title"),
             bullets=s.get("bullets"),
+            examples=s.get("examples", []),
         )
         db.add(new_slide)
         

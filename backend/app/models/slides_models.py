@@ -22,6 +22,7 @@ class SlideDraft(BaseModel):
     slide_type: Literal["title", "content", "closing"]
     title: str
     bullets: list[str]
+    examples: list[str] = Field(default_factory=list)
 
 class SlidesGenerateResponse(BaseModel):
     status: str

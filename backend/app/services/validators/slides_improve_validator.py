@@ -1,4 +1,8 @@
 from ...core.exceptions import SlidesImproveValidationError
+from .slides_content_validator import (
+    MIN_BULLET_WORDS,
+    _word_count,
+)
 
 PLACEHOLDER_STRINGS = {"...", "placeholder", "tbd", "todo", "lorem ipsum"}
 
@@ -58,6 +62,7 @@ def validate_slides_improve(data: list, content_slides: list[dict]) -> None:
                 f"{len(old_bullets)} -> {len(new_bullets)}."
             )
 
+        slide_type = new_item["slide_type"]
         for j, bullet in enumerate(new_bullets):
             if not isinstance(bullet, str) or not bullet.strip():
                 raise SlidesImproveValidationError(
@@ -66,4 +71,43 @@ def validate_slides_improve(data: list, content_slides: list[dict]) -> None:
             if bullet.strip().lower() in PLACEHOLDER_STRINGS:
                 raise SlidesImproveValidationError(
                     f"Item {i}, bullet {j} looks like a placeholder: '{bullet}'."
+                )
+            if slide_type not in ("title", "closing"):
+                words = _word_count(bullet)
+                if words < MIN_BULLET_WORDS:
+                    raise SlidesImproveValidationError(
+                        f"Item {i}, bullet {j} has only {words} word(s) "
+                        f"(min. {MIN_BULLET_WORDS}). Improvement must keep bullets as "
+                        f"complete declarative statements, not shorten them to bare "
+                        f"keywords. Got: '{bullet}'."
+                    )
+
+        old_examples = old_item.get("examples", [])
+        new_examples = new_item.get("examples", [])
+
+        if isinstance(old_examples, list) and len(old_examples) >= 1 and len(new_examples) == 0:
+            raise SlidesImproveValidationError(
+                f"Item {i} removed all examples. The improve stage must preserve "
+                f"existing examples (refine wording only, do not delete them)."
+            )
+
+        if not isinstance(new_examples, list):
+            raise SlidesImproveValidationError(
+                f"Item {i} has invalid 'examples' (must be array)."
+            )
+
+        if slide_type in ("title", "closing") and len(new_examples) > 0:
+            raise SlidesImproveValidationError(
+                f"Item {i} ('{slide_type}') must not contain examples. "
+                f"Set 'examples' to an empty array []."
+            )
+
+        for k, example in enumerate(new_examples):
+            if not isinstance(example, str) or not example.strip():
+                raise SlidesImproveValidationError(
+                    f"Item {i}, example {k} is empty or invalid."
+                )
+            if example.strip().lower() in PLACEHOLDER_STRINGS:
+                raise SlidesImproveValidationError(
+                    f"Item {i}, example {k} looks like a placeholder: '{example}'."
                 )

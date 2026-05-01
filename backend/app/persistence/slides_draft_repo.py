@@ -23,6 +23,7 @@ def store_generated_slides(
             slide_type=s.get("slide_type"),
             title=s.get("title"),
             bullets=s.get("bullets"),
+            examples=s.get("examples", []),
         )
         objs.append(obj)
 

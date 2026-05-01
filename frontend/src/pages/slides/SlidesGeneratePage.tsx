@@ -99,7 +99,15 @@ export const SlidesGeneratePage: React.FC = () => {
                 </button>
 
                 {!form.isSaved && (
-                  isEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => setIsEditing(!isEditing)}
+                      disabled={form.isSubmitting}
+                    >
+                      {isEditing ? 'Bearbeitungsmodus beenden' : 'Folien bearbeiten'}
+                    </button>
                     <button
                       type="button"
                       className="primary-button"
@@ -108,16 +116,7 @@ export const SlidesGeneratePage: React.FC = () => {
                     >
                       Speichern
                     </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() => setIsEditing(true)}
-                      disabled={form.isSubmitting}
-                    >
-                      Folien bearbeiten
-                    </button>
-                  )
+                  </>
                 )}
               </div>
             </div>

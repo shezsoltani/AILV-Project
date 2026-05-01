@@ -42,6 +42,7 @@ def finalize_slides(
             "slide_type": s.slide_type,
             "title": s.title,
             "bullets": s.bullets,
+            "examples": s.examples or [],
         }
         for s in drafts
     ]

@@ -51,6 +51,7 @@ def get_deck_with_slides(db: Session, deck_id: UUID, user_id: UUID) -> DeckDetai
                 slide_type=slide.slide_type,
                 title=slide.title,
                 bullets=slide.bullets or [],
+                examples=slide.examples or [],
                 created_at=slide.created_at,
             )
             for slide in deck.slides
@@ -86,6 +87,7 @@ def modify_deck(db: Session, deck_id: UUID, user_id: UUID, slides_data: list[dic
                 slide_type=slide.slide_type,
                 title=slide.title,
                 bullets=slide.bullets or [],
+                examples=slide.examples or [],
                 created_at=slide.created_at,
             )
             for slide in deck.slides

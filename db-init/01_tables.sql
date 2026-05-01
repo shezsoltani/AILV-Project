@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS generated_slides (
     slide_type VARCHAR(50),
     title TEXT,
     bullets JSONB,
+    examples JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
 
@@ -108,6 +109,7 @@ CREATE TABLE IF NOT EXISTS slides (
     slide_type VARCHAR(50),
     title TEXT,
     bullets JSONB,
+    examples JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
 

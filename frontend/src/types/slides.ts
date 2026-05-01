@@ -19,6 +19,7 @@ export interface SlideDraft {
   slide_type: string;
   title: string;
   bullets: string[];
+  examples: string[];
 }
 
 export interface FinalizeSlidesRequest {
@@ -37,6 +38,7 @@ export interface DeckSlideItem {
   slide_type: string | null;
   title: string | null;
   bullets: string[];
+  examples: string[];
   created_at: string | null;
 }
 

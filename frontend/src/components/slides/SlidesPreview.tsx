@@ -77,6 +77,17 @@ export const SlidesPreview: React.FC<SlidesPreviewProps> = ({ slides, isEditing,
     onSlideChange?.(currentIndex, { ...currentSlide, bullets: newBullets });
   };
 
+  const handleExampleChange = (idx: number, value: string) => {
+    const newExamples = [...(currentSlide.examples ?? [])];
+    newExamples[idx] = value;
+    onSlideChange?.(currentIndex, { ...currentSlide, examples: newExamples });
+  };
+
+  const handleRemoveExample = (idx: number) => {
+    const newExamples = (currentSlide.examples ?? []).filter((_, i) => i !== idx);
+    onSlideChange?.(currentIndex, { ...currentSlide, examples: newExamples });
+  };
+
   return (
     <section className="slides-preview" aria-label="Folien-Vorschau">
       <header className="slides-preview__header">
@@ -150,6 +161,37 @@ export const SlidesPreview: React.FC<SlidesPreviewProps> = ({ slides, isEditing,
               </li>
             )}
           </ul>
+
+          {(currentSlide.examples ?? []).length > 0 && (
+            <ul className="slides-preview__examples" aria-label="Beispiele">
+              {(currentSlide.examples ?? []).map((example, idx) => (
+                <li className="slides-preview__example" key={idx}>
+                  <span className="slides-preview__example-label" aria-hidden="true">Bsp.</span>
+                  {isEditing ? (
+                    <div className="slides-preview__bullet-edit-group">
+                      <textarea
+                        className="slides-preview__input slides-preview__input--bullet"
+                        value={example}
+                        onChange={(e) => handleExampleChange(idx, e.target.value)}
+                        rows={2}
+                      />
+                      <button
+                        type="button"
+                        className="slides-preview__icon-btn slides-preview__icon-btn--danger"
+                        onClick={() => handleRemoveExample(idx)}
+                        title="Beispiel löschen"
+                        aria-label="Beispiel löschen"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <span>{example}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         
         <div className="slides-preview__footer" aria-hidden="true">

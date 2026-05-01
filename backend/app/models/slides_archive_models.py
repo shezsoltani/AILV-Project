@@ -10,6 +10,7 @@ class DeckSlideItem(BaseModel):
     slide_type: str | None = None
     title: str | None = None
     bullets: list[str] = Field(default_factory=list)
+    examples: list[str] = Field(default_factory=list)
     created_at: datetime | None = None
 
 
@@ -43,6 +44,7 @@ class SlideUpdateItem(BaseModel):
     slide_type: str | None = None
     title: str | None = None
     bullets: list[str] = Field(default_factory=list)
+    examples: list[str] = Field(default_factory=list)
 
 class DeckUpdateRequest(BaseModel):
     slides: list[SlideUpdateItem] = Field(default_factory=list)
