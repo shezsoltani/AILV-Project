@@ -6,6 +6,7 @@ Die Datenbank verwendet PostgreSQL mit UUID als Primärschlüssel. Das Schema sp
 
 ## Entity-Relationship-Diagramm
 
+```mermaid
 erDiagram
 
     USERS {
@@ -129,6 +130,7 @@ erDiagram
     PROMPTS ||--o{ QUESTIONS : "informs"
     PROMPTS ||--o{ GENERATED_SLIDES : "generates"
     SLIDE_DECKS ||--o{ SLIDES : "contains"
+```
 
 ## Tabellenbeschreibung
 
