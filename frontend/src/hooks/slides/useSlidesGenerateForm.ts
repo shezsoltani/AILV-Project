@@ -12,7 +12,7 @@ import {
   type SlidesValidationErrors,
 } from '../../validators/slidesGenerateValidator';
 import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
-import { generateSlides, finalizeSlides } from '../../services/slidesApi';
+import { generateSlides } from '../../services/slidesApi';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
 
@@ -57,6 +57,9 @@ export interface UseSlidesGenerateFormReturn {
   errors: SlidesValidationErrors;
   submitError: string | null;
   isSubmitting: boolean;
+  // Job-ID des laufenden Generierungs-Jobs (asynchrone Pipeline)
+  jobId: string | null;
+  clearJobId: () => void;
   hasValidationErrors: boolean;
   handleInputChange: (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -72,12 +75,10 @@ export interface UseSlidesGenerateFormReturn {
   isSaved: boolean;
 }
 
-export function useSlidesGenerateForm({
-  onSuccess,
-}: UseSlidesGenerateFormProps = {}): UseSlidesGenerateFormReturn {
-  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+export function useSlidesGenerateForm(_props: UseSlidesGenerateFormProps = {}): UseSlidesGenerateFormReturn {
+  const [jobId, setJobId] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+
   const submitValues = async (
     values: SlidesFormValues,
     setSubmitError: (err: string | null) => void,
@@ -85,12 +86,10 @@ export function useSlidesGenerateForm({
   ): Promise<void> => {
     setIsLoading(true);
     try {
-      const response = await generateSlides(toApiRequest(values));
-      setLastRequestId(response.request_id);
-      setIsSaved(false); // Reset saved state for new generations
-      onSuccess?.(response);
+      const result = await generateSlides(toApiRequest(values));
+      setJobId(result.job_id);
+      setIsSaved(false);
     } catch (error) {
-      // ApiError/NetworkError/AppError werden hier in menschenlesbare Texte übersetzt
       setSubmitError(getUserFriendlyMessage(error));
     } finally {
       setIsLoading(false);
@@ -129,20 +128,9 @@ export function useSlidesGenerateForm({
     await submitValues(base.formValues, base.setSubmitError, base.setIsLoading);
   };
 
-  const saveSlides = async (name: string): Promise<void> => {
-    if (!lastRequestId) return;
-    
-    setIsSaving(true);
-    base.setSubmitError(null); // Clear any previous errors
-
-    try {
-      await finalizeSlides({ request_id: lastRequestId, name });
-      setIsSaved(true);
-    } catch (error) {
-      base.setSubmitError(getUserFriendlyMessage(error));
-    } finally {
-      setIsSaving(false);
-    }
+  // TODO (S5.3): saveSlides nutzt nach dem Polling die request_id aus dem Job-Ergebnis.
+  const saveSlides = async (_name: string): Promise<void> => {
+    // wird mit S5.3 wiederhergestellt
   };
 
   return {
@@ -150,6 +138,8 @@ export function useSlidesGenerateForm({
     errors: base.errors,
     submitError: base.submitError,
     isSubmitting: base.isLoading,
+    jobId,
+    clearJobId: () => setJobId(null),
     hasValidationErrors: Object.keys(base.errors).length > 0,
     handleInputChange,
     handleBlur: base.handleBlur,
@@ -157,7 +147,7 @@ export function useSlidesGenerateForm({
     setUploadContext,
     regenerate,
     saveSlides,
-    isSaving,
+    isSaving: false,
     isSaved,
   };
 }

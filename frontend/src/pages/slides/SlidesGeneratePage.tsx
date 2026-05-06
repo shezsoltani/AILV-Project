@@ -22,12 +22,12 @@ export const SlidesGeneratePage: React.FC = () => {
 
   // Schließt das Vorschau-Modal und kehrt zum Formular zurück.
   function handleDismissPreview(): void {
+    form.clearJobId();
     setGenerationResponse(null);
     setIsEditing(false);
   }
 
-  // Modal ist geöffnet, sobald eine Generierungsantwort vorliegt ODER geladen wird.
-  const isPreviewOpen = generationResponse !== null || form.isSubmitting;
+  const isPreviewOpen = form.jobId !== null || generationResponse !== null;
 
   function handleSlideChange(index: number, updatedSlide: import('../../types/slides').SlideDraft): void {
     if (!generationResponse) return;
@@ -56,17 +56,17 @@ export const SlidesGeneratePage: React.FC = () => {
         size="large"
         labelledById="slides-preview-title"
       >
-        {form.isSubmitting && !generationResponse ? (
+        {form.jobId !== null && !generationResponse ? (
           <GenerationSkeleton
             count={1}
             message="KI generiert Präsentationsfolien …"
           />
         ) : generationResponse ? (
           <>
-            <SlidesPreview 
-              slides={generationResponse.slides} 
-              isEditing={isEditing} 
-              onSlideChange={handleSlideChange} 
+            <SlidesPreview
+              slides={generationResponse.slides}
+              isEditing={isEditing}
+              onSlideChange={handleSlideChange}
             />
 
             <div className="slides-preview__meta">
