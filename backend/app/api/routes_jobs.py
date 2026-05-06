@@ -30,6 +30,7 @@ async def get_job_status(
         job_type=job.job_type,
         status=job.status,
         progress=job.progress,
+        stage_label=job.stage_label,
         result_data=job.result_data,
         error_message=job.error_message,
     )

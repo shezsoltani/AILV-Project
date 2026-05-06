@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
     progress INT NOT NULL DEFAULT 0,
+    stage_label VARCHAR(100),
     request_data JSONB,
     result_data JSONB,
     error_message TEXT,

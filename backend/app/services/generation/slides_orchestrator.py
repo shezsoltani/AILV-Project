@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
+from typing import Callable, Optional
 
 from ...models.slides_models import SlidesGenerateRequest, SlidesGenerateResponse, SlideDraft
 from .slides_outline_service import generate_valid_slides_outline
@@ -16,6 +17,7 @@ async def generate_slides(
     req: SlidesGenerateRequest,
     db: Session,
     user_id: UUID,
+    on_progress: Optional[Callable[[int, str], None]] = None,
 ) -> SlidesGenerateResponse:
     base_req = GenerateRequest(
         topic=req.topic,
@@ -46,6 +48,8 @@ async def generate_slides(
         expected_count=req.slide_count,
         max_attempts=3,
     )
+    if on_progress:
+        on_progress(33, "Gliederung wird erstellt")
 
     content = await generate_valid_slides_content(
         db=db,
@@ -55,6 +59,8 @@ async def generate_slides(
         base_context=base_context,
         max_attempts=3,
     )
+    if on_progress:
+        on_progress(66, "Folieninhalte werden generiert")
 
     improved = await generate_valid_improved_slides(
         db=db,
@@ -63,6 +69,8 @@ async def generate_slides(
         content_slides=content,
         max_attempts=3,
     )
+    if on_progress:
+        on_progress(100, "Folien werden optimiert")
 
     improve_prompt = get_latest_prompt_by_stage(
         db=db,

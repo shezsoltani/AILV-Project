@@ -148,6 +148,7 @@ class Job(Base):
     job_type = Column(String(50), nullable=False)
     status = Column(String(50), nullable=False, server_default="pending")
     progress = Column(Integer, nullable=False, server_default="0")
+    stage_label = Column(String(100), nullable=True)
     request_data = Column(JSONB, nullable=True)
     result_data = Column(JSONB, nullable=True)
     error_message = Column(Text, nullable=True)

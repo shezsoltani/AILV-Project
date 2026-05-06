@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
+from typing import Callable, Optional
 
 from ...models.generate_models import (
     GenerateResponse,
@@ -17,7 +18,8 @@ from ...core.exceptions import PromptStateError
 async def generate_questions(
     req: GenerateRequest,
     db: Session,
-    user_id: UUID
+    user_id: UUID,
+    on_progress: Optional[Callable[[int, str], None]] = None,
 ) -> GenerateResponse:
     # Request speichern
     db_req = create_generation_request_db(db, req, user_id)
@@ -39,6 +41,8 @@ async def generate_questions(
         expected_count=req.count,
         max_attempts=3,
     )
+    if on_progress:
+        on_progress(33, "Grundstruktur wird erstellt")
 
     # CONTENT
     content = await generate_valid_content(
@@ -51,6 +55,8 @@ async def generate_questions(
         context_text=req.context_text,
         upload_context=req.upload_context,
     )
+    if on_progress:
+        on_progress(66, "Inhalte werden generiert")
 
     # IMPROVE
     improved = await generate_valid_improved_content(
@@ -60,6 +66,8 @@ async def generate_questions(
         original_questions=content,
         max_attempts=3,
     )
+    if on_progress:
+        on_progress(100, "Fragen werden optimiert")
     
     # letzter Prompt = IMPROVE
     improve_prompt = get_latest_prompt_by_stage(

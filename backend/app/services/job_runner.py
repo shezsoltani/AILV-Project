@@ -14,16 +14,20 @@ async def run_questions_job(
 ) -> None:
     db = SessionLocal()
     try:
-        update_job(db, job_id, status="running", progress=0)
+        update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
+
+        def on_progress(progress: int, stage_label: str) -> None:
+            update_job(db, job_id, progress=progress, stage_label=stage_label)
 
         req = GenerateRequest(**request_data)
-        response = await generate_questions(req, db, user_id=user_id)
+        response = await generate_questions(req, db, user_id=user_id, on_progress=on_progress)
 
         update_job(
             db,
             job_id,
             status="completed",
             progress=100,
+            stage_label="Abgeschlossen",
             result_data=response.model_dump(mode="json"),
         )
 
@@ -45,16 +49,20 @@ async def run_slides_job(
 ) -> None:
     db = SessionLocal()
     try:
-        update_job(db, job_id, status="running", progress=0)
+        update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
+
+        def on_progress(progress: int, stage_label: str) -> None:
+            update_job(db, job_id, progress=progress, stage_label=stage_label)
 
         req = SlidesGenerateRequest(**request_data)
-        response = await generate_slides(req, db, user_id=user_id)
+        response = await generate_slides(req, db, user_id=user_id, on_progress=on_progress)
 
         update_job(
             db,
             job_id,
             status="completed",
             progress=100,
+            stage_label="Abgeschlossen",
             result_data=response.model_dump(mode="json"),
         )
 

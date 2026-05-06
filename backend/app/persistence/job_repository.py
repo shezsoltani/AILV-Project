@@ -35,6 +35,7 @@ def update_job(
     job_id: UUID,
     status: Optional[str] = None,
     progress: Optional[int] = None,
+    stage_label: Optional[str] = None,
     result_data: Optional[Any] = None,
     error_message: Optional[str] = None,
 ) -> Job | None:
@@ -46,6 +47,8 @@ def update_job(
         job.status = status
     if progress is not None:
         job.progress = progress
+    if stage_label is not None:
+        job.stage_label = stage_label
     if result_data is not None:
         job.result_data = result_data
     if error_message is not None:
