@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GenerateForm, QuestionsList, QuestionsStats } from '../../components/generate';
 import { ErrorBanner, Modal, GenerationSkeleton } from '../../components/shared';
 import { useQuestionWorkflow } from '../../hooks/questions/useQuestionWorkflow';
+import { useJobContext } from '../../context/JobContext';
 
 export const GeneratePage: React.FC = () => {
   const {
@@ -14,15 +15,26 @@ export const GeneratePage: React.FC = () => {
     successMessage,
     isLoading,
     handleFormSubmit,
-    dismissResults,
     handleQuestionChange,
     handleFinalizeQuestions,
     cancelGeneration,
   } = useQuestionWorkflow();
 
+  const { activeJob, addJob } = useJobContext();
+
   const [isModalHidden, setIsModalHidden] = useState(false);
   const hasQuestions = questions.length > 0;
   const isGenerating = jobStatus === 'pending' || jobStatus === 'running';
+
+  // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
+  useEffect(
+    function registerJobInContext() {
+      if (jobId !== null) {
+        addJob(jobId, 'generate_questions');
+      }
+    },
+    [jobId] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(
     function reopenModalWhenQuestionsArrive() {
@@ -77,7 +89,7 @@ export const GeneratePage: React.FC = () => {
           <>
             <GenerationSkeleton
               count={3}
-              message="KI generiert Prüfungsfragen …"
+              message={activeJob?.stageLabel ?? 'Generierung läuft …'}
               progress={jobProgress ?? undefined}
               stageLabel={jobStageLabel}
             />

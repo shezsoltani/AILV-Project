@@ -1,3 +1,6 @@
+// src/hooks/questions/useQuestionWorkflow.ts
+// Daten-Workflow für Fragen-Generierung; Modal-State liegt auf der Page, nicht hier.
+
 import { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 import type { GenerateRequestFormValues } from '../../types/generate';
@@ -8,26 +11,19 @@ import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME } from '../../constants/appConstants';
 import { useJobContext } from '../../context/JobContext';
 
-// Verwaltet den Daten-Workflow: Fragen generieren, bearbeiten, finalisieren.
-// UI-spezifischer Modal-State liegt bewusst NICHT mehr hier, sondern auf der Page.
 export function useQuestionWorkflow() {
   const { activeJob, addJob, dismissJob } = useJobContext();
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
-  // Original-Fragen für Diff-Berechnung (nur Änderungen senden)
-  const [originalQuestions, setOriginalQuestions] = useState<GeneratedQuestion[]>([]);
+  const [originalQuestions, setOriginalQuestions] = useState<GeneratedQuestion[]>([]); // Snapshot für Diff-Berechnung (nur Änderungen senden)
   const [requestId, setRequestId] = useState<string | null>(null);
-  // Job-ID des laufenden Generierungs-Jobs (asynchrone Pipeline)
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  // Ref für setTimeout cleanup
-  const timeoutRef = useRef<number | null>(null);
-  // Verhindert doppelte Finalize-Requests bei schnellen Mehrfach-Events
-  const isFinalizingRef = useRef(false);
-  const questionJob = activeJob?.jobType === 'generate_questions' ? activeJob : null;
+  const timeoutRef = useRef<number | null>(null); // Ref für setTimeout-Cleanup beim Unmount
+  const isFinalizingRef = useRef(false); // Verhindert doppelte Finalize-Requests bei schnellen Mehrfach-Klicks
+  const questionJob = activeJob?.jobType === 'generate_questions' ? activeJob : null; // Nur den eigenen Job-Typ lesen
 
-  // Sendet Formular ans Backend; das Backend startet die Generierung asynchron
-  // und gibt sofort eine job_id zurück. isLoading wird direkt danach freigegeben.
+  // Startet den asynchronen Job; das Backend antwortet sofort mit einer job_id, isLoading wird direkt freigegeben.
   const handleFormSubmit = async (values: GenerateRequestFormValues) => {
     setIsLoading(true);
     setErrorMessage(null);

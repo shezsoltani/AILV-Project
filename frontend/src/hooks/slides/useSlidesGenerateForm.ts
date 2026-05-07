@@ -59,8 +59,7 @@ export interface UseSlidesGenerateFormReturn {
   errors: SlidesValidationErrors;
   submitError: string | null;
   isSubmitting: boolean;
-  // Job-ID des laufenden Generierungs-Jobs (asynchrone Pipeline)
-  jobId: string | null;
+  jobId: string | null; // ID des laufenden asynchronen Generierungs-Jobs
   jobStatus: 'pending' | 'running' | 'completed' | 'failed' | null;
   jobProgress: number | null;
   jobStageLabel: string | null;
@@ -86,6 +85,7 @@ export function useSlidesGenerateForm(props: UseSlidesGenerateFormProps = {}): U
   const [isSaved, setIsSaved] = useState(false);
   const slidesJob = activeJob?.jobType === 'generate_slides' ? activeJob : null;
 
+  // Backend gibt sofort eine job_id zurück; das eigentliche Rendern passiert über Polling.
   const submitValues = async (
     values: SlidesFormValues,
     setSubmitError: (err: string | null) => void,
@@ -94,7 +94,7 @@ export function useSlidesGenerateForm(props: UseSlidesGenerateFormProps = {}): U
     setIsLoading(true);
     try {
       const result = await generateSlides(toApiRequest(values));
-      addJob(result.job_id, 'generate_slides');
+      addJob(result.job_id, 'generate_slides'); // Job im Context registrieren → Polling startet
       setIsSaved(false);
     } catch (error) {
       setSubmitError(getUserFriendlyMessage(error));
@@ -128,8 +128,7 @@ export function useSlidesGenerateForm(props: UseSlidesGenerateFormProps = {}): U
     base.setFieldValue('uploadContext', value ?? '');
   };
 
-  // Nutzt dieselben Formularwerte wie der letzte erfolgreiche Submit.
-  // Dadurch kann die Vorschau neu erzeugt werden, ohne das Formular zu leeren.
+  // Nutzt dieselben Formularwerte wie der letzte Submit, ohne das Formular zu leeren.
   const regenerate = async (): Promise<void> => {
     base.setSubmitError(null);
     await submitValues(base.formValues, base.setSubmitError, base.setIsLoading);

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { SlidesGenerateForm, SlidesPreview, SlidesSaveDialog } from '../../components/slides';
 import { ErrorBanner, Modal, GenerationSkeleton } from '../../components/shared';
 import { useSlidesGenerateForm } from '../../hooks/slides/useSlidesGenerateForm';
+import { useJobContext } from '../../context/JobContext';
 import type { SlidesGenerateResponse } from '../../types/slides';
 
 export const SlidesGeneratePage: React.FC = () => {
@@ -19,16 +20,18 @@ export const SlidesGeneratePage: React.FC = () => {
   }
 
   const form = useSlidesGenerateForm({ onSuccess: handleGenerationSuccess });
+  const { activeJob, addJob } = useJobContext();
   const [isModalHidden, setIsModalHidden] = useState(false);
-  const isGenerating = form.jobStatus === 'pending' || form.jobStatus === 'running';
 
-  // Schließt das Vorschau-Modal und kehrt zum Formular zurück.
-  function handleDismissPreview(): void {
-    form.clearJobId();
-    setGenerationResponse(null);
-    setIsEditing(false);
-    setIsModalHidden(false);
-  }
+  // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
+  useEffect(
+    function registerJobInContext() {
+      if (form.jobId !== null) {
+        addJob(form.jobId, 'generate_slides');
+      }
+    },
+    [form.jobId] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(
     function reopenPreviewWhenResultArrives() {
@@ -89,7 +92,7 @@ export const SlidesGeneratePage: React.FC = () => {
           <>
             <GenerationSkeleton
               count={1}
-              message="KI generiert Präsentationsfolien …"
+              message={activeJob?.stageLabel ?? 'Generierung läuft …'}
               progress={form.jobProgress ?? undefined}
               stageLabel={form.jobStageLabel}
             />

@@ -1,3 +1,6 @@
+// src/context/JobContext.tsx
+// Globaler Zustand für asynchrone KI-Jobs: Polling, Fortschritt und Statusanzeige.
+
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getJobStatus } from '../services/jobsApi';
 
@@ -21,8 +24,8 @@ interface JobContextValue {
 }
 
 const JobContext = createContext<JobContextValue | undefined>(undefined);
-const POLLING_INTERVAL_MS = 2000;
-const COMPLETED_VISIBILITY_MS = 30000;
+const POLLING_INTERVAL_MS = 2000; // Backend alle 2 Sekunden befragen
+const COMPLETED_VISIBILITY_MS = 30000; // Abgeschlossene Jobs 30 Sek. in der Statusleiste sichtbar lassen
 
 interface JobContextProviderProps {
   children: React.ReactNode;
@@ -31,6 +34,7 @@ interface JobContextProviderProps {
 export function JobContextProvider({ children }: JobContextProviderProps) {
   const [activeJob, setActiveJob] = useState<ActiveJob | null>(null);
 
+  // Registriert einen neuen Job — ersetzt sofort einen eventuell noch laufenden.
   function addJob(jobId: string, jobType: JobType): void {
     setActiveJob({
       jobId,
@@ -47,7 +51,8 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
     setActiveJob(null);
   }
 
-  useEffect(function () {
+  // Polling startet wenn eine neue jobId vorliegt; Dependency ist nur jobId, nicht das gesamte Objekt.
+  useEffect(function startPollingOnNewJob() {
     if (!activeJob?.jobId) {
       return;
     }
@@ -59,7 +64,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
 
         setActiveJob(function (previousJob) {
           if (!previousJob || previousJob.jobId !== activeJob.jobId) {
-            return previousJob;
+            return previousJob; // Anderen Job nicht überschreiben (Race Condition)
           }
 
           return {
@@ -73,10 +78,10 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
         });
 
         if (normalizedStatus === 'completed' || normalizedStatus === 'failed') {
-          window.clearInterval(intervalId);
+          window.clearInterval(intervalId); // Endstatus erreicht → nicht weiter pollen
         }
       } catch (error) {
-        window.clearInterval(intervalId);
+        window.clearInterval(intervalId); // Netzwerkfehler → Polling abbrechen, Fehler anzeigen
         setActiveJob(function (previousJob) {
           if (!previousJob || previousJob.jobId !== activeJob.jobId) {
             return previousJob;
@@ -95,10 +100,11 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
     }, POLLING_INTERVAL_MS);
 
     return function cleanupPolling() {
-      window.clearInterval(intervalId);
+      window.clearInterval(intervalId); // Interval freigeben wenn jobId wechselt oder Komponente unmountet
     };
   }, [activeJob?.jobId]);
 
+  // Abgeschlossene Jobs bleiben für COMPLETED_VISIBILITY_MS sichtbar, dann auto-dismiss.
   useEffect(
     function keepCompletedJobVisibleTemporarily() {
       if (!activeJob || activeJob.status !== 'completed') {
