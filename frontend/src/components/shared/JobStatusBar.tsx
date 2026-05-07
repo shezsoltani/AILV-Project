@@ -30,8 +30,8 @@ export const JobStatusBar: React.FC = () => {
   const typeLabel = activeJob.jobType === 'generate_questions' ? 'Fragen' : 'Folien';
   const stageText = resolveStageText(progress);
   const stageLabel = isCompleted
-    ? `Generierung von ${typeLabel} abgeschlossen`
-    : activeJob.stageLabel ?? 'Verarbeitung laeuft...';
+    ? 'Generierung abgeschlossen'
+    : activeJob.stageLabel ?? 'Verarbeitung läuft...';
   const displayProgress = isCompleted ? 100 : progress;
 
   function handleClick(): void {
@@ -55,12 +55,18 @@ export const JobStatusBar: React.FC = () => {
           <p className="job-status-bar__text">
             {isCompleted ? stageLabel : `${stageLabel} - ${stageText}`}
           </p>
-          <span className="job-status-bar__percent">{displayProgress}%</span>
+          {isCompleted ? (
+            <span className="job-status-bar__action">Ergebnis ansehen &rarr;</span>
+          ) : (
+            <span className="job-status-bar__percent">{displayProgress}%</span>
+          )}
         </div>
 
-        <div className="job-status-bar__track" aria-hidden="true">
-          <div className="job-status-bar__fill" style={{ width: `${displayProgress}%` }} />
-        </div>
+        {!isCompleted && (
+          <div className="job-status-bar__track" aria-hidden="true">
+            <div className="job-status-bar__fill" style={{ width: `${displayProgress}%` }} />
+          </div>
+        )}
       </button>
     </div>
   );
