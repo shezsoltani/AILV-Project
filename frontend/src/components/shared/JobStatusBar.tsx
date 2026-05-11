@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useJobContext } from '../../context/JobContext';
+import { AlertTriangle, X } from 'lucide-react';
 
 function resolveStageText(progress: number): string {
   if (progress >= 100) {
@@ -15,7 +16,7 @@ function resolveStageText(progress: number): string {
 }
 
 export const JobStatusBar: React.FC = () => {
-  const { activeJob } = useJobContext();
+  const { activeJob, dismissJob } = useJobContext();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,6 +27,7 @@ export const JobStatusBar: React.FC = () => {
   const progress = Math.min(100, Math.max(0, Math.round(activeJob.progress)));
   const isCompleted = activeJob.status === 'completed';
   const isRunning = activeJob.status === 'pending' || activeJob.status === 'running';
+  const isFailed = activeJob.status === 'failed';
   const route = activeJob.jobType === 'generate_questions' ? '/generate' : '/slides/generate';
   const typeLabel = activeJob.jobType === 'generate_questions' ? 'Fragen' : 'Folien';
   const stageText = resolveStageText(progress);
@@ -43,6 +45,29 @@ export const JobStatusBar: React.FC = () => {
     navigate(route);
   }
 
+
+  if (isFailed) {
+    return (
+      <div className="job-status-bar job-status-bar--error" role="alert">
+        <div className="job-status-bar__inner">
+          <div className="job-status-bar__header">
+            <AlertTriangle className="job-status-bar__error-icon" aria-hidden="true" />
+            <p className="job-status-bar__text">
+              {activeJob.errorMessage ?? 'Ein unbekannter Fehler ist aufgetreten.'}
+            </p>
+            <button
+              type="button"
+              className="job-status-bar__dismiss"
+              onClick={dismissJob}
+              aria-label="Fehler schließen"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="job-status-bar" role="status" aria-live="polite">
       <button type="button" className="job-status-bar__inner" onClick={handleClick}>
