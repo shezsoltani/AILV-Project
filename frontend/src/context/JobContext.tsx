@@ -45,11 +45,39 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
       resultData: null,
       errorMessage: null,
     });
+    localStorage.setItem('activeJobId', JSON.stringify({ jobId, jobType }));
   }
 
   function dismissJob(): void {
+    localStorage.removeItem('activeJobId');
     setActiveJob(null);
   }
+
+  useEffect(function restoreJobFromStorage() {
+    async function restore() {
+      const stored = localStorage.getItem('activeJobId');
+      if (!stored) return;
+
+      const { jobId, jobType } = JSON.parse(stored);
+
+      try {
+        const statusResponse = await getJobStatus(jobId);
+        setActiveJob({
+          jobId,
+          jobType,
+          status: statusResponse.status as JobStatus,
+          progress: statusResponse.progress,
+          stageLabel: statusResponse.stage_label,
+          resultData: statusResponse.result_data,
+          errorMessage: statusResponse.error_message,
+        });
+      } catch {
+        localStorage.removeItem('activeJobId');
+        return;
+      }
+    }
+    restore();
+  }, []);
 
   // Polling startet wenn eine neue jobId vorliegt; Dependency ist nur jobId, nicht das gesamte Objekt.
   useEffect(function startPollingOnNewJob() {
