@@ -13,6 +13,7 @@ from .api.routes_upload import router as upload_router
 from .api.routes_slides import slides_router
 from .api.routes_slides_archive import slides_archive_router
 from .api.routes_jobs import router as jobs_router
+from .api.routes_prompts import router as prompts_router
 
 logger = logging.getLogger(__name__)
 
@@ -65,3 +66,4 @@ app.include_router(upload_router, prefix="/api")
 app.include_router(slides_router, prefix="/api")
 app.include_router(slides_archive_router, prefix="/api")
 app.include_router(jobs_router, prefix="/api")
+app.include_router(prompts_router, prefix="/api")
