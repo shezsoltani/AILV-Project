@@ -144,6 +144,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
     progress INT NOT NULL DEFAULT 0,
     stage_label VARCHAR(100),
+    batch_current INT NOT NULL DEFAULT 0,
+    batch_total INT NOT NULL DEFAULT 1,
     request_data JSONB,
     result_data JSONB,
     error_message TEXT,

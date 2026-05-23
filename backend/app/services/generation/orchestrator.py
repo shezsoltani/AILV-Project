@@ -20,6 +20,7 @@ async def generate_questions(
     db: Session,
     user_id: UUID,
     on_progress: Optional[Callable[[int, str], None]] = None,
+    existing_request_id: UUID | None = None,
 ) -> GenerateResponse:
     # Request speichern
     db_req = create_generation_request_db(db, req, user_id)
