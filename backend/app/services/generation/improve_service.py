@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
 import json
@@ -12,6 +13,7 @@ async def generate_valid_improved_content(
     language: str,
     original_questions: list[dict],
     max_attempts: int = 3,
+    custom_prompt: Optional[str] = None,
 ) -> list[dict]:
 
     context = {
@@ -27,6 +29,7 @@ async def generate_valid_improved_content(
             stage="IMPROVE",
             language=language,
             context=context,
+            custom_prompt=custom_prompt,
         )
 
         try:

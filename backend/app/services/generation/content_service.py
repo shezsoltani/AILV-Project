@@ -16,6 +16,7 @@ async def generate_valid_content(
     max_attempts: int = 3,
     context_text: Optional[str] = None,
     upload_context: Optional[str] = None,
+    custom_prompt: Optional[str] = None,
 ) -> list[dict]:
 
     context = {
@@ -35,6 +36,7 @@ async def generate_valid_content(
             stage="CONTENT",
             language=language,
             context=context,
+            custom_prompt=custom_prompt,
         )
 
         try:

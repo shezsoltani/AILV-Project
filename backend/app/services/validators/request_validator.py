@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from ...core.exceptions import ContextTextTooLongError
 from ...models.generate_models import GenerateRequest
+from .custom_prompt_validator import validate_custom_prompts_dict
 
 ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
@@ -44,5 +45,8 @@ class GenerateRequestValidator:
                 max_length=MAX_CONTEXT_TEXT_LENGTH,
                 actual_length=len(req.context_text),
             )
+
+        if req.custom_prompts:
+            validate_custom_prompts_dict(req.custom_prompts)
 
 
