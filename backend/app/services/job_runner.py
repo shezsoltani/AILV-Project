@@ -6,7 +6,9 @@ from ..models.generate_models import GenerateRequest
 from ..models.slides_models import SlidesGenerateRequest
 from .generation.orchestrator import generate_questions
 from .generation.slides_orchestrator import generate_slides
+from .batch_runner import run_question_batches, run_slide_batches
 
+#damit except JobCancelledError nur diesen spezifischen Fall abfängt und nicht versehentlich andere Fehler
 class JobCancelledError(Exception):
     pass
 
@@ -15,26 +17,29 @@ def ensure_job_not_cancelled(db, job_id: UUID) -> None:
     if job and job.status == "failed" and job.error_message == "Generierung wurde vom Nutzer abgebrochen.":
         raise JobCancelledError()
 
-
 async def run_questions_job(
     job_id: UUID,
     request_data: dict,
     user_id: UUID,
 ) -> None:
     db = SessionLocal()
-    last_stage_label = "Initialisierung"
     try:
         ensure_job_not_cancelled(db, job_id)
         update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
 
         def on_progress(progress: int, stage_label: str) -> None:
-            nonlocal last_stage_label
-            last_stage_label = stage_label
             ensure_job_not_cancelled(db, job_id)
             update_job(db, job_id, progress=progress, stage_label=stage_label)
 
+        #request_data ist ein Dict aus der DB — **request_data entpackt es als Keyword-Argumente für den Pydantic-Konstruktor
         req = GenerateRequest(**request_data)
-        response = await generate_questions(req, db, user_id=user_id, on_progress=on_progress)
+        accumulated_questions, shared_request_id = await run_question_batches(
+            job_id=job_id,
+            req=req,
+            user_id=user_id,
+            db=db,
+            on_progress=on_progress,
+        )
         ensure_job_not_cancelled(db, job_id)
 
         update_job(
@@ -43,7 +48,10 @@ async def run_questions_job(
             status="completed",
             progress=100,
             stage_label="Abgeschlossen",
-            result_data=response.model_dump(mode="json"),
+            result_data={
+                "request_id": str(shared_request_id),
+                "questions": accumulated_questions,
+            },
         )
 
     except JobCancelledError:
@@ -53,11 +61,10 @@ async def run_questions_job(
             db,
             job_id,
             status="failed",
-            error_message=f"Schritt '{last_stage_label}' fehlgeschlagen: {str(e)}",
+            error_message=str(e),
         )
     finally:
         db.close()
-
 
 async def run_slides_job(
     job_id: UUID,
@@ -65,19 +72,22 @@ async def run_slides_job(
     user_id: UUID,
 ) -> None:
     db = SessionLocal()
-    last_stage_label = "Initialisierung"
     try:
         ensure_job_not_cancelled(db, job_id)
         update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
 
         def on_progress(progress: int, stage_label: str) -> None:
-            nonlocal last_stage_label
-            last_stage_label = stage_label
             ensure_job_not_cancelled(db, job_id)
             update_job(db, job_id, progress=progress, stage_label=stage_label)
 
         req = SlidesGenerateRequest(**request_data)
-        response = await generate_slides(req, db, user_id=user_id, on_progress=on_progress)
+        accumulated_slides, shared_request_id = await run_slide_batches(
+            job_id=job_id,
+            req=req,
+            user_id=user_id,
+            db=db,
+            on_progress=on_progress,
+        )
         ensure_job_not_cancelled(db, job_id)
 
         update_job(
@@ -86,7 +96,10 @@ async def run_slides_job(
             status="completed",
             progress=100,
             stage_label="Abgeschlossen",
-            result_data=response.model_dump(mode="json"),
+            result_data={
+                "request_id": str(shared_request_id),
+                "slides": accumulated_slides,
+            },
         )
 
     except JobCancelledError:
@@ -96,7 +109,7 @@ async def run_slides_job(
             db,
             job_id,
             status="failed",
-            error_message=f"Schritt '{last_stage_label}' fehlgeschlagen: {str(e)}",
+            error_message=str(e),
         )
     finally:
         db.close()

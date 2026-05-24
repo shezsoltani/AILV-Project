@@ -6,7 +6,7 @@ from ...models.slides_models import SlidesGenerateRequest, SlidesGenerateRespons
 from .slides_outline_service import generate_valid_slides_outline
 from .slides_content_service import generate_valid_slides_content
 from .slides_improve_service import generate_valid_improved_slides
-from ...persistence.generation_repo import create_generation_request_db
+from ...persistence.generation_repo import create_generation_request_db, get_generation_request
 from ...persistence.prompt_repo import get_latest_prompt_by_stage
 from ...persistence.slides_draft_repo import store_generated_slides
 from ...models.generate_models import GenerateRequest
@@ -18,19 +18,24 @@ async def generate_slides(
     db: Session,
     user_id: UUID,
     on_progress: Optional[Callable[[int, str], None]] = None,
+    existing_request_id: Optional[UUID] = None,
 ) -> SlidesGenerateResponse:
-    base_req = GenerateRequest(
-        topic=req.topic,
-        language=req.language,
-        count=1,
-        context_text=req.context_text,
-        upload_context=req.upload_context,
-    )
-    db_req = create_generation_request_db(
-        db, base_req, user_id=user_id,
-        request_type="slides",
-        slide_count=req.slide_count,
-    )
+
+    if existing_request_id is not None:
+        db_req = get_generation_request(db, existing_request_id)
+    else:
+        base_req = GenerateRequest(
+            topic=req.topic,
+            language=req.language,
+            count=1,
+            context_text=req.context_text,
+            upload_context=req.upload_context,
+        )
+        db_req = create_generation_request_db(
+            db, base_req, user_id=user_id,
+            request_type="slides",
+            slide_count=req.slide_count,
+        )
 
     base_context = {
         "topic": req.topic,

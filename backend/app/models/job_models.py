@@ -11,6 +11,8 @@ class JobStatusResponse(BaseModel):
     job_type: str
     status: str
     progress: int
+    batch_current: int = 0
+    batch_total: int = 1
     stage_label: Optional[str] = None
     result_data: Optional[Any] = None
     error_message: Optional[str] = None
