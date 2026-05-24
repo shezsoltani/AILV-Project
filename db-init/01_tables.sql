@@ -146,6 +146,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     stage_label VARCHAR(100),
     batch_current INT NOT NULL DEFAULT 0,
     batch_total INT NOT NULL DEFAULT 1,
+    batch_retrying BOOLEAN NOT NULL DEFAULT FALSE,
     request_data JSONB,
     result_data JSONB,
     error_message TEXT,

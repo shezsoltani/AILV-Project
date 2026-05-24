@@ -9,6 +9,7 @@ from .generation.orchestrator import generate_questions
 from .generation.slides_orchestrator import generate_slides
 
 BATCH_SIZE = 10
+BATCH_RETRY_MAX = 3
 
 def _compute_batches(total: int) -> list[int]:
     full = total // BATCH_SIZE
@@ -53,39 +54,59 @@ async def run_question_batches(
             progress=0,
         )
 
-        try:
-            def on_progress_wrapped(progress: int, stage_label: str) -> None:
-                nonlocal last_stage_label
-                last_stage_label = stage_label
-                on_progress(progress, stage_label)
+        last_error = None
 
-            #Pydantic-Modelle sind immutable — model_copy erstellt eine Kopie mit geändertem count
-            batch_req = req.model_copy(update={"count": batch_size})
-            response = await generate_questions(
-                batch_req,
-                db,
-                user_id=user_id,
-                on_progress=on_progress_wrapped,
-                existing_request_id=shared_request_id,
-            )
+        for attempt in range(1, BATCH_RETRY_MAX + 1):
+            try:
+                def on_progress_wrapped(progress: int, stage_label: str) -> None:
+                    nonlocal last_stage_label
+                    last_stage_label = stage_label
+                    on_progress(progress, stage_label)
 
-            accumulated_questions.extend(
-                [q.model_dump(mode="json") for q in response.questions]
-            )
-            #model_dump(mode="json") wandelt Pydantic-Objekte in JSON-kompatible Dicts um
+                batch_req = req.model_copy(update={"count": batch_size})
+                response = await generate_questions(
+                    batch_req,
+                    db,
+                    user_id=user_id,
+                    on_progress=on_progress_wrapped,
+                    existing_request_id=shared_request_id,
+                )
 
-            update_job(
-                db, job_id,
-                result_data={
-                    "request_id": str(shared_request_id),
-                    "questions": accumulated_questions,
-                },
-            )
+                accumulated_questions.extend(
+                    [q.model_dump(mode="json") for q in response.questions]
+                )
 
-        except Exception as e:
+                update_job(
+                    db, job_id,
+                    batch_retrying=False,
+                    result_data={
+                        "request_id": str(shared_request_id),
+                        "questions": accumulated_questions,
+                    },
+                )
+
+                last_error = None
+                break  # Batch erfolgreich — nächster Batch
+
+            except Exception as e:
+                last_error = e
+
+                if attempt < BATCH_RETRY_MAX:
+                    update_job(
+                        db, job_id,
+                        batch_retrying=True,
+                        progress=0,
+                        stage_label=(
+                            f"Batch {i} von {n} fehlgeschlagen – wird erneut generiert "
+                            f"(Versuch {attempt} von {BATCH_RETRY_MAX})"
+                        ),
+                    )
+
+        if last_error is not None:
             raise Exception(
-                f"Batch {i} von {n} fehlgeschlagen (Schritt '{last_stage_label}'): {str(e)}"
-            ) from e
+                f"Batch {i} von {n} konnte nach {BATCH_RETRY_MAX} Versuchen nicht "
+                f"abgeschlossen werden (Schritt '{last_stage_label}'): {str(last_error)}"
+            ) from last_error
 
     return accumulated_questions, shared_request_id
 
@@ -135,36 +156,59 @@ async def run_slide_batches(
             progress=0,
         )
 
-        try:
-            def on_progress_wrapped(progress: int, stage_label: str) -> None:
-                nonlocal last_stage_label
-                last_stage_label = stage_label
-                on_progress(progress, stage_label)
+        last_error = None
 
-            batch_req = req.model_copy(update={"slide_count": batch_size})
-            response = await generate_slides(
-                batch_req,
-                db,
-                user_id=user_id,
-                on_progress=on_progress_wrapped,
-                existing_request_id=shared_request_id,
-            )
+        for attempt in range(1, BATCH_RETRY_MAX + 1):
+            try:
+                def on_progress_wrapped(progress: int, stage_label: str) -> None:
+                    nonlocal last_stage_label
+                    last_stage_label = stage_label
+                    on_progress(progress, stage_label)
 
-            accumulated_slides.extend(
-                [s.model_dump(mode="json") for s in response.slides]
-            )
+                batch_req = req.model_copy(update={"slide_count": batch_size})
+                response = await generate_slides(
+                    batch_req,
+                    db,
+                    user_id=user_id,
+                    on_progress=on_progress_wrapped,
+                    existing_request_id=shared_request_id,
+                )
 
-            update_job(
-                db, job_id,
-                result_data={
-                    "request_id": str(shared_request_id),
-                    "slides": accumulated_slides,
-                },
-            )
+                accumulated_slides.extend(
+                    [s.model_dump(mode="json") for s in response.slides]
+                )
 
-        except Exception as e:
+                update_job(
+                    db, job_id,
+                    batch_retrying=False,
+                    result_data={
+                        "request_id": str(shared_request_id),
+                        "slides": accumulated_slides,
+                    },
+                )
+
+                last_error = None
+                break  # Batch erfolgreich — nächster Batch
+
+            except Exception as e:
+                last_error = e
+
+                if attempt < BATCH_RETRY_MAX:
+                    update_job(
+                        db, job_id,
+                        batch_retrying=True,
+                        progress=0,
+                        stage_label=(
+                            f"Batch {i} von {n} fehlgeschlagen – wird erneut generiert "
+                            f"(Versuch {attempt} von {BATCH_RETRY_MAX})"
+                        ),
+                    )
+
+        if last_error is not None:
             raise Exception(
-                f"Batch {i} von {n} fehlgeschlagen (Schritt '{last_stage_label}'): {str(e)}"
-            ) from e
+                f"Batch {i} von {n} konnte nach {BATCH_RETRY_MAX} Versuchen nicht "
+                f"abgeschlossen werden (Schritt '{last_stage_label}'): {str(last_error)}"
+            ) from last_error
+
 
     return accumulated_slides, shared_request_id

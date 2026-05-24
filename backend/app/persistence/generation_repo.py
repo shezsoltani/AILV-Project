@@ -29,3 +29,6 @@ def create_generation_request_db(
     db.refresh(db_req)
 
     return db_req
+
+def get_generation_request(db: Session, request_id: UUID) -> ORMGenReq | None:
+    return db.query(ORMGenReq).filter(ORMGenReq.id == request_id).first()

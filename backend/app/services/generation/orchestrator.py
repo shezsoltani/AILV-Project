@@ -10,7 +10,7 @@ from ...models.generate_models import (
 from .skeleton_service import generate_valid_skeleton
 from .content_service import generate_valid_content
 from .improve_service import generate_valid_improved_content
-from ...persistence.generation_repo import create_generation_request_db
+from ...persistence.generation_repo import create_generation_request_db, get_generation_request
 from ...persistence.prompt_repo import get_latest_prompt_by_stage
 from ...persistence.generated_questions_repo import store_generated_questions
 from ...core.exceptions import PromptStateError
@@ -23,7 +23,10 @@ async def generate_questions(
     existing_request_id: UUID | None = None,
 ) -> GenerateResponse:
     # Request speichern
-    db_req = create_generation_request_db(db, req, user_id)
+    if existing_request_id is not None:
+        db_req = get_generation_request(db, existing_request_id)
+    else:
+        db_req = create_generation_request_db(db, req, user_id)
 
     base_context = {
         "topic": req.topic,

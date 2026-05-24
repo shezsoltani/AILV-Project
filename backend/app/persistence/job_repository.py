@@ -37,6 +37,7 @@ def update_job(
     progress: Optional[int] = None,
     batch_current: Optional[int] = None,
     batch_total: Optional[int] = None,
+    batch_retrying: Optional[bool] = None,
     stage_label: Optional[str] = None,
     result_data: Optional[Any] = None,
     error_message: Optional[str] = None,
@@ -53,6 +54,8 @@ def update_job(
         job.batch_current = batch_current
     if batch_total is not None:
         job.batch_total = batch_total
+    if batch_retrying is not None:
+        job.batch_retrying = batch_retrying
     if stage_label is not None:
         job.stage_label = stage_label
     if result_data is not None:

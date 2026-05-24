@@ -150,6 +150,7 @@ class Job(Base):
     progress = Column(Integer, nullable=False, server_default="0")
     batch_current = Column(Integer, nullable=False, server_default="0")
     batch_total = Column(Integer, nullable=False, server_default="1")
+    batch_retrying = Column(Boolean, nullable=False, server_default="false")
     stage_label = Column(String(100), nullable=True)
     request_data = Column(JSONB, nullable=True)
     result_data = Column(JSONB, nullable=True)
