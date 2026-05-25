@@ -3,10 +3,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { SlidesGenerateForm, SlidesPreview, SlidesSaveDialog } from '../../components/slides';
-import { ErrorBanner, Modal, GenerationSkeleton } from '../../components/shared';
+import { ErrorBanner, Modal, GenerationSkeleton, PromptEditorModal } from '../../components/shared';
 import { useSlidesGenerateForm } from '../../hooks/slides/useSlidesGenerateForm';
 import { useJobContext } from '../../context/JobContext';
+import { getPromptPreview, toSlidesPromptPreviewRequest } from '../../services/promptsApi';
+import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 import type { SlidesGenerateResponse } from '../../types/slides';
+import type { RenderedPrompt } from '../../types/prompts';
 
 export const SlidesGeneratePage: React.FC = () => {
   const [generationResponse, setGenerationResponse] = useState<SlidesGenerateResponse | null>(null);
@@ -22,6 +25,12 @@ export const SlidesGeneratePage: React.FC = () => {
   const form = useSlidesGenerateForm({ onSuccess: handleGenerationSuccess });
   const { activeJob, addJob } = useJobContext();
   const [isModalHidden, setIsModalHidden] = useState(false);
+  const [promptModalOpen, setPromptModalOpen] = useState(false);
+  const [previewPrompts, setPreviewPrompts] = useState<RenderedPrompt[] | null>(null);
+  const [promptPreviewLoading, setPromptPreviewLoading] = useState(false);
+  const [promptPreviewError, setPromptPreviewError] = useState<string | null>(null);
+
+  const isTopicEmpty = !form.formValues.topic.trim();
 
   // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
   useEffect(
@@ -57,6 +66,28 @@ export const SlidesGeneratePage: React.FC = () => {
     setIsModalHidden(true);
   }
 
+  function handlePromptModalClose(): void {
+    setPromptModalOpen(false);
+  }
+
+  async function handleViewPrompts(): Promise<void> {
+    setPromptPreviewLoading(true);
+    setPromptPreviewError(null);
+
+    try {
+      const response = await getPromptPreview(
+        toSlidesPromptPreviewRequest(form.formValues)
+      );
+      setPreviewPrompts(response.prompts);
+      setPromptModalOpen(true);
+    } catch (error) {
+      console.error('Fehler beim Laden der Prompt-Vorschau:', error);
+      setPromptPreviewError(getUserFriendlyMessage(error));
+    } finally {
+      setPromptPreviewLoading(false);
+    }
+  }
+
   const isPreviewOpen =
     (form.jobId !== null || generationResponse !== null) &&
     !isModalHidden;
@@ -78,7 +109,34 @@ export const SlidesGeneratePage: React.FC = () => {
 
       <div className="page-form">
         <SlidesGenerateForm form={form} />
+
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={handleViewPrompts}
+          disabled={isTopicEmpty || promptPreviewLoading}
+          aria-busy={promptPreviewLoading}
+        >
+          {promptPreviewLoading ? (
+            <span className="form-submit-button__loading">
+              <span className="form-button-spinner" aria-hidden="true" />
+              Prompts werden geladen …
+            </span>
+          ) : (
+            'Prompts ansehen'
+          )}
+        </button>
+
+        <ErrorBanner message={promptPreviewError} />
       </div>
+
+      {previewPrompts !== null && (
+        <PromptEditorModal
+          prompts={previewPrompts}
+          isOpen={promptModalOpen}
+          onClose={handlePromptModalClose}
+        />
+      )}
 
       {/* Vorschau-Modal – erscheint nach erfolgreicher Generierung oder währenddessen */}
       <Modal

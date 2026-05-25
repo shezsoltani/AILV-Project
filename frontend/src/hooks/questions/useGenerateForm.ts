@@ -16,7 +16,7 @@ interface UseGenerateFormProps {
   isLoading?: boolean;
 }
 
-interface UseGenerateFormReturn {
+export interface UseGenerateFormReturn {
   formValues: GenerateRequestFormValues;
   // String-Werte für Eingabefelder (separat von formValues für Anzeige während Eingabe)
   displayValues: {

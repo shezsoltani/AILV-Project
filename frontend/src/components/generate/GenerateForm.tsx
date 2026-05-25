@@ -2,12 +2,11 @@
 // Darstellung des Generierungsformulars. Logik: useGenerateForm.
 
 import React from 'react';
-import type { GenerateRequestFormValues } from '../../types/generate';
 import {
   QUESTION_TYPE_OPTIONS,
   getQuestionTypeLabel,
 } from '../../constants/formConstants';
-import { useGenerateForm } from '../../hooks/questions/useGenerateForm';
+import type { UseGenerateFormReturn } from '../../hooks/questions/useGenerateForm';
 import { ErrorBanner, PdfUpload } from '../shared';
 
 // Drei Felder für die Prozent-Verteilung. Keys müssen zu useGenerateForm passen.
@@ -18,17 +17,14 @@ const DIFFICULTY_FIELDS = [
 ] as const;
 
 interface GenerateFormProps {
-  onSubmit?: (values: GenerateRequestFormValues) => void;
-  isLoading?: boolean;
+  form: UseGenerateFormReturn;
   submitError?: string | null;
 }
 
 export const GenerateForm: React.FC<GenerateFormProps> = ({
-  onSubmit,
-  isLoading = false,
+  form,
   submitError = null,
 }) => {
-  // Hook verwaltet alle Formular-Logik: Eingaben, Validierung, Submit
   const {
     formValues,
     displayValues,
@@ -42,7 +38,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
     handleTypeToggle,
     handleSubmit,
     setUploadContext,
-  } = useGenerateForm({ onSubmit, isLoading });
+  } = form;
 
   return (
     <div className="card">
