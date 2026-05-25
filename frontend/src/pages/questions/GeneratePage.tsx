@@ -20,21 +20,11 @@ export const GeneratePage: React.FC = () => {
     cancelGeneration,
   } = useQuestionWorkflow();
 
-  const { activeJob, addJob } = useJobContext();
+  const { activeJob } = useJobContext();
 
   const [isModalHidden, setIsModalHidden] = useState(false);
   const hasQuestions = questions.length > 0;
   const isGenerating = jobStatus === 'pending' || jobStatus === 'running';
-
-  // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
-  useEffect(
-    function registerJobInContext() {
-      if (jobId !== null) {
-        addJob(jobId, 'generate_questions');
-      }
-    },
-    [jobId] // eslint-disable-line react-hooks/exhaustive-deps
-  );
 
   useEffect(
     function reopenModalWhenQuestionsArrive() {

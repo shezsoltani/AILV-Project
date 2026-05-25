@@ -145,6 +145,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
             return previousJob;
           }
 
+          localStorage.removeItem('activeJobId');
           return null;
         });
       }, COMPLETED_VISIBILITY_MS);
