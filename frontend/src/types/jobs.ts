@@ -14,6 +14,8 @@ export interface JobStatusResponse {
   status: string;
   // Fortschritt in Prozent (0–100).
   progress: number;
+  batch_current: number;
+  batch_total: number;
   stage_label: string | null;
   result_data: unknown | null;
   error_message: string | null;
