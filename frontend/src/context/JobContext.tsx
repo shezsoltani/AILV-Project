@@ -12,6 +12,8 @@ export interface ActiveJob {
   jobType: JobType;
   status: JobStatus;
   progress: number;
+  batchCurrent: number;
+  batchTotal: number;
   stageLabel: string | null;
   resultData: unknown | null;
   errorMessage: string | null;
@@ -41,6 +43,8 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
       jobType,
       status: 'pending',
       progress: 0,
+      batchCurrent: 0,
+      batchTotal: 1,
       stageLabel: null,
       resultData: null,
       errorMessage: null,
@@ -67,6 +71,8 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
           jobType,
           status: statusResponse.status as JobStatus,
           progress: statusResponse.progress,
+          batchCurrent: statusResponse.batch_current,
+          batchTotal: statusResponse.batch_total,
           stageLabel: statusResponse.stage_label,
           resultData: statusResponse.result_data,
           errorMessage: statusResponse.error_message,
@@ -99,6 +105,8 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
             ...previousJob,
             status: normalizedStatus,
             progress: statusResponse.progress,
+            batchCurrent: statusResponse.batch_current,
+            batchTotal: statusResponse.batch_total,
             stageLabel: statusResponse.stage_label,
             resultData: statusResponse.result_data,
             errorMessage: statusResponse.error_message,
