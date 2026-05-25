@@ -99,6 +99,35 @@
   z-index: 2100;
 }
 
+/* Prompt-Editor-Modal (read-only Vorschau) */
+.prompt-editor-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.prompt-editor-modal-stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.prompt-editor-modal-stage-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.prompt-editor-modal-textarea {
+  min-height: 12rem;
+  max-height: 40vh;
+  overflow-y: auto;
+  resize: none;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 /* Success-Banner innerhalb eines Modals braucht weniger Außenabstand */
 .success-banner--modal {
   margin-top: var(--spacing-md);
