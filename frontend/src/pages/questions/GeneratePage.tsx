@@ -24,8 +24,17 @@ export const GeneratePage: React.FC = () => {
     cancelGeneration,
   } = useQuestionWorkflow();
 
+  const [customPrompts, setCustomPrompts] = useState<Record<string, string> | undefined>(
+    undefined
+  );
+
   const generateForm = useGenerateForm({
-    onSubmit: handleFormSubmit,
+    onSubmit: (values) => {
+      handleFormSubmit({
+        ...values,
+        ...(customPrompts ? { customPrompts } : {}),
+      });
+    },
     isLoading,
   });
 
@@ -34,7 +43,6 @@ export const GeneratePage: React.FC = () => {
   const [isModalHidden, setIsModalHidden] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [previewPrompts, setPreviewPrompts] = useState<RenderedPrompt[] | null>(null);
-  const [, setAppliedPromptTexts] = useState<Record<string, string> | null>(null);
   const [promptPreviewLoading, setPromptPreviewLoading] = useState(false);
   const [promptPreviewError, setPromptPreviewError] = useState<string | null>(null);
 
@@ -89,7 +97,7 @@ export const GeneratePage: React.FC = () => {
   }
 
   function handlePromptSave(editedPrompts: Record<string, string>): void {
-    setAppliedPromptTexts(editedPrompts);
+    setCustomPrompts(editedPrompts);
   }
 
   async function handleViewPrompts(): Promise<void> {

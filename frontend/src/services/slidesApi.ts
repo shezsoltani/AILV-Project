@@ -24,6 +24,7 @@ export async function generateSlides(
     slide_count: toNumber(request.slideCount),
     ...(request.contextText && { context_text: request.contextText }),
     ...(request.uploadContext && { upload_context: request.uploadContext }),
+    ...(request.customPrompts && { custom_prompts: request.customPrompts }),
   };
 
   // Das Backend startet die Generierung asynchron und gibt sofort job_id + status zurück.

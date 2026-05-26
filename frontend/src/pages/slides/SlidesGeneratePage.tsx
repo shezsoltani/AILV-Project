@@ -22,12 +22,18 @@ export const SlidesGeneratePage: React.FC = () => {
     setIsEditing(false); // Reset editing state on new generation
   }
 
-  const form = useSlidesGenerateForm({ onSuccess: handleGenerationSuccess });
+  const [customPrompts, setCustomPrompts] = useState<Record<string, string> | undefined>(
+    undefined
+  );
+
+  const form = useSlidesGenerateForm({
+    onSuccess: handleGenerationSuccess,
+    customPrompts,
+  });
   const { activeJob, addJob } = useJobContext();
   const [isModalHidden, setIsModalHidden] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [previewPrompts, setPreviewPrompts] = useState<RenderedPrompt[] | null>(null);
-  const [, setAppliedPromptTexts] = useState<Record<string, string> | null>(null);
   const [promptPreviewLoading, setPromptPreviewLoading] = useState(false);
   const [promptPreviewError, setPromptPreviewError] = useState<string | null>(null);
 
@@ -72,7 +78,7 @@ export const SlidesGeneratePage: React.FC = () => {
   }
 
   function handlePromptSave(editedPrompts: Record<string, string>): void {
-    setAppliedPromptTexts(editedPrompts);
+    setCustomPrompts(editedPrompts);
   }
 
   async function handleViewPrompts(): Promise<void> {

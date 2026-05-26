@@ -27,15 +27,17 @@ def build_preview_context(stage: str, req: PromptPreviewRequest) -> dict:
                 "language": language,
             }
         if stage == "CONTENT":
+            # Platzhalter wörtlich lassen – sonst fehlt {{skeleton_data}} nach „Übernehmen“
+            # in custom_prompts (Pflicht laut custom_prompt_validator).
             return {
-                "skeleton_data": "[]",
+                "skeleton_data": "{{skeleton_data}}",
                 "topic": req.topic,
                 "language": language,
                 "context_text": req.context_text,
                 "upload_context": req.upload_context,
             }
         if stage == "IMPROVE":
-            return {"questions_raw": "[]"}
+            return {"questions_raw": "{{questions_raw}}"}
 
     if req.request_type == "slides":
         if stage == "SLIDES_OUTLINE":
@@ -48,7 +50,7 @@ def build_preview_context(stage: str, req: PromptPreviewRequest) -> dict:
             }
         if stage == "SLIDES_CONTENT":
             return {
-                "outline_data": "[]",
+                "outline_data": "{{outline_data}}",
                 "topic": req.topic,
                 "language": language,
                 "context_text": req.context_text,
@@ -56,7 +58,7 @@ def build_preview_context(stage: str, req: PromptPreviewRequest) -> dict:
             }
         if stage == "SLIDES_IMPROVE":
             return {
-                "slides_raw": "[]",
+                "slides_raw": "{{slides_raw}}",
                 "language": language,
             }
 

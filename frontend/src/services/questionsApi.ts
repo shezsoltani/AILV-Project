@@ -32,6 +32,7 @@ export async function generateQuestions(
     // Optionale Felder: nur mitsenden, wenn befüllt
     ...(formValues.contextText && { context_text: formValues.contextText }),
     ...(formValues.uploadContext && { upload_context: formValues.uploadContext }),
+    ...(formValues.customPrompts && { custom_prompts: formValues.customPrompts }),
   };
 
   // Das Backend startet die Generierung asynchron und gibt sofort job_id + status zurück.
