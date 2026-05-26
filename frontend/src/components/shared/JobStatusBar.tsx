@@ -39,10 +39,12 @@ export const JobStatusBar: React.FC = () => {
   function handleClick(): void {
     if (location.pathname === route) {
       window.dispatchEvent(new CustomEvent('open-active-job-modal'));
+      dismissJob();
       return;
     }
 
     navigate(route);
+    dismissJob();
   }
 
 

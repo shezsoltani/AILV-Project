@@ -50,16 +50,6 @@ export const GeneratePage: React.FC = () => {
   const isGenerating = jobStatus === 'pending' || jobStatus === 'running';
   const isTopicEmpty = !generateForm.formValues.topic.trim();
 
-  // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
-  useEffect(
-    function registerJobInContext() {
-      if (jobId !== null) {
-        addJob(jobId, 'generate_questions');
-      }
-    },
-    [jobId] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
   useEffect(
     function reopenModalWhenQuestionsArrive() {
       if (hasQuestions || isGenerating) {
