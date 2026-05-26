@@ -14,6 +14,7 @@ export interface ActiveJob {
   progress: number;
   batchCurrent: number;
   batchTotal: number;
+  batchRetrying: boolean;
   stageLabel: string | null;
   resultData: unknown | null;
   errorMessage: string | null;
@@ -45,6 +46,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
       progress: 0,
       batchCurrent: 0,
       batchTotal: 1,
+      batchRetrying: false,
       stageLabel: null,
       resultData: null,
       errorMessage: null,
@@ -73,6 +75,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
           progress: statusResponse.progress,
           batchCurrent: statusResponse.batch_current,
           batchTotal: statusResponse.batch_total,
+          batchRetrying: statusResponse.batch_retrying ?? false,
           stageLabel: statusResponse.stage_label,
           resultData: statusResponse.result_data,
           errorMessage: statusResponse.error_message,
@@ -107,6 +110,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
             progress: statusResponse.progress,
             batchCurrent: statusResponse.batch_current,
             batchTotal: statusResponse.batch_total,
+            batchRetrying: statusResponse.batch_retrying ?? false,
             stageLabel: statusResponse.stage_label,
             resultData: statusResponse.result_data,
             errorMessage: statusResponse.error_message,

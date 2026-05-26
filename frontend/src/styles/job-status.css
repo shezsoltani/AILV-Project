@@ -84,6 +84,38 @@
   flex-shrink: 0;
 }
 
+/* Automatischer Batch-Retry-Hinweis */
+.job-status-retry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  color: #92400e;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.job-status-retry__icon {
+  flex-shrink: 0;
+  color: #b45309;
+  animation: spin 1.4s linear infinite;
+}
+
+.job-status-retry__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .job-status-bar__batch-label {
   margin: 0 0 4px;
   color: var(--color-text-secondary, #6b7280);

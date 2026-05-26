@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useJobContext } from '../../context/JobContext';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 
 function resolveStageText(progress: number): string {
   if (progress >= 100) {
@@ -33,8 +33,9 @@ export const JobStatusBar: React.FC = () => {
   const stageLabel = isCompleted
     ? 'Generierung abgeschlossen'
     : activeJob.stageLabel ?? 'Verarbeitung läuft...';
-  const { batchCurrent, batchTotal } = activeJob;
+  const { batchCurrent, batchTotal, batchRetrying } = activeJob;
   const hasBatches = batchTotal > 1;
+  const isRetrying = isRunning && batchRetrying;
   const displayProgress = isCompleted
     ? 100
     : hasBatches
@@ -78,6 +79,12 @@ export const JobStatusBar: React.FC = () => {
   return (
     <div className="job-status-bar" role="status" aria-live="polite">
       <button type="button" className="job-status-bar__inner" onClick={handleClick}>
+        {isRetrying && (
+          <div className="job-status-retry">
+            <RefreshCw className="job-status-retry__icon" size={12} aria-hidden="true" />
+            <span className="job-status-retry__text">{stageLabel}</span>
+          </div>
+        )}
         {isRunning && hasBatches && (
           <p className="job-status-bar__batch-label">
             Batch {batchCurrent} von {batchTotal}
@@ -90,7 +97,7 @@ export const JobStatusBar: React.FC = () => {
             <span className="job-status-bar__done" aria-hidden="true">✓</span>
           )}
           <p className="job-status-bar__text">
-            {isCompleted ? stageLabel : `${stageLabel} - ${stageText}`}
+            {isCompleted ? stageLabel : isRetrying ? stageText : `${stageLabel} - ${stageText}`}
           </p>
           {isCompleted ? (
             <span className="job-status-bar__action">Ergebnis ansehen &rarr;</span>
