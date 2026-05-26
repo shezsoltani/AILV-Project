@@ -16,6 +16,7 @@ async def generate_valid_content(
     max_attempts: int = 3,
     context_text: Optional[str] = None,
     upload_context: Optional[str] = None,
+    custom_prompt: Optional[str] = None,
 ) -> list[dict]:
 
     context = {
@@ -35,10 +36,15 @@ async def generate_valid_content(
             stage="CONTENT",
             language=language,
             context=context,
+            custom_prompt=custom_prompt,
         )
 
         try:
             content = safe_parse_json(llm_response)
+            # id aus dem Skeleton übernehmen, falls das LLM es weggelassen hat
+            for i, item in enumerate(content):
+                if isinstance(item, dict) and "id" not in item and i < len(skeleton):
+                    item["id"] = skeleton[i]["id"]
             validate_content(content, expected_count=len(skeleton))
             return content
 

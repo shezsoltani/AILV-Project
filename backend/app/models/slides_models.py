@@ -1,6 +1,6 @@
 from uuid import UUID
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict
 
 from .generate_models import Language
 
@@ -11,6 +11,7 @@ class SlidesGenerateRequest(BaseModel):
     language: Language = Field(Language.de, description="Sprache (ISO-Code), z.B. 'de' oder 'en'")
     context_text: Optional[str] = None
     upload_context: Optional[str] = None
+    custom_prompts: Optional[Dict[str, str]] = None
 
 class SlideOutlineItem(BaseModel):
     position: int

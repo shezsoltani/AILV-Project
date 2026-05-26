@@ -16,4 +16,5 @@ export interface GenerateRequestFormValues {
   difficultyDistribution: DifficultyDistribution;
   contextText?: string;
   uploadContext?: string;
+  customPrompts?: Record<string, string>;
 }

@@ -6,6 +6,7 @@ export interface SlidesGenerateRequest {
   slideCount: number | '';
   contextText?: string;
   uploadContext?: string;
+  customPrompts?: Record<string, string>;
 }
 
 export interface SlidesGenerateResponse {

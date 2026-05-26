@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 
@@ -15,6 +16,7 @@ async def generate_valid_slides_content(
     outline: list[dict],
     base_context: dict,
     max_attempts: int = 3,
+    custom_prompt: Optional[str] = None,
 ) -> list[dict]:
     context = dict(base_context)
     context["outline_data"] = json.dumps(outline, ensure_ascii=False, indent=2)
@@ -28,6 +30,7 @@ async def generate_valid_slides_content(
             stage="SLIDES_CONTENT",
             language=language,
             context=context,
+            custom_prompt=custom_prompt,
         )
 
         try:

@@ -19,6 +19,7 @@ async def generate_slides(
     user_id: UUID,
     on_progress: Optional[Callable[[int, str], None]] = None,
     existing_request_id: Optional[UUID] = None,
+    custom_prompts: Optional[dict[str, str]] = None,
 ) -> SlidesGenerateResponse:
 
     if existing_request_id is not None:
@@ -45,6 +46,8 @@ async def generate_slides(
         "upload_context": req.upload_context,
     }
 
+    cp = custom_prompts or {}
+
     outline = await generate_valid_slides_outline(
         db=db,
         request_id=db_req.id,
@@ -52,6 +55,7 @@ async def generate_slides(
         base_context=base_context,
         expected_count=req.slide_count,
         max_attempts=3,
+        custom_prompt=cp.get("SLIDES_OUTLINE"),
     )
     if on_progress:
         on_progress(33, "Gliederung wird erstellt")
@@ -63,6 +67,7 @@ async def generate_slides(
         outline=outline,
         base_context=base_context,
         max_attempts=3,
+        custom_prompt=cp.get("SLIDES_CONTENT"),
     )
     if on_progress:
         on_progress(66, "Folieninhalte werden generiert")
@@ -73,6 +78,7 @@ async def generate_slides(
         language=req.language.value,
         content_slides=content,
         max_attempts=3,
+        custom_prompt=cp.get("SLIDES_IMPROVE"),
     )
     if on_progress:
         on_progress(100, "Folien werden optimiert")

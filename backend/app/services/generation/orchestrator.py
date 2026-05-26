@@ -21,6 +21,7 @@ async def generate_questions(
     user_id: UUID,
     on_progress: Optional[Callable[[int, str], None]] = None,
     existing_request_id: UUID | None = None,
+    custom_prompts: Optional[dict[str, str]] = None,
 ) -> GenerateResponse:
     # Request speichern
     if existing_request_id is not None:
@@ -36,6 +37,8 @@ async def generate_questions(
         "language": req.language.value
     }
 
+    cp = custom_prompts or {}
+
     # SKELETON
     skeleton = await generate_valid_skeleton(
         db=db,
@@ -44,6 +47,7 @@ async def generate_questions(
         base_context=base_context,
         expected_count=req.count,
         max_attempts=3,
+        custom_prompt=cp.get("SKELETON"),
     )
     if on_progress:
         on_progress(33, "Grundstruktur wird erstellt")
@@ -58,6 +62,7 @@ async def generate_questions(
         max_attempts=3,
         context_text=req.context_text,
         upload_context=req.upload_context,
+        custom_prompt=cp.get("CONTENT"),
     )
     if on_progress:
         on_progress(66, "Inhalte werden generiert")
@@ -69,6 +74,7 @@ async def generate_questions(
         language=req.language.value,
         original_questions=content,
         max_attempts=3,
+        custom_prompt=cp.get("IMPROVE"),
     )
     if on_progress:
         on_progress(100, "Fragen werden optimiert")

@@ -35,7 +35,10 @@ const INITIAL_VALUES: SlidesFormValues = {
 };
 
 // Wandelt den internen Formular-State in das vom Validator/API erwartete Format.
-const toApiRequest = (values: SlidesFormValues): SlidesGenerateRequest => {
+const toApiRequest = (
+  values: SlidesFormValues,
+  customPrompts?: Record<string, string>
+): SlidesGenerateRequest => {
   const trimmedContext = values.contextText.trim();
   return {
     topic: values.topic,
@@ -43,6 +46,7 @@ const toApiRequest = (values: SlidesFormValues): SlidesGenerateRequest => {
     language: values.language,
     ...(trimmedContext ? { contextText: trimmedContext } : {}),
     ...(values.uploadContext ? { uploadContext: values.uploadContext } : {}),
+    ...(customPrompts ? { customPrompts } : {}),
   };
 };
 
@@ -52,6 +56,7 @@ const validateFormValues = (
 
 interface UseSlidesGenerateFormProps {
   onSuccess?: (response: SlidesGenerateResponse) => void;
+  customPrompts?: Record<string, string>;
 }
 
 export interface UseSlidesGenerateFormReturn {
@@ -80,7 +85,10 @@ export interface UseSlidesGenerateFormReturn {
   isSaved: boolean;
 }
 
-export function useSlidesGenerateForm(props: UseSlidesGenerateFormProps = {}): UseSlidesGenerateFormReturn {
+export function useSlidesGenerateForm(
+  props: UseSlidesGenerateFormProps = {}
+): UseSlidesGenerateFormReturn {
+  const { customPrompts } = props;
   const { activeJob, addJob, dismissJob } = useJobContext();
   const [isSaved, setIsSaved] = useState(false);
   const slidesJob = activeJob?.jobType === 'generate_slides' ? activeJob : null;
@@ -93,7 +101,7 @@ export function useSlidesGenerateForm(props: UseSlidesGenerateFormProps = {}): U
   ): Promise<void> => {
     setIsLoading(true);
     try {
-      const result = await generateSlides(toApiRequest(values));
+      const result = await generateSlides(toApiRequest(values, customPrompts));
       addJob(result.job_id, 'generate_slides'); // Job im Context registrieren → Polling startet
       setIsSaved(false);
     } catch (error) {

@@ -70,6 +70,7 @@ async def run_question_batches(
                     user_id=user_id,
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
+                    custom_prompts=req.custom_prompts,
                 )
 
                 accumulated_questions.extend(
@@ -172,6 +173,7 @@ async def run_slide_batches(
                     user_id=user_id,
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
+                    custom_prompts=req.custom_prompts,
                 )
 
                 accumulated_slides.extend(

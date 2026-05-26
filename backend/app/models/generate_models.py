@@ -19,6 +19,7 @@ class GenerateRequest(BaseModel):
     )
     context_text: Optional[str] = None
     upload_context: Optional[str] = None
+    custom_prompts: Optional[Dict[str, str]] = None
     # -> kein target_audience im API-Modell
 
 class GeneratedQuestion(BaseModel):

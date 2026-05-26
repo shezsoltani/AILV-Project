@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from ...core.exceptions import ContextTextTooLongError
 from ...models.slides_models import SlidesGenerateRequest
+from .custom_prompt_validator import validate_custom_prompts_dict
 
 ALLOWED_LANGUAGES = {"de", "en"}
 MIN_TOPIC_LENGTH = 3
@@ -52,3 +53,6 @@ class SlidesGenerateRequestValidator:
                 max_length=MAX_CONTEXT_TEXT_LENGTH,
                 actual_length=len(req.upload_context),
             )
+
+        if req.custom_prompts:
+            validate_custom_prompts_dict(req.custom_prompts)
