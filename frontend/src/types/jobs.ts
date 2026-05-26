@@ -16,6 +16,7 @@ export interface JobStatusResponse {
   progress: number;
   batch_current: number;
   batch_total: number;
+  batch_retrying: boolean;
   stage_label: string | null;
   result_data: unknown | null;
   error_message: string | null;

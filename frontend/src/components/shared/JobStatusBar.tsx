@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useJobContext } from '../../context/JobContext';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 
 function resolveStageText(progress: number): string {
   if (progress >= 100) {
@@ -29,12 +29,18 @@ export const JobStatusBar: React.FC = () => {
   const isRunning = activeJob.status === 'pending' || activeJob.status === 'running';
   const isFailed = activeJob.status === 'failed';
   const route = activeJob.jobType === 'generate_questions' ? '/generate' : '/slides/generate';
-  const typeLabel = activeJob.jobType === 'generate_questions' ? 'Fragen' : 'Folien';
   const stageText = resolveStageText(progress);
   const stageLabel = isCompleted
     ? 'Generierung abgeschlossen'
     : activeJob.stageLabel ?? 'Verarbeitung läuft...';
-  const displayProgress = isCompleted ? 100 : progress;
+  const { batchCurrent, batchTotal, batchRetrying } = activeJob;
+  const hasBatches = batchTotal > 1;
+  const isRetrying = isRunning && batchRetrying;
+  const displayProgress = isCompleted
+    ? 100
+    : hasBatches
+      ? Math.min(100, Math.round(((batchCurrent - 1) * 100 + progress) / batchTotal))
+      : progress;
 
   function handleClick(): void {
     if (location.pathname === route) {
@@ -73,6 +79,17 @@ export const JobStatusBar: React.FC = () => {
   return (
     <div className="job-status-bar" role="status" aria-live="polite">
       <button type="button" className="job-status-bar__inner" onClick={handleClick}>
+        {isRetrying && (
+          <div className="job-status-retry">
+            <RefreshCw className="job-status-retry__icon" size={12} aria-hidden="true" />
+            <span className="job-status-retry__text">{stageLabel}</span>
+          </div>
+        )}
+        {isRunning && hasBatches && (
+          <p className="job-status-bar__batch-label">
+            Batch {batchCurrent} von {batchTotal}
+          </p>
+        )}
         <div className="job-status-bar__header">
           {isRunning ? (
             <span className="job-status-bar__spinner" aria-hidden="true" />
@@ -80,7 +97,7 @@ export const JobStatusBar: React.FC = () => {
             <span className="job-status-bar__done" aria-hidden="true">✓</span>
           )}
           <p className="job-status-bar__text">
-            {isCompleted ? stageLabel : `${stageLabel} - ${stageText}`}
+            {isCompleted ? stageLabel : isRetrying ? stageText : `${stageLabel} - ${stageText}`}
           </p>
           {isCompleted ? (
             <span className="job-status-bar__action">Ergebnis ansehen &rarr;</span>
