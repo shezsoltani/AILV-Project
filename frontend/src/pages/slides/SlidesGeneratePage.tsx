@@ -27,6 +27,7 @@ export const SlidesGeneratePage: React.FC = () => {
   const [isModalHidden, setIsModalHidden] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [previewPrompts, setPreviewPrompts] = useState<RenderedPrompt[] | null>(null);
+  const [, setAppliedPromptTexts] = useState<Record<string, string> | null>(null);
   const [promptPreviewLoading, setPromptPreviewLoading] = useState(false);
   const [promptPreviewError, setPromptPreviewError] = useState<string | null>(null);
 
@@ -68,6 +69,10 @@ export const SlidesGeneratePage: React.FC = () => {
 
   function handlePromptModalClose(): void {
     setPromptModalOpen(false);
+  }
+
+  function handlePromptSave(editedPrompts: Record<string, string>): void {
+    setAppliedPromptTexts(editedPrompts);
   }
 
   async function handleViewPrompts(): Promise<void> {
@@ -135,6 +140,7 @@ export const SlidesGeneratePage: React.FC = () => {
           prompts={previewPrompts}
           isOpen={promptModalOpen}
           onClose={handlePromptModalClose}
+          onSave={handlePromptSave}
         />
       )}
 
