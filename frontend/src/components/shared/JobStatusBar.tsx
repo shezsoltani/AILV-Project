@@ -29,12 +29,17 @@ export const JobStatusBar: React.FC = () => {
   const isRunning = activeJob.status === 'pending' || activeJob.status === 'running';
   const isFailed = activeJob.status === 'failed';
   const route = activeJob.jobType === 'generate_questions' ? '/generate' : '/slides/generate';
-  const typeLabel = activeJob.jobType === 'generate_questions' ? 'Fragen' : 'Folien';
   const stageText = resolveStageText(progress);
   const stageLabel = isCompleted
     ? 'Generierung abgeschlossen'
     : activeJob.stageLabel ?? 'Verarbeitung läuft...';
-  const displayProgress = isCompleted ? 100 : progress;
+  const { batchCurrent, batchTotal } = activeJob;
+  const hasBatches = batchTotal > 1;
+  const displayProgress = isCompleted
+    ? 100
+    : hasBatches
+      ? Math.min(100, Math.round(((batchCurrent - 1) * 100 + progress) / batchTotal))
+      : progress;
 
   function handleClick(): void {
     if (location.pathname === route) {
@@ -73,6 +78,11 @@ export const JobStatusBar: React.FC = () => {
   return (
     <div className="job-status-bar" role="status" aria-live="polite">
       <button type="button" className="job-status-bar__inner" onClick={handleClick}>
+        {isRunning && hasBatches && (
+          <p className="job-status-bar__batch-label">
+            Batch {batchCurrent} von {batchTotal}
+          </p>
+        )}
         <div className="job-status-bar__header">
           {isRunning ? (
             <span className="job-status-bar__spinner" aria-hidden="true" />
