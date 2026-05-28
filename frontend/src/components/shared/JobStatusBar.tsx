@@ -24,7 +24,7 @@ export const JobStatusBar: React.FC = () => {
     return null;
   }
 
-  const progress = Math.min(100, Math.max(0, Math.round(activeJob.progress)));
+  const progress = Math.min(100, Math.max(0, Math.floor(activeJob.progress)));
   const isCompleted = activeJob.status === 'completed';
   const isRunning = activeJob.status === 'pending' || activeJob.status === 'running';
   const isFailed = activeJob.status === 'failed';
@@ -35,22 +35,21 @@ export const JobStatusBar: React.FC = () => {
     : activeJob.stageLabel ?? 'Verarbeitung läuft...';
   const { batchCurrent, batchTotal, batchRetrying } = activeJob;
   const hasBatches = batchTotal > 1;
+  // batchRetrying kommt vom Backend-Flag und steuert den Retry-Indikator in der Leiste.
   const isRetrying = isRunning && batchRetrying;
   const displayProgress = isCompleted
     ? 100
     : hasBatches
-      ? Math.min(100, Math.round(((batchCurrent - 1) * 100 + progress) / batchTotal))
+      ? Math.min(100, Math.floor(((batchCurrent - 1) * 100 + progress) / batchTotal))
       : progress;
 
   function handleClick(): void {
     if (location.pathname === route) {
       window.dispatchEvent(new CustomEvent('open-active-job-modal'));
-      dismissJob();
       return;
     }
 
     navigate(route);
-    dismissJob();
   }
 
 

@@ -30,7 +30,7 @@ export const SlidesGeneratePage: React.FC = () => {
     onSuccess: handleGenerationSuccess,
     customPrompts,
   });
-  const { activeJob, addJob } = useJobContext();
+  const { activeJob } = useJobContext();
   const [isModalHidden, setIsModalHidden] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [previewPrompts, setPreviewPrompts] = useState<RenderedPrompt[] | null>(null);
@@ -39,14 +39,13 @@ export const SlidesGeneratePage: React.FC = () => {
 
   const isTopicEmpty = !form.formValues.topic.trim();
 
-  // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
+  // Custom Prompts verwerfen wenn sich Formularwerte ändern (sonst fest eingebackene slide_count/topic).
   useEffect(
-    function registerJobInContext() {
-      if (form.jobId !== null) {
-        addJob(form.jobId, 'generate_slides');
-      }
+    function clearCustomPromptsOnFormChange() {
+      setCustomPrompts(undefined);
+      setPreviewPrompts(null);
     },
-    [form.jobId] // eslint-disable-line react-hooks/exhaustive-deps
+    [form.formValues.slideCount, form.formValues.topic, form.formValues.language]
   );
 
   useEffect(

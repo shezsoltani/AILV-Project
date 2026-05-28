@@ -79,13 +79,10 @@ class LLMAPIError(AppError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
         detail: str | None = None,
     ):
         super().__init__(detail or message)
         self.message = message
-        if status_code is not None:
-            self.status_code = status_code
 
 
 class ArchiveNotFoundError(AppError):
@@ -164,8 +161,9 @@ class SlideOutlineValidationError(AppError):
     def __init__(self, detail: str):
         super().__init__(detail)
 
+# Typo-Fix: 442 war kein gültiger HTTP-Code; 422 ist der korrekte für Validierungsfehler.
 class SlidesContentValidationError(AppError):
-    status_code = 442
+    status_code = 422
     error_code = "invalid_slides_content"
 
     def __init__(self, detail: str):

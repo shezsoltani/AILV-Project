@@ -13,6 +13,8 @@ class JobStatusResponse(BaseModel):
     progress: int
     batch_current: int = 0
     batch_total: int = 1
+    # Frontend braucht dieses Flag, um den Retry-Indikator in der Statusleiste anzuzeigen.
+    batch_retrying: bool = False
     stage_label: Optional[str] = None
     result_data: Optional[Any] = None
-    error_message: Optional[str] = None
+    error_message: Optional[str] = None

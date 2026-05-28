@@ -19,9 +19,10 @@ def build_preview_context(stage: str, req: PromptPreviewRequest) -> dict:
 
     if req.request_type == "questions":
         if stage == "SKELETON":
+            # {{count}} wörtlich lassen – bei Batching wird pro Batch neu gerendert.
             return {
                 "topic": req.topic,
-                "count": req.count,
+                "count": "{{count}}",
                 "types": types_str,
                 "difficulty_distribution": req.difficulty_distribution,
                 "language": language,

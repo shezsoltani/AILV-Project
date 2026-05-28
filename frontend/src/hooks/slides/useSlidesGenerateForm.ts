@@ -12,7 +12,7 @@ import {
   type SlidesValidationErrors,
 } from '../../validators/slidesGenerateValidator';
 import { useFormWithTouchedValidation } from '../shared/useFormWithTouchedValidation';
-import { generateSlides } from '../../services/slidesApi';
+import { generateSlides, finalizeSlides } from '../../services/slidesApi';
 import { cancelJob } from '../../services/jobsApi';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
@@ -91,6 +91,8 @@ export function useSlidesGenerateForm(
   const { customPrompts } = props;
   const { activeJob, addJob, dismissJob } = useJobContext();
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
   const slidesJob = activeJob?.jobType === 'generate_slides' ? activeJob : null;
 
   // Backend gibt sofort eine job_id zurück; das eigentliche Rendern passiert über Polling.
@@ -142,9 +144,17 @@ export function useSlidesGenerateForm(
     await submitValues(base.formValues, base.setSubmitError, base.setIsLoading);
   };
 
-  // TODO (S5.3): saveSlides nutzt nach dem Polling die request_id aus dem Job-Ergebnis.
-  const saveSlides = async (_name: string): Promise<void> => {
-    // wird mit S5.3 wiederhergestellt
+  const saveSlides = async (name: string): Promise<void> => {
+    if (!requestId) return;
+    setIsSaving(true);
+    try {
+      await finalizeSlides({ request_id: requestId, name });
+      setIsSaved(true);
+    } catch (error) {
+      base.setSubmitError(getUserFriendlyMessage(error));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const cancelGeneration = async (): Promise<void> => {
@@ -178,6 +188,7 @@ export function useSlidesGenerateForm(
 
       const result = slidesJob.resultData as SlidesGenerateResponse;
       if (Array.isArray(result.slides) && typeof result.request_id === 'string') {
+        setRequestId(result.request_id);
         props.onSuccess?.(result);
       } else {
         base.setSubmitError('Ungültiges Ergebnisformat vom Job-Status.');
@@ -204,7 +215,7 @@ export function useSlidesGenerateForm(
     regenerate,
     saveSlides,
     cancelGeneration,
-    isSaving: false,
+    isSaving,
     isSaved,
   };
 }

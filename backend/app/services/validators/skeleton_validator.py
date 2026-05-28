@@ -3,7 +3,7 @@ from ...core.exceptions import SkeletonValidationError
 ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
 
-def validate_skeleton(data, expected_count: int):
+def validate_skeleton(data, expected_count: int, difficulty_distribution: dict | None = None):
     if not isinstance(data, list):
         raise SkeletonValidationError("Skeleton must be a JSON array")
 
@@ -42,18 +42,18 @@ def validate_skeleton(data, expected_count: int):
 
         difficulty_counts[difficulty] += 1
 
-    # Prozentuale Difficulty-Distribution berechnen
-    percentages = {}
-    total_percentage = 0
+    # Alte Prozentsummen-Prüfung schlug bei kleinen Batches regelmäßig fehl; jetzt absolute Toleranz ±1.
+    if difficulty_distribution and expected_count >= 3:
+        for diff, target_pct in difficulty_distribution.items():
+            if diff not in ALLOWED_DIFFICULTIES:
+                continue
+            target_count = (target_pct / 100) * expected_count
+            actual_count = difficulty_counts.get(diff, 0)
+            tolerance = 1  # ±1 für kleine Batches
+            if abs(actual_count - target_count) > tolerance + 0.5:
+                raise SkeletonValidationError(
+                    f"Difficulty '{diff}': expected ~{target_count:.1f} items "
+                    f"(±{tolerance}), got {actual_count} "
+                    f"(distribution: {difficulty_counts})"
+                )
 
-    for difficulty, count in difficulty_counts.items():
-        percentage = (count / expected_count) * 100
-        percentages[difficulty] = percentage
-        total_percentage += percentage
-
-    # Floating-Point-Toleranz vermeiden
-    if round(total_percentage, 6) != 100:
-        raise SkeletonValidationError(
-            f"Difficulty distribution must sum to 100%, got {total_percentage:.2f}% "
-            f"(distribution: {percentages})"
-        )

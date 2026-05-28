@@ -25,6 +25,7 @@ async def get_job_status(
     if job.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied.")
 
+    # batch_retrying mitsenden, damit das Frontend den Retry-Indikator in der Statusleiste anzeigen kann.
     return JobStatusResponse(
         job_id=job.id,
         job_type=job.job_type,
@@ -32,6 +33,7 @@ async def get_job_status(
         progress=job.progress,
         batch_current=job.batch_current,
         batch_total=job.batch_total,
+        batch_retrying=job.batch_retrying,
         stage_label=job.stage_label,
         result_data=job.result_data,
         error_message=job.error_message,
@@ -59,6 +61,7 @@ async def cancel_job(
             status=job.status,
             batch_current=job.batch_current,
             batch_total=job.batch_total,
+            batch_retrying=job.batch_retrying,
             progress=job.progress,
             stage_label=job.stage_label,
             result_data=job.result_data,
@@ -83,6 +86,7 @@ async def cancel_job(
         progress=updated_job.progress,
         batch_current=updated_job.batch_current,
         batch_total=updated_job.batch_total,
+        batch_retrying=updated_job.batch_retrying,
         stage_label=updated_job.stage_label,
         result_data=updated_job.result_data,
         error_message=updated_job.error_message,
