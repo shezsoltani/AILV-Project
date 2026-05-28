@@ -39,6 +39,15 @@ export const SlidesGeneratePage: React.FC = () => {
 
   const isTopicEmpty = !form.formValues.topic.trim();
 
+  // Custom Prompts verwerfen wenn sich Formularwerte ändern (sonst fest eingebackene slide_count/topic).
+  useEffect(
+    function clearCustomPromptsOnFormChange() {
+      setCustomPrompts(undefined);
+      setPreviewPrompts(null);
+    },
+    [form.formValues.slideCount, form.formValues.topic, form.formValues.language]
+  );
+
   // Neuen jobId im globalen Context registrieren → löst Polling und Statusleiste aus.
   useEffect(
     function registerJobInContext() {

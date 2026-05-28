@@ -11,6 +11,32 @@ from .generation.slides_orchestrator import generate_slides
 BATCH_SIZE = 10
 BATCH_RETRY_MAX = 3
 
+
+class JobCancelledError(Exception):
+    pass
+
+
+# Verhindert, dass ein Custom Prompt mit fest eingebautem count bei Mehrfach-Batches falsche Mengen vorgibt.
+def _custom_prompts_for_batch(
+    custom_prompts: dict[str, str] | None,
+    *,
+    batch_total: int,
+    stage: str,
+    count_placeholder: str,
+) -> dict[str, str] | None:
+    """Entfernt count-gebundene Custom Prompts ohne Platzhalter bei Mehrfach-Batches."""
+    if not custom_prompts or batch_total <= 1:
+        return custom_prompts
+
+    prompt = custom_prompts.get(stage)
+    if prompt is None or count_placeholder in prompt:
+        return custom_prompts
+
+    resolved = dict(custom_prompts)
+    del resolved[stage]
+    return resolved
+
+
 def _compute_batches(total: int) -> list[int]:
     full = total // BATCH_SIZE
     remainder = total % BATCH_SIZE
@@ -35,6 +61,19 @@ async def run_question_batches(
     batches = _compute_batches(req.count)
     n = len(batches)
     last_stage_label = "Initialisierung"
+    # Einmalig vor der Batch-Schleife berechnen, damit alle Batches dieselbe bereinigte Prompt-Map nutzen.
+    batch_custom_prompts = _custom_prompts_for_batch(
+        req.custom_prompts,
+        batch_total=n,
+        stage="SKELETON",
+        count_placeholder="{{count}}",
+    )
+
+    # Außerhalb der Retry-Schleife definiert, damit last_stage_label korrekt per nonlocal aktualisiert wird.
+    def on_progress_wrapped(progress: int, stage_label: str) -> None:
+        nonlocal last_stage_label
+        last_stage_label = stage_label
+        on_progress(progress, stage_label)
 
     if existing_request_id is None:
         db_req = create_generation_request_db(db, req, user_id)
@@ -43,7 +82,6 @@ async def run_question_batches(
         shared_request_id = existing_request_id
 
     for i, batch_size in enumerate(batches, start=1):
-        #Für Retry: bereits abgeschlossene Batches überspringen
         if i < start_batch:
             continue
 
@@ -58,11 +96,6 @@ async def run_question_batches(
 
         for attempt in range(1, BATCH_RETRY_MAX + 1):
             try:
-                def on_progress_wrapped(progress: int, stage_label: str) -> None:
-                    nonlocal last_stage_label
-                    last_stage_label = stage_label
-                    on_progress(progress, stage_label)
-
                 batch_req = req.model_copy(update={"count": batch_size})
                 response = await generate_questions(
                     batch_req,
@@ -70,7 +103,7 @@ async def run_question_batches(
                     user_id=user_id,
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
-                    custom_prompts=req.custom_prompts,
+                    custom_prompts=batch_custom_prompts,
                 )
 
                 accumulated_questions.extend(
@@ -89,6 +122,9 @@ async def run_question_batches(
                 last_error = None
                 break  # Batch erfolgreich — nächster Batch
 
+            # Abbruch durch den Nutzer sofort nach oben durchreichen, kein Retry.
+            except JobCancelledError:
+                raise
             except Exception as e:
                 last_error = e
 
@@ -127,6 +163,19 @@ async def run_slide_batches(
     batches = _compute_batches(req.slide_count)
     n = len(batches)
     last_stage_label = "Initialisierung"
+    # Einmalig vor der Batch-Schleife berechnen, damit alle Batches dieselbe bereinigte Prompt-Map nutzen.
+    batch_custom_prompts = _custom_prompts_for_batch(
+        req.custom_prompts,
+        batch_total=n,
+        stage="SLIDES_OUTLINE",
+        count_placeholder="{{slide_count}}",
+    )
+
+    # Außerhalb der Retry-Schleife definiert, damit last_stage_label korrekt per nonlocal aktualisiert wird.
+    def on_progress_wrapped(progress: int, stage_label: str) -> None:
+        nonlocal last_stage_label
+        last_stage_label = stage_label
+        on_progress(progress, stage_label)
 
     if existing_request_id is None:
         from ..models.generate_models import GenerateRequest as GR
@@ -161,11 +210,6 @@ async def run_slide_batches(
 
         for attempt in range(1, BATCH_RETRY_MAX + 1):
             try:
-                def on_progress_wrapped(progress: int, stage_label: str) -> None:
-                    nonlocal last_stage_label
-                    last_stage_label = stage_label
-                    on_progress(progress, stage_label)
-
                 batch_req = req.model_copy(update={"slide_count": batch_size})
                 response = await generate_slides(
                     batch_req,
@@ -173,7 +217,7 @@ async def run_slide_batches(
                     user_id=user_id,
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
-                    custom_prompts=req.custom_prompts,
+                    custom_prompts=batch_custom_prompts,
                 )
 
                 accumulated_slides.extend(
@@ -192,6 +236,9 @@ async def run_slide_batches(
                 last_error = None
                 break  # Batch erfolgreich — nächster Batch
 
+            # Abbruch durch den Nutzer sofort nach oben durchreichen, kein Retry.
+            except JobCancelledError:
+                raise
             except Exception as e:
                 last_error = e
 
@@ -211,6 +258,5 @@ async def run_slide_batches(
                 f"Batch {i} von {n} konnte nach {BATCH_RETRY_MAX} Versuchen nicht "
                 f"abgeschlossen werden (Schritt '{last_stage_label}'): {str(last_error)}"
             ) from last_error
-
 
     return accumulated_slides, shared_request_id

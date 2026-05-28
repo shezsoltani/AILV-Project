@@ -23,7 +23,7 @@ def get_client() -> AsyncOpenAI:
     global _client
     if _client is None:
         if not settings.openai_api_key:
-            raise LLMAPIError(None, "OPENAI_API_KEY missing")
+            raise LLMAPIError("OPENAI_API_KEY missing")
 
         _client = AsyncOpenAI(
             api_key=settings.openai_api_key,
@@ -41,10 +41,8 @@ async def call_llm(prompt: str) -> str:
     if not prompt:
         raise ValueError("prompt must not be empty")
 
-    if not settings.openai_api_key:
-        raise LLMAPIError(None, "OPENAI_API_KEY missing")
-
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    # Singleton verwenden statt pro Aufruf einen neuen Client zu erzeugen.
+    client = get_client()
 
     try:
         resp = await client.chat.completions.create(
@@ -57,13 +55,40 @@ async def call_llm(prompt: str) -> str:
         )
 
         if not resp.choices:
-            raise LLMAPIError(None, "LLM returned no choices")
+            raise LLMAPIError("LLM returned no choices")
 
         content = resp.choices[0].message.content
         if not content:
-            raise LLMAPIError(None, "LLM returned empty content")
+            raise LLMAPIError("LLM returned empty content")
 
         return content.strip()
 
+    # Bereits gewrappte Fehler nicht nochmals einwickeln.
+    except LLMAPIError:
+        raise
+    # Granulare Exception-Handler geben dem Nutzer/Logging spezifische, lesbare Fehlermeldungen.
+    except APITimeoutError as e:
+        raise LLMAPIError(
+            "LLM request timed out (60 s). Please try again.",
+            detail=str(e),
+        )
+    except RateLimitError as e:
+        raise LLMAPIError(
+            "LLM rate limit reached. Please wait a moment and try again.",
+            detail=str(e),
+        )
+    except BadRequestError as e:
+        raise LLMAPIError(
+            f"LLM rejected the request: {e.message}",
+            detail=str(e),
+        )
+    except APIError as e:
+        raise LLMAPIError(
+            f"LLM API error: {str(e)}",
+            detail=str(e),
+        )
     except Exception as e:
-        raise LLMAPIError(None, "LLM API error", str(e))
+        raise LLMAPIError(
+            "Unexpected LLM error.",
+            detail=str(e),
+        )

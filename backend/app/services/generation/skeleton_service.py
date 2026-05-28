@@ -17,6 +17,7 @@ async def generate_valid_skeleton(
 ):
     context = dict(base_context)
     last_error: Exception | None = None
+    difficulty_distribution: dict | None = base_context.get("difficulty_distribution")
 
     for attempt in range(1, max_attempts + 1):
         llm_response = await run_stage(
@@ -34,7 +35,7 @@ async def generate_valid_skeleton(
             for item in skeleton:
                 if "id" not in item:
                     item["id"] = str(uuid4())
-            validate_skeleton(skeleton, expected_count)
+            validate_skeleton(skeleton, expected_count, difficulty_distribution)
             return skeleton  # Erfolg
 
         except (LLMJSONError, SkeletonValidationError) as e:

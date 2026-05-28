@@ -6,11 +6,7 @@ from ..models.generate_models import GenerateRequest
 from ..models.slides_models import SlidesGenerateRequest
 from .generation.orchestrator import generate_questions
 from .generation.slides_orchestrator import generate_slides
-from .batch_runner import run_question_batches, run_slide_batches
-
-#damit except JobCancelledError nur diesen spezifischen Fall abfängt und nicht versehentlich andere Fehler
-class JobCancelledError(Exception):
-    pass
+from .batch_runner import run_question_batches, run_slide_batches, JobCancelledError
 
 def ensure_job_not_cancelled(db, job_id: UUID) -> None:
     job = get_job(db, job_id)

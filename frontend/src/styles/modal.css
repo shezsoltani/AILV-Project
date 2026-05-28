@@ -161,6 +161,48 @@
   resize: none;
   line-height: 1.6;
   white-space: pre-wrap;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.prompt-editor-modal-textarea--error {
+  border-color: var(--color-error, #ef4444) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.prompt-editor-modal-error {
+  margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-error, #ef4444);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.prompt-editor-modal-placeholder {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+  font-weight: 600;
+  color: var(--color-error, #ef4444);
+  letter-spacing: 0.01em;
+}
+
+.prompt-editor-modal-warn-icon {
+  color: var(--color-warning, #f59e0b);
+}
+
+.prompt-editor-modal-apply:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Success-Banner innerhalb eines Modals braucht weniger Außenabstand */

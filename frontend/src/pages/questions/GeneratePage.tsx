@@ -50,6 +50,21 @@ export const GeneratePage: React.FC = () => {
   const isGenerating = jobStatus === 'pending' || jobStatus === 'running';
   const isTopicEmpty = !generateForm.formValues.topic.trim();
 
+  // Custom Prompts verwerfen wenn sich Formularwerte ändern (sonst fest eingebackene count/topic).
+  useEffect(
+    function clearCustomPromptsOnFormChange() {
+      setCustomPrompts(undefined);
+      setPreviewPrompts(null);
+    },
+    [
+      generateForm.formValues.count,
+      generateForm.formValues.topic,
+      generateForm.formValues.language,
+      JSON.stringify(generateForm.formValues.types),
+      JSON.stringify(generateForm.formValues.difficultyDistribution),
+    ]
+  );
+
   useEffect(
     function reopenModalWhenQuestionsArrive() {
       if (hasQuestions || isGenerating) {

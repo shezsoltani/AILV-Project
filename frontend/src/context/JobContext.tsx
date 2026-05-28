@@ -166,7 +166,7 @@ export function JobContextProvider({ children }: JobContextProviderProps) {
         window.clearTimeout(timeoutId);
       };
     },
-    [activeJob]
+    [activeJob?.jobId, activeJob?.status]
   );
 
   const value = useMemo<JobContextValue>(
