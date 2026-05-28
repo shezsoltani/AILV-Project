@@ -72,7 +72,6 @@ class FinalizeStateError(AppError):
         super().__init__(detail)
 
 
-# status_code-Parameter entfernt – er wurde nie sinnvoll gesetzt und machte Aufrufe fehleranfällig.
 class LLMAPIError(AppError):
     status_code = 502
     error_code = "llm_api_error"
