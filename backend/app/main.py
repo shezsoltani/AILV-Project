@@ -17,18 +17,10 @@ from .api.routes_prompts import router as prompts_router
 
 logger = logging.getLogger(__name__)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Content-Type", "Authorization"],
-)
-
 app = FastAPI(
     title="AI-LV Backend",
     version="0.1",
-    description="Backend-Service für die AI-LV Projektarchitektur"
+    description="Backend-Service für die AI-LV Projektarchitektur",
     docs_url="/docs" if settings.enable_docs else None,
     redoc_url="/redoc" if settings.enable_docs else None,
 )
@@ -37,7 +29,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],

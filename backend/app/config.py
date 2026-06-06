@@ -57,8 +57,8 @@ class Settings:
         )
         allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
-         # ENABLE_DOCS
-         enable_docs = os.getenv("ENABLE_DOCS", "false").strip().lower() == "true"
+        # ENABLE_DOCS
+        enable_docs = os.getenv("ENABLE_DOCS", "false").strip().lower() == "true"
 
         return cls(
             openai_api_key=openai_api_key,
@@ -70,7 +70,6 @@ class Settings:
             smtp_user=smtp_user,
             smtp_password=smtp_password,
             mail_from=mail_from,
-            allowed_origins=allowed_origins,
             allowed_origins=allowed_origins,
             enable_docs=enable_docs,
         )
