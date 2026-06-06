@@ -20,6 +20,8 @@ class Settings:
 
     allowed_origins: list[str]
 
+    enable_docs: bool
+
     @classmethod
     def from_env(cls) -> "Settings":
         """Liest Konfiguration aus Environment-Variablen."""
@@ -55,6 +57,9 @@ class Settings:
         )
         allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
+         # ENABLE_DOCS
+         enable_docs = os.getenv("ENABLE_DOCS", "false").strip().lower() == "true"
+
         return cls(
             openai_api_key=openai_api_key,
             openai_model_name=openai_model_name,
@@ -66,6 +71,8 @@ class Settings:
             smtp_password=smtp_password,
             mail_from=mail_from,
             allowed_origins=allowed_origins,
+            allowed_origins=allowed_origins,
+            enable_docs=enable_docs,
         )
 
 # Zentrale Settings-Instanz, importierbar via: from app.config import settings

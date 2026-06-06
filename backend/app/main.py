@@ -29,6 +29,8 @@ app = FastAPI(
     title="AI-LV Backend",
     version="0.1",
     description="Backend-Service für die AI-LV Projektarchitektur"
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
 )
 
 # CORS-Konfiguration: erlaubt Aufrufe vom Vite-Frontend auf Port 3000/5173
