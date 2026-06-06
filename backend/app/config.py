@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 @dataclass
@@ -17,6 +17,8 @@ class Settings:
     smtp_user: str
     smtp_password: str
     mail_from: str
+
+    allowed_origins: list[str]
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -46,6 +48,13 @@ class Settings:
         if not all([smtp_host, smtp_user, smtp_password, mail_from]):
             raise RuntimeError("SMTP configuration incomplete")
 
+        # ALLOWED_ORIGINS
+        raw_origins = os.getenv(
+            "ALLOWED_ORIGINS",
+            "http://localhost:3000,http://localhost:5173"
+        )
+        allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+
         return cls(
             openai_api_key=openai_api_key,
             openai_model_name=openai_model_name,
@@ -56,6 +65,7 @@ class Settings:
             smtp_user=smtp_user,
             smtp_password=smtp_password,
             mail_from=mail_from,
+            allowed_origins=allowed_origins,
         )
 
 # Zentrale Settings-Instanz, importierbar via: from app.config import settings

@@ -17,10 +17,13 @@ from .api.routes_prompts import router as prompts_router
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Vite Dev-Server im Docker-Compose
-    "http://localhost:5173",  # optional: lokaler Vite-Dev-Server ohne Docker
-]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 app = FastAPI(
     title="AI-LV Backend",
