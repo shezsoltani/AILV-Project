@@ -27,5 +27,6 @@ fastapi-mail
 pymupdf
 python-multipart
 fpdf2
+python-pptx
 
 
