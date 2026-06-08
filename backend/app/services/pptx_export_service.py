@@ -8,9 +8,7 @@ from pptx.util import Inches, Pt, Emu
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 
-# ---------------------------------------------------------------------------
 # Formatierungskonstanten – analog zu slides.css
-# ---------------------------------------------------------------------------
 
 _SLIDE_WIDTH = Inches(13.333)
 _SLIDE_HEIGHT = Inches(7.5)
@@ -151,10 +149,8 @@ def _add_footer(slide: Any, slide_number: int) -> None:
     brand.font.bold = False
 
 
-# ---------------------------------------------------------------------------
-# Einziger öffentlicher Einstiegspunkt: erzeugt eine vollständige PPTX und gibt sie als Bytes zurück
-# ---------------------------------------------------------------------------
 
+# Einziger öffentlicher Einstiegspunkt: erzeugt eine vollständige PPTX und gibt sie als Bytes zurück
 
 def build_slides_pptx(slides: list[dict], topic: str) -> bytes:
     prs = _SlidePPTX(topic=topic)
@@ -169,9 +165,7 @@ def build_slides_pptx(slides: list[dict], topic: str) -> bytes:
     return buffer.read()
 
 
-# ---------------------------------------------------------------------------
 # Interne Klasse; kapselt die Präsentation und stellt Layout-Methoden bereit
-# ---------------------------------------------------------------------------
 
 
 class _SlidePPTX:

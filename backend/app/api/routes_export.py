@@ -9,6 +9,7 @@ from ..db import get_db
 from ..models.sql_models import User
 from ..persistence.generation_repo import get_generation_request
 from ..persistence.job_repository import get_job
+from ..services.moodle_export_service import build_moodle_xml
 from ..services.pdf_export_service import build_questions_pdf
 from ..services.pptx_export_service import build_slides_pptx
 
@@ -100,5 +101,49 @@ def export_slides_pptx(
     return StreamingResponse(
         iter([pptx_bytes]),
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{job_id}/export/moodle")
+def export_questions_moodle(
+    job_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    job = get_job(db, job_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job nicht gefunden.")
+
+    if job.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert.")
+
+    if job.status != "completed":
+        raise HTTPException(status_code=422, detail="Job ist noch nicht abgeschlossen.")
+
+    result_data: dict = job.result_data or {}
+    questions: list[dict] = result_data.get("questions", [])
+
+    # result_data["request_id"] wird als String gespeichert → UUID-Konvertierung nötig
+    raw_request_id = result_data.get("request_id")
+    if not raw_request_id:
+        raise HTTPException(status_code=500, detail="Keine request_id im Job gefunden.")
+
+    generation_request = get_generation_request(db, UUID(raw_request_id))
+    if not generation_request:
+        raise HTTPException(status_code=500, detail="Generierungs-Request nicht gefunden.")
+
+    topic: str = generation_request.topic or "Fragen"
+
+    xml_str = build_moodle_xml(questions=questions, topic=topic)
+    xml_bytes = xml_str.encode("utf-8")
+
+    safe_topic = topic.replace(" ", "_").replace("/", "-")
+    filename = f"{safe_topic}_moodle.xml"
+
+    return StreamingResponse(
+        iter([xml_bytes]),
+        media_type="application/xml",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
