@@ -60,3 +60,10 @@ export async function exportJobAsPptx(jobId: string): Promise<void> {
   const blob = await fetchExport(url);
   triggerBlobDownload(blob, 'folien_export.pptx');
 }
+
+// PDF-Export für einen archivierten Eintrag (nutzt request_id statt job_id)
+export async function exportArchiveAsPdf(requestId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/archive/${requestId}/export/pdf`;
+  const blob = await fetchExport(url);
+  triggerBlobDownload(blob, 'fragen_export.pdf');
+}

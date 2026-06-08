@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GenerateForm, QuestionsList, QuestionsStats } from '../../components/generate';
-import { ErrorBanner, Modal, GenerationSkeleton, PromptEditorModal } from '../../components/shared';
+import { ErrorBanner, Modal, GenerationSkeleton, PromptEditorModal, PdfExportButton } from '../../components/shared';
 import { useQuestionWorkflow } from '../../hooks/questions/useQuestionWorkflow';
 import { useGenerateForm } from '../../hooks/questions/useGenerateForm';
 import { useJobContext } from '../../context/JobContext';
@@ -38,7 +38,7 @@ export const GeneratePage: React.FC = () => {
     isLoading,
   });
 
-  const { activeJob, addJob } = useJobContext();
+  const { activeJob } = useJobContext();
 
   const [isModalHidden, setIsModalHidden] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
@@ -213,6 +213,9 @@ export const GeneratePage: React.FC = () => {
               >
                 {isLoading ? 'Wird gespeichert...' : 'Fragen speichern'}
               </button>
+              {hasQuestions && jobId !== null && (
+                <PdfExportButton jobId={jobId} disabled={isLoading} />
+              )}
               <button
                 type="button"
                 className="secondary-button"

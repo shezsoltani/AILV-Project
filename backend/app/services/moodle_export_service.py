@@ -35,7 +35,7 @@ def _build_question_element(q: dict, moodle_type: str) -> ET.Element:
     ET.SubElement(name_el, "text").text = stem[:80] if stem else "Frage"
 
     questiontext_el = ET.SubElement(question_el, "questiontext", format="html")
-    ET.SubElement(questiontext_el, "text").text = f"<![CDATA[<p>{stem}</p>]]>"
+    ET.SubElement(questiontext_el, "text").text = f"<p>{stem}</p>"
 
     # Moodle meckert beim Import, wenn generalfeedback fehlt
     generalfeedback_el = ET.SubElement(question_el, "generalfeedback", format="html")
@@ -69,12 +69,12 @@ def _append_mcq_answers(question_el: ET.Element, q: dict) -> None:
         fraction = "100" if is_correct else "0"
 
         answer_el = ET.SubElement(question_el, "answer", fraction=fraction, format="html")
-        ET.SubElement(answer_el, "text").text = f"<![CDATA[<p>{choice_text}</p>]]>"
+        ET.SubElement(answer_el, "text").text = f"<p>{choice_text}</p>"
 
         # Die Begründung hängen wir nur an die richtige Antwort
         feedback_el = ET.SubElement(answer_el, "feedback", format="html")
         ET.SubElement(feedback_el, "text").text = (
-            f"<![CDATA[<p>{rationale}</p>]]>" if is_correct and rationale else ""
+            f"<p>{rationale}</p>" if is_correct and rationale else ""
         )
 
 
@@ -146,8 +146,8 @@ def _append_shortanswer_answers(question_el: ET.Element, q: dict) -> None:
 def _serialize(quiz: ET.Element) -> str:
     ET.indent(quiz, space="  ")
 
-    xml_bytes: bytes = ET.tostring(quiz, encoding="unicode", xml_declaration=False)
+    xml_str: str = ET.tostring(quiz, encoding="unicode", xml_declaration=False)
 
     # ET.tostring gibt keine XML-Deklaration aus, Moodle braucht sie aber
     declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    return declaration + xml_bytes
+    return declaration + xml_str

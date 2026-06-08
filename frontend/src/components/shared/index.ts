@@ -6,3 +6,4 @@ export { Modal } from './Modal';
 export { PromptEditorModal } from './PromptEditorModal';
 export { GenerationSkeleton } from './GenerationSkeleton';
 export { JobStatusBar } from './JobStatusBar';
+export { PdfExportButton } from './ExportButtons';

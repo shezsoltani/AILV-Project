@@ -16,6 +16,7 @@ export function useQuestionWorkflow() {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [originalQuestions, setOriginalQuestions] = useState<GeneratedQuestion[]>([]); // Snapshot für Diff-Berechnung (nur Änderungen senden)
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [persistentJobId, setPersistentJobId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +36,7 @@ export function useQuestionWorkflow() {
     try {
       const result = await generateQuestions(values);
       addJob(result.job_id, 'generate_questions');
+      setPersistentJobId(result.job_id);
     } catch (error) {
       console.error('Fehler beim Starten der Fragen-Generierung:', error);
       setErrorMessage(getUserFriendlyMessage(error));
@@ -51,6 +53,7 @@ export function useQuestionWorkflow() {
       timeoutRef.current = null;
     }
     dismissJob();
+    setPersistentJobId(null);
     setQuestions([]);
     setOriginalQuestions([]);
     setRequestId(null);
@@ -117,6 +120,7 @@ export function useQuestionWorkflow() {
         setQuestions([]);
         setOriginalQuestions([]);
         setRequestId(null);
+        setPersistentJobId(null);
         setSuccessMessage(null);
         timeoutRef.current = null;
       }, SUCCESS_MESSAGE_DISPLAY_TIME);
@@ -158,6 +162,8 @@ export function useQuestionWorkflow() {
         return;
       }
 
+      setPersistentJobId(questionJob.jobId);
+
       if (questionJob.status === 'failed') {
         setErrorMessage(questionJob.errorMessage ?? 'Fragen konnten nicht generiert werden.');
         return;
@@ -189,7 +195,7 @@ export function useQuestionWorkflow() {
     questions,
     originalQuestions,
     requestId,
-    jobId: questionJob?.jobId ?? null,
+    jobId: persistentJobId ?? questionJob?.jobId ?? null,
     jobStatus: questionJob?.status ?? null,
     jobProgress: questionJob?.progress ?? null,
     jobStageLabel: questionJob?.stageLabel ?? null,
