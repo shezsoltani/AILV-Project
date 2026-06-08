@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { QuestionsList } from '../../components/generate';
-import { ErrorBanner, PdfExportButton } from '../../components/shared';
+import { ErrorBanner, ExportDropdownButton } from '../../components/shared';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
 interface ArchiveQuestionDetailViewProps {
@@ -144,7 +144,7 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
                 </svg>
                 Bearbeiten
               </button>
-              <PdfExportButton
+              <ExportDropdownButton
                 jobId={selectedRequestId}
                 mode="archive"
                 disabled={isLoadingQuestions || isSaving || isDeleting}
