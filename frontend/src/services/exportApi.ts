@@ -67,3 +67,18 @@ export async function exportArchiveAsPdf(requestId: string): Promise<void> {
   const blob = await fetchExport(url);
   triggerBlobDownload(blob, 'fragen_export.pdf');
 }
+
+// Moodle-XML-Export für einen archivierten Eintrag
+export async function exportArchiveAsMoodle(requestId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/archive/${requestId}/export/xml`;
+  const blob = await fetchExport(url);
+  triggerBlobDownload(blob, 'fragen_moodle.xml');
+}
+
+// PPTX-Export für einen archivierten Eintrag (Foliendeck)
+export async function exportArchiveAsPptx(requestId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/archive/${requestId}/export/pptx`;
+  const blob = await fetchExport(url);
+  triggerBlobDownload(blob, 'folien_export.pptx');
+}
+
