@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { SlidesGenerateForm, SlidesPreview, SlidesSaveDialog } from '../../components/slides';
-import { ErrorBanner, Modal, GenerationSkeleton, PromptEditorModal } from '../../components/shared';
+import { ErrorBanner, Modal, GenerationSkeleton, PromptEditorModal, SlidesExportDropdownButton } from '../../components/shared';
 import { useSlidesGenerateForm } from '../../hooks/slides/useSlidesGenerateForm';
 import { useJobContext } from '../../context/JobContext';
 import { getPromptPreview, toSlidesPromptPreviewRequest } from '../../services/promptsApi';
@@ -28,6 +28,10 @@ export const SlidesGeneratePage: React.FC = () => {
 
   const form = useSlidesGenerateForm({
     onSuccess: handleGenerationSuccess,
+    onGenerateStart: () => {
+      setGenerationResponse(null);
+      setIsEditing(false);
+    },
     customPrompts,
   });
   const { activeJob } = useJobContext();
@@ -239,6 +243,9 @@ export const SlidesGeneratePage: React.FC = () => {
               </div>
             </div>
 
+            {form.jobId !== null && (
+              <SlidesExportDropdownButton jobId={form.jobId} disabled={form.isSubmitting} />
+            )}
             <ErrorBanner message={form.submitError} />
           </>
         ) : null}

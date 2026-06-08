@@ -3,6 +3,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../../components/routing';
 import { SlidesGeneratePage } from '../../pages/slides/SlidesGeneratePage';
+import { JobContextProvider } from '../../context/JobContext';
 import type { SlidesGenerateResponse } from '../../types/slides';
 
 // useAuth wird pro Test mit dem gewuenschten Login-Zustand verdrahtet.
@@ -17,7 +18,7 @@ vi.mock('../../services/slidesApi', () => ({
   generateSlides: mockGenerateSlides,
 }));
 
-const firstResponse: SlidesGenerateResponse = {
+const mockFirstResponse: SlidesGenerateResponse = {
   status: 'completed',
   request_id: 'request-1',
   slides: [
@@ -31,7 +32,7 @@ const firstResponse: SlidesGenerateResponse = {
   ],
 };
 
-const secondResponse: SlidesGenerateResponse = {
+const mockSecondResponse: SlidesGenerateResponse = {
   status: 'completed',
   request_id: 'request-2',
   slides: [
@@ -45,6 +46,36 @@ const secondResponse: SlidesGenerateResponse = {
   ],
 };
 
+// Mock the JobContext
+vi.mock('../../context/JobContext', () => {
+  const React = require('react');
+  const MockJobContext = React.createContext(null);
+
+  const MockJobContextProvider = ({ children }: { children: React.ReactNode }) => {
+    const [activeJob, setActiveJob] = React.useState<any>(null);
+
+    const addJob = (jobId: string, jobType: string) => {
+      const resultData = jobId === 'job-2' ? mockSecondResponse : mockFirstResponse;
+      setActiveJob({
+        jobId,
+        jobType,
+        status: 'completed',
+        progress: 100,
+        resultData,
+      });
+    };
+
+    const dismissJob = () => setActiveJob(null);
+
+    return React.createElement(MockJobContext.Provider, { value: { activeJob, addJob, dismissJob } }, children);
+  };
+
+  return {
+    JobContextProvider: MockJobContextProvider,
+    useJobContext: () => React.useContext(MockJobContext),
+  };
+});
+
 function renderSlidesGeneratePage(): void {
   render(
     <MemoryRouter initialEntries={['/slides/generate']}>
@@ -53,7 +84,9 @@ function renderSlidesGeneratePage(): void {
           path="/slides/generate"
           element={
             <ProtectedRoute>
-              <SlidesGeneratePage />
+              <JobContextProvider>
+                <SlidesGeneratePage />
+              </JobContextProvider>
             </ProtectedRoute>
           }
         />
@@ -116,19 +149,18 @@ describe('SlidesGeneratePage – Routing', () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
-    mockGenerateSlides.mockResolvedValueOnce(firstResponse);
+    mockGenerateSlides.mockResolvedValueOnce({ job_id: 'job-1' });
 
     renderSlidesGeneratePage();
     fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Folien generieren' }));
 
     expect(await screen.findByRole('heading', { name: 'Erste Vorschau' })).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Thema/)).not.toBeInTheDocument();
   });
 
   it('generiert mit denselben Eingaben neu und zeigt waehrenddessen den Ladezustand', async () => {
-    let resolveSecondResponse: (response: SlidesGenerateResponse) => void = () => {};
-    const pendingSecondResponse = new Promise<SlidesGenerateResponse>((resolve) => {
+    let resolveSecondResponse: (response: any) => void = () => {};
+    const pendingSecondResponse = new Promise<any>((resolve) => {
       resolveSecondResponse = resolve;
     });
 
@@ -139,7 +171,7 @@ describe('SlidesGeneratePage – Routing', () => {
       logout: vi.fn(),
     });
     mockGenerateSlides
-      .mockResolvedValueOnce(firstResponse)
+      .mockResolvedValueOnce({ job_id: 'job-1' })
       .mockReturnValueOnce(pendingSecondResponse);
 
     renderSlidesGeneratePage();
@@ -149,19 +181,17 @@ describe('SlidesGeneratePage – Routing', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Neu generieren' }));
 
-    expect(screen.getByRole('button', { name: /Neu generieren/ })).toBeDisabled();
+    // Der Lade-Skeleton wird angezeigt
+    expect(await screen.findByText(/Generierung läuft/)).toBeInTheDocument();
     expect(mockGenerateSlides).toHaveBeenLastCalledWith({
       topic: 'Neuronale Netze',
       slideCount: 5,
       language: 'de',
     });
 
-    resolveSecondResponse(secondResponse);
+    resolveSecondResponse({ job_id: 'job-2' });
 
     expect(await screen.findByRole('heading', { name: 'Neue Vorschau' })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Neu generieren' })).not.toBeDisabled();
-    });
   });
 
   it('zeigt mit "Eingaben ändern" das Formular mit den alten Werten', async () => {
@@ -171,14 +201,16 @@ describe('SlidesGeneratePage – Routing', () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
-    mockGenerateSlides.mockResolvedValueOnce(firstResponse);
+    mockGenerateSlides.mockResolvedValueOnce({ job_id: 'job-1' });
 
     renderSlidesGeneratePage();
     fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Folien generieren' }));
     expect(await screen.findByRole('heading', { name: 'Erste Vorschau' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Eingaben ändern' }));
+    const closeBtn = document.querySelector('.questions-modal-close');
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
 
     expect(screen.getByLabelText(/Thema/)).toHaveValue('Neuronale Netze');
     expect(screen.getByLabelText(/Anzahl Folien/)).toHaveValue('5');

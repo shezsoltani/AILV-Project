@@ -56,6 +56,7 @@ const validateFormValues = (
 
 interface UseSlidesGenerateFormProps {
   onSuccess?: (response: SlidesGenerateResponse) => void;
+  onGenerateStart?: () => void;
   customPrompts?: Record<string, string>;
 }
 
@@ -93,6 +94,7 @@ export function useSlidesGenerateForm(
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [persistentJobId, setPersistentJobId] = useState<string | null>(null);
   const slidesJob = activeJob?.jobType === 'generate_slides' ? activeJob : null;
 
   // Backend gibt sofort eine job_id zurück; das eigentliche Rendern passiert über Polling.
@@ -102,9 +104,13 @@ export function useSlidesGenerateForm(
     setIsLoading: (loading: boolean) => void,
   ): Promise<void> => {
     setIsLoading(true);
+    dismissJob();
+    setRequestId(null);
+    props.onGenerateStart?.();
     try {
       const result = await generateSlides(toApiRequest(values, customPrompts));
       addJob(result.job_id, 'generate_slides'); // Job im Context registrieren → Polling startet
+      setPersistentJobId(result.job_id);
       setIsSaved(false);
     } catch (error) {
       setSubmitError(getUserFriendlyMessage(error));
@@ -168,7 +174,15 @@ export function useSlidesGenerateForm(
       console.error('Fehler beim Abbrechen der Folien-Generierung:', error);
     } finally {
       dismissJob();
+      setPersistentJobId(null);
+      setRequestId(null);
     }
+  };
+
+  const clearJobId = (): void => {
+    dismissJob();
+    setPersistentJobId(null);
+    setRequestId(null);
   };
 
   useEffect(
@@ -176,6 +190,8 @@ export function useSlidesGenerateForm(
       if (!slidesJob) {
         return;
       }
+
+      setPersistentJobId(slidesJob.jobId);
 
       if (slidesJob.status === 'failed') {
         base.setSubmitError(slidesJob.errorMessage ?? 'Folien konnten nicht generiert werden.');
@@ -202,11 +218,11 @@ export function useSlidesGenerateForm(
     errors: base.errors,
     submitError: base.submitError,
     isSubmitting: base.isLoading,
-    jobId: slidesJob?.jobId ?? null,
+    jobId: persistentJobId ?? slidesJob?.jobId ?? null,
     jobStatus: slidesJob?.status ?? null,
     jobProgress: slidesJob?.progress ?? null,
     jobStageLabel: slidesJob?.stageLabel ?? null,
-    clearJobId: dismissJob,
+    clearJobId,
     hasValidationErrors: Object.keys(base.errors).length > 0,
     handleInputChange,
     handleBlur: base.handleBlur,

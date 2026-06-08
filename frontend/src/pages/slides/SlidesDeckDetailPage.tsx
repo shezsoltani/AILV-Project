@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { SlideDraft } from '../../types/slides';
 import { SlidesPreview } from '../../components/slides/SlidesPreview';
-import { ErrorBanner, ConfirmDialog, Modal } from '../../components/shared';
+import { ErrorBanner, ConfirmDialog, Modal, SlidesExportDropdownButton } from '../../components/shared';
 import { formatDateToGerman } from '../../utils/dateUtils';
 import { useDeckDetail } from '../../hooks/slides/useDeckDetail';
 
@@ -177,6 +177,12 @@ export const SlidesDeckDetailPage: React.FC = () => {
               Folien bearbeiten
             </button>
           )}
+
+          <SlidesExportDropdownButton
+            jobId={deckId ?? ''}
+            mode="archive"
+            disabled={isDeleting || isUpdating}
+          />
 
           <button
             type="button"
