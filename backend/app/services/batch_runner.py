@@ -15,7 +15,6 @@ BATCH_RETRY_MAX = 3
 class JobCancelledError(Exception):
     pass
 
-
 # Verhindert, dass ein Custom Prompt mit fest eingebautem count bei Mehrfach-Batches falsche Mengen vorgibt.
 def _custom_prompts_for_batch(
     custom_prompts: dict[str, str] | None,

@@ -19,22 +19,19 @@ from .api.routes_archive_export import router as archive_export_router
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Vite Dev-Server im Docker-Compose
-    "http://localhost:5173",  # optional: lokaler Vite-Dev-Server ohne Docker
-]
-
 app = FastAPI(
     title="AI-LV Backend",
     version="0.1",
-    description="Backend-Service für die AI-LV Projektarchitektur"
+    description="Backend-Service für die AI-LV Projektarchitektur",
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
 )
 
 # CORS-Konfiguration: erlaubt Aufrufe vom Vite-Frontend auf Port 3000/5173
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],

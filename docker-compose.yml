@@ -32,6 +32,8 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       MAIL_FROM: ${MAIL_FROM}
+
+      ENABLE_DOCS: "true"
     depends_on:
       - db
 
