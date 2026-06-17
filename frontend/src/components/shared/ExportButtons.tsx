@@ -1,7 +1,7 @@
 // Exportformat-Buttons (PDF, Moodle XML, PPTX) – Dropdown + Einzelbutton
 import React, { useState, useRef, useEffect } from 'react';
 import { ErrorBanner } from './ErrorBanner';
-import { exportJobAsPdf, exportArchiveAsPdf, exportJobAsMoodle, exportArchiveAsMoodle, exportJobAsPptx, exportArchiveAsPptx } from '../../services/exportApi';
+import { exportJobAsPdf, exportArchiveAsPdf, exportJobAsPdfExam, exportArchiveAsPdfExam, exportJobAsMoodle, exportArchiveAsMoodle, exportJobAsPptx, exportArchiveAsPptx } from '../../services/exportApi';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 
 interface ExportDropdownButtonProps {
@@ -18,6 +18,7 @@ export const ExportDropdownButton: React.FC<ExportDropdownButtonProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPdfExporting, setIsPdfExporting] = useState(false);
+  const [isPdfExamExporting, setIsPdfExamExporting] = useState(false);
   const [isMoodleExporting, setIsMoodleExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,6 +51,24 @@ export const ExportDropdownButton: React.FC<ExportDropdownButtonProps> = ({
     }
   }
 
+  async function handleExportPdfExam(): Promise<void> {
+    if (isPdfExamExporting) return;
+    setIsPdfExamExporting(true);
+    setExportError(null);
+    try {
+      if (mode === 'archive') {
+        await exportArchiveAsPdfExam(jobId);
+      } else {
+        await exportJobAsPdfExam(jobId);
+      }
+    } catch (error) {
+      setExportError(getUserFriendlyMessage(error));
+    } finally {
+      setIsPdfExamExporting(false);
+      setIsOpen(false);
+    }
+  }
+
   async function handleExportMoodle(): Promise<void> {
     if (isMoodleExporting) return;
     setIsMoodleExporting(true);
@@ -68,7 +87,7 @@ export const ExportDropdownButton: React.FC<ExportDropdownButtonProps> = ({
     }
   }
 
-  const isAnyExporting = isPdfExporting || isMoodleExporting;
+  const isAnyExporting = isPdfExporting || isPdfExamExporting || isMoodleExporting;
 
   return (
     <>
@@ -127,6 +146,26 @@ export const ExportDropdownButton: React.FC<ExportDropdownButtonProps> = ({
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   Als PDF exportieren
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              className="export-dropdown__item"
+              role="menuitem"
+              onClick={handleExportPdfExam}
+              disabled={isPdfExamExporting}
+              aria-busy={isPdfExamExporting}
+            >
+              {isPdfExamExporting ? (
+                <span className="form-submit-button__loading">
+                  <span className="export-dropdown__spinner" aria-hidden="true" />
+                  Klausur-PDF wird erstellt ...
+                </span>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+                  Als Klausur-PDF exportieren
                 </>
               )}
             </button>
