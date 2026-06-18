@@ -8,18 +8,20 @@ Ein webbasiertes Tool, das Lehrende bei der Erstellung von Lehrveranstaltungsunt
 
 ## Überblick
 
-Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Prüfungsfragen und Vorlesungsfolien. Anstatt ein LLM mit einer einzigen großen Anfrage zu überfordern, arbeitet das System mit einem mehrstufigen Workflow, der automatische Qualitätsprüfungen und Feedback-Schleifen beinhaltet.
+Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Prüfungsfragen und Vorlesungsfolien. Anstatt ein LLM mit einer einzigen großen Anfrage zu überfordern, arbeitet das System mit einem mehrstufigen Workflow, der automatische Qualitätsprüfungen und Feedback-Schleifen beinhaltet. Große Anfragen werden automatisch in Batches aufgeteilt. Die Generierung läuft **automatisch über ein Job-System** mit Echtzeit-Fortschrittsanzeige und Abbruchmöglichkeit.
 
 **Hauptfunktionen:**
-- Automatische Generierung von Prüfungsfragen zu beliebigen Themen
+- Automatische Generierung von Prüfungsfragen mit Job-System und Fortschrittsanzeige
 - Automatische Generierung von Vorlesungsfolien (Foliensätze)
-- Bearbeitung und Validierung der generierten Inhalte
+- Inline-Bearbeitung und Validierung der generierten Inhalte vor dem Speichern
 - Archiv für erstellte Fragen und Foliensätze (pro Benutzer)
-- Unterstützung für Multiple Choice, Kurzantwort und Wahr/Falsch-Fragen
+- Unterstützung für Multiple Choice (MCQ), Single Choice (SCQ), Kurzantwort und Wahr/Falsch-Fragen
 - Anpassbare Schwierigkeitsgrade mit prozentualer Verteilung
 - PDF-Upload als zusätzliche Wissensquelle für die Generierung
+- Prompt-Editor: Vorschau und manuelle Anpassung der Stage-Prompts vor der Generierung
+- Export in PDF (mit/ohne Lösungen), PowerPoint (PPTX) und Moodle-XML
 - Mehrsprachige Unterstützung (Deutsch und Englisch)
-- Benutzerverwaltung mit Registrierung, Login und Passwort-Reset
+- Benutzerverwaltung mit Registrierung, Login und E-Mail-basiertem Passwort-Reset
 
 ---
 
@@ -44,7 +46,7 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 
    ```env
    OPENAI_API_KEY=ihr-api-key-hier
-   OPENAI_MODEL_NAME=gpt-4o-mini
+   OPENAI_MODEL_NAME=gpt-4o
    JWT_SECRET_KEY=ihr-secret-key-hier
    JWT_ALGORITHM=HS256
    SMTP_HOST=sandbox.smtp.mailtrap.io
@@ -75,8 +77,9 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 2. Konto registrieren und einloggen
 3. „Fragen generieren" oder „Folien generieren" wählen
 4. Formular ausfüllen (Thema, Sprache, Umfang, optional PDF-Kontext hochladen)
-5. Ergebnisse prüfen und bearbeiten
-6. Ins persönliche Archiv speichern
+5. Optional: Stage-Prompts im Prompt-Editor anpassen
+6. Job starten und Fortschritt in der Statusleiste verfolgen
+7. Ergebnisse inline bearbeiten und exportieren oder ins persönliche Archiv speichern
 
 ---
 
@@ -88,7 +91,10 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 - **KI-Integration:** OpenAI API (Standard-Modell: gpt-4o, konfigurierbar)
 - **Authentifizierung:** JWT, Passwort-Hashing mit bcrypt
 - **PDF-Verarbeitung:** PyMuPDF (Textextraktion bis 5 MB)
-- **Deployment:** Docker & Docker Compose
+- **Export:** fpdf2 (PDF), python-pptx (PowerPoint), Moodle-XML
+- **Prompt-Templates:** Jinja2 (in Datenbank gespeichert, de/en)
+- **Tests:** Vitest + Testing Library (Frontend)
+- **Deployment:** Docker & Docker Compose (Dev + Prod)
 
 ---
 
@@ -103,8 +109,11 @@ AILV-Project/
 │   │   │   ├── routes_generate.py           # /api/generate
 │   │   │   ├── routes_finalize.py           # /api/finalize
 │   │   │   ├── routes_archive.py            # /api/archive/*
+│   │   │   ├── routes_archive_export.py     # /api/archive/*/export/*
 │   │   │   ├── routes_slides.py             # /api/slides/generate, /api/slides/finalize
 │   │   │   ├── routes_slides_archive.py     # /api/slides/archive/*
+│   │   │   ├── routes_jobs.py               # /api/jobs/*
+│   │   │   ├── routes_prompts.py            # /api/prompts/preview
 │   │   │   └── routes_upload.py             # /api/upload/pdf
 │   │   │
 │   │   ├── models/            # Datenmodelle (Pydantic & SQLAlchemy)
@@ -117,6 +126,8 @@ AILV-Project/
 │   │   │   ├── slides_models.py
 │   │   │   ├── slides_finalize_models.py
 │   │   │   ├── slides_archive_models.py
+│   │   │   ├── job_models.py
+│   │   │   ├── prompt_models.py
 │   │   │   └── upload_models.py
 │   │   │
 │   │   ├── services/          # Business-Logik
@@ -125,30 +136,59 @@ AILV-Project/
 │   │   │   │   ├── orchestrator.py
 │   │   │   │   ├── slides_orchestrator.py
 │   │   │   │   ├── stage_runner.py
+│   │   │   │   ├── batch_runner.py    # Batching in 10er-Blöcken
 │   │   │   │   └── …
 │   │   │   ├── finalization/  # Übergabe generierter Inhalte ins Archiv
 │   │   │   ├── archive/       # Lesen, Bearbeiten, Löschen im Archiv
 │   │   │   ├── context_upload/ # PDF-Textextraktion
 │   │   │   ├── validators/    # Stage-Validatoren für LLM-Responses
-│   │   │   ├── llm_client.py  # OpenAI API-Client
-│   │   │   └── templateService.py  # Jinja2-Template-Verwaltung
+│   │   │   ├── llm_client.py          # OpenAI API-Client
+│   │   │   ├── templateService.py     # Jinja2-Template-Verwaltung
+│   │   │   ├── job_runner.py          # Asynchrone Job-Ausführung
+│   │   │   ├── pdf_export_service.py  # PDF-Export (fpdf2)
+│   │   │   ├── pptx_export_service.py # PowerPoint-Export
+│   │   │   └── moodle_export_service.py # Moodle-XML-Export
 │   │   │
 │   │   ├── persistence/       # SQLAlchemy-Repositories (DB-Zugriff)
+│   │   │   ├── generation_repo.py
+│   │   │   ├── generated_questions_repo.py
+│   │   │   ├── question_repo.py
+│   │   │   ├── prompt_repo.py
+│   │   │   ├── archive_repo.py
+│   │   │   ├── slides_repo.py
+│   │   │   ├── slides_draft_repo.py
+│   │   │   └── job_repository.py
 │   │   ├── core/              # Auth-Utils, Exceptions, Mail-Utils
 │   │   ├── config.py          # Konfiguration (liest ENV-Variablen)
 │   │   ├── db.py              # Datenbankverbindung
 │   │   └── main.py            # FastAPI-App Einstiegspunkt
 │   │
 │   ├── Dockerfile
+│   ├── Dockerfile.prod
 │   └── requirements.txt
 │
 ├── frontend/                  # React Frontend
 │   ├── src/
 │   │   ├── pages/             # Seiten (auth/, questions/, slides/, core/)
-│   │   ├── components/        # UI-Komponenten (generate/, archive/, slides/, auth/, shared/, routing/)
+│   │   ├── components/        # UI-Komponenten
+│   │   │   ├── generate/      # GenerateForm, QuestionsList, EditableQuestionCard, QuestionsStats
+│   │   │   ├── slides/        # SlidesGenerateForm, SlidesPreview, SlidesDeckCard, SlidesSaveDialog
+│   │   │   ├── archive/       # ArchiveTopicCard
+│   │   │   ├── auth/          # PasswordStrengthMeter, PasswordVisibilityToggle
+│   │   │   ├── shared/        # Modal, ConfirmDialog, ErrorBanner, ExportButtons,
+│   │   │   │                  # PdfUpload, PromptEditorModal, JobStatusBar, GenerationSkeleton
+│   │   │   └── routing/       # ProtectedRoute, GuestRoute
 │   │   ├── hooks/             # Custom React Hooks (State-Management)
-│   │   ├── services/          # API-Clients (authApi, questionsApi, slidesApi, uploadApi)
-│   │   ├── context/           # AuthContext (globaler Auth-State)
+│   │   ├── services/          # API-Clients
+│   │   │   ├── apiClient.ts
+│   │   │   ├── authApi.ts
+│   │   │   ├── questionsApi.ts
+│   │   │   ├── slidesApi.ts
+│   │   │   ├── jobsApi.ts
+│   │   │   ├── exportApi.ts
+│   │   │   ├── uploadApi.ts
+│   │   │   └── promptsApi.ts
+│   │   ├── context/           # AuthContext, JobContext
 │   │   ├── types/             # TypeScript-Typdefinitionen
 │   │   ├── validators/        # Client-seitige Validierung
 │   │   ├── error-handling/    # API-Fehlerparsing und Mapping
@@ -158,6 +198,8 @@ AILV-Project/
 │   │   └── layout/            # Layout-Komponenten
 │   │
 │   ├── Dockerfile
+│   ├── Dockerfile.prod
+│   ├── nginx.conf             # Prod: SPA-Fallback + /api/-Proxy
 │   └── package.json
 │
 ├── db-init/                   # SQL-Skripte zur DB-Initialisierung
@@ -167,10 +209,11 @@ AILV-Project/
 │
 ├── docs/                      # Projekt-Dokumentation
 │   ├── architecture.md
-│   ├── database.md
-│   └── sprint3_e2e_test.md
+│   ├── api.md
+│   └── database.md
 │
-├── docker-compose.yml         # Container-Orchestrierung
+├── docker-compose.yml         # Dev-Container-Orchestrierung
+├── docker-compose.prod.yml    # Prod-Container-Orchestrierung
 └── README.md
 ```
 
@@ -190,14 +233,16 @@ Beide Generatoren – Prüfungsfragen und Folien – folgen demselben dreistufig
 2. **SLIDES_CONTENT-Stage:** Vollständige Folieninhalte (Bullets)
 3. **SLIDES_IMPROVE-Stage:** Sprachliche und didaktische Optimierung
 
-Jede Stage wird validiert und bei Fehlern automatisch wiederholt (bis zu 3 Versuche). Beim Retry erhält das LLM die Fehlermeldung des vorigen Versuchs als Kontext. Alle Prompts und Responses werden in der Datenbank gespeichert.
+Jede Stage wird validiert und bei Fehlern automatisch wiederholt (bis zu 3 Versuche). Beim Retry erhält das LLM die Fehlermeldung des vorigen Versuchs als Kontext. Große Anfragen (>10 Items) werden automatisch in **Batches à 10** aufgeteilt und sequenziell verarbeitet. Alle Prompts und Responses werden in der Datenbank gespeichert.
+
+Die Generierung läuft vollständig **automatisch**: Nach dem Start wird sofort eine `job_id` zurückgegeben. Der Fortschritt (Stage-Label, Batch-Nummer, Status) wird per Polling in der **JobStatusBar** angezeigt. Laufende Jobs können jederzeit abgebrochen werden.
 
 ---
 
 ## Nützliche Befehle
 
 ```bash
-# Services starten
+# Dev-Services starten
 docker-compose up -d
 
 # Logs anzeigen
@@ -214,6 +259,23 @@ docker-compose down -v
 
 # Datenbank-Zugriff
 docker-compose exec db psql -U postgres -d aildb
+
+# Prod-Setup starten
+docker-compose -f docker-compose.prod.yml up --build -d
+```
+
+---
+
+## Deployment (Produktion)
+
+Für den Produktivbetrieb steht `docker-compose.prod.yml` bereit:
+
+- **Backend:** Multi-Worker Uvicorn (`Dockerfile.prod`), Healthcheck auf `/health`
+- **Frontend:** Multi-Stage Build → nginx:alpine (Port 80), SPA-Fallback, `/api/`-Reverse-Proxy zum Backend
+- **Datenbank:** PostgreSQL mit Healthcheck und konfigurierbaren Credentials
+
+```bash
+docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 ---
