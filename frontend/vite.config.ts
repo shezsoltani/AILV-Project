@@ -5,10 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   // ... andere Konfigurationen
-  define: {
-    // Hier definieren wir die Variable für die Testumgebung
-    'import.meta.env.VITE_API_BASE': JSON.stringify('http://localhost:8000'),
-  },
   server: {
     host: '0.0.0.0',
     port: 3000,
