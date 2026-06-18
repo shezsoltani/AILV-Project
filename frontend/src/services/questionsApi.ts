@@ -99,6 +99,8 @@ export async function updateArchiveQuestions(
       difficulty: q.difficulty,
       question: q.question,
       choices: q.choices,
+      correct_index: q.correct_index,
+      correct_indices: q.correct_indices,
       answer: q.answer,
       rationale: q.rationale,
     })),

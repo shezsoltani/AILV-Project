@@ -47,6 +47,13 @@ export async function exportJobAsPdf(jobId: string): Promise<void> {
   triggerBlobDownload(blob, 'fragen_export.pdf');
 }
 
+// Klausur-PDF (ohne Lösungen) für einen frisch generierten Job exportieren
+export async function exportJobAsPdfExam(jobId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/jobs/${jobId}/export/pdf/exam`;
+  const blob = await fetchExport(url);
+  triggerBlobDownload(blob, 'klausur_export.pdf');
+}
+
 // Moodle-XML-Export anstoßen und als Datei im Browser speichern
 export async function exportJobAsMoodle(jobId: string): Promise<void> {
   const url = `${API_BASE_URL}/api/jobs/${jobId}/export/moodle`;
@@ -66,6 +73,13 @@ export async function exportArchiveAsPdf(requestId: string): Promise<void> {
   const url = `${API_BASE_URL}/api/archive/${requestId}/export/pdf`;
   const blob = await fetchExport(url);
   triggerBlobDownload(blob, 'fragen_export.pdf');
+}
+
+// Klausur-PDF (ohne Lösungen) für einen archivierten Eintrag exportieren
+export async function exportArchiveAsPdfExam(requestId: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/archive/${requestId}/export/pdf/exam`;
+  const blob = await fetchExport(url);
+  triggerBlobDownload(blob, 'klausur_export.pdf');
 }
 
 // Moodle-XML-Export für einen archivierten Eintrag

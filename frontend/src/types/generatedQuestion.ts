@@ -6,10 +6,11 @@ export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 export interface GeneratedQuestion {
   id: string;               // UUID
   question: string;          // Frage-Text aus dem Backend
-  type: QuestionType;        // entspricht Question.type (string im Backend)
+  type: QuestionType;
   difficulty: QuestionDifficulty;
-  choices?: string[];        // Optionale Auswahlmöglichkeiten
-  correct_index?: number;    // Index der richtigen Antwort
-  answer?: string;           // Für SHORT_ANSWER: korrekte Antwort
-  rationale?: string;        // Begründung für die Antwort
+  choices?: string[];
+  correct_index?: number;
+  correct_indices?: number[];
+  answer?: string;
+  rationale?: string;
 }

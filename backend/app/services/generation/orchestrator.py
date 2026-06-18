@@ -109,6 +109,7 @@ async def generate_questions(
             difficulty=q.difficulty,
             choices=q.choices,
             correct_index=q.correct_index,
+            correct_indices=q.correct_indices,
             answer=q.answer,
             rationale=q.rationale,
         )

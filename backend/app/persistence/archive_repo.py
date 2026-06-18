@@ -48,6 +48,10 @@ def update_archive_questions(
             q.difficulty = update_dict["difficulty"]
         if "choices" in update_dict:
             q.choices = update_dict["choices"]
+        if "correct_index" in update_dict:
+            q.correct_index = update_dict["correct_index"]
+        if "correct_indices" in update_dict:
+            q.correct_indices = update_dict["correct_indices"]
         if "answer" in update_dict:
             q.answer = update_dict["answer"]
         if "rationale" in update_dict:

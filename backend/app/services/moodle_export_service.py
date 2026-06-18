@@ -3,7 +3,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 # Mapping von unseren internen Typen auf das, was Moodle im XML erwartet
+# SCQ  → multichoice (single=true):  genau 1 richtige Antwort
+# MCQ  → multichoice (single=false): mehrere richtige Antworten (Multiple Response)
 _TYPE_MAP: dict[str, str] = {
+    "SCQ": "multichoice",
     "MCQ": "multichoice",
     "TRUE_FALSE": "truefalse",
     "SHORT_ANSWER": "shortanswer",
@@ -21,13 +24,14 @@ def build_moodle_xml(questions: list[dict], topic: str) -> str:
         if moodle_type is None:
             continue
 
-        question_el = _build_question_element(q, moodle_type)
-        quiz.append(question_el)
+        question_el = _build_question_element(q, moodle_type, q_type_raw)
+        if question_el is not None:
+            quiz.append(question_el)
 
     return _serialize(quiz)
 
 
-def _build_question_element(q: dict, moodle_type: str) -> ET.Element:
+def _build_question_element(q: dict, moodle_type: str, q_type_raw: str) -> ET.Element | None:
     question_el = ET.Element("question", type=moodle_type)
 
     stem: str = q.get("stem") or q.get("question") or ""
@@ -46,7 +50,11 @@ def _build_question_element(q: dict, moodle_type: str) -> ET.Element:
     ET.SubElement(question_el, "hidden").text = "0"
 
     if moodle_type == "multichoice":
-        _append_mcq_answers(question_el, q)
+        if q_type_raw == "MCQ":
+            if not _append_mcq_multiple_answers(question_el, q):
+                return None
+        else:
+            _append_scq_answers(question_el, q)
     elif moodle_type == "truefalse":
         _append_truefalse_answers(question_el, q)
     elif moodle_type == "shortanswer":
@@ -55,7 +63,8 @@ def _build_question_element(q: dict, moodle_type: str) -> ET.Element:
     return question_el
 
 
-def _append_mcq_answers(question_el: ET.Element, q: dict) -> None:
+def _append_scq_answers(question_el: ET.Element, q: dict) -> None:
+    """SCQ: Single Choice – genau 1 richtige Antwort (single=true)."""
     ET.SubElement(question_el, "single").text = "true"
     ET.SubElement(question_el, "shuffleanswers").text = "1"
     ET.SubElement(question_el, "answernumbering").text = "abc"
@@ -76,6 +85,47 @@ def _append_mcq_answers(question_el: ET.Element, q: dict) -> None:
         ET.SubElement(feedback_el, "text").text = (
             f"<p>{rationale}</p>" if is_correct and rationale else ""
         )
+
+
+def _append_mcq_multiple_answers(question_el: ET.Element, q: dict) -> bool:
+    """MCQ: Multiple Response – mehrere richtige Antworten (single=false).
+
+    Moodle verteilt 100% gleichmäßig auf alle korrekten Antworten.
+    Falsche Antworten erhalten einen negativen Abzug (Standard: -100/n).
+    Gibt False zurück, wenn die Frage übersprungen werden soll (keine gültigen correct_indices).
+    """
+    choices: list[str] = q.get("choices") or []
+    correct_indices: list[int] = q.get("correct_indices") or []
+    rationale: str = q.get("rationale") or ""
+
+    # MCQ ohne korrekte Antworten ist ungültig – Frage überspringen
+    if not correct_indices:
+        return False
+
+    ET.SubElement(question_el, "single").text = "false"
+    ET.SubElement(question_el, "shuffleanswers").text = "1"
+    ET.SubElement(question_el, "answernumbering").text = "abc"
+
+    # Punkte gleichmäßig auf alle richtigen Antworten verteilen
+    n_correct = len(correct_indices)
+    fraction_per_correct = round(100 / n_correct, 7)
+    # Negativabzug für Falschantworten (Standard in Moodle-MCQ)
+    n_wrong = len(choices) - n_correct
+    fraction_per_wrong = round(-100 / n_wrong, 7) if n_wrong > 0 else 0
+
+    for i, choice_text in enumerate(choices):
+        is_correct = i in correct_indices
+        fraction = f"{fraction_per_correct:.7f}" if is_correct else f"{fraction_per_wrong:.7f}"
+
+        answer_el = ET.SubElement(question_el, "answer", fraction=fraction, format="html")
+        ET.SubElement(answer_el, "text").text = f"<p>{choice_text}</p>"
+
+        feedback_el = ET.SubElement(answer_el, "feedback", format="html")
+        ET.SubElement(feedback_el, "text").text = (
+            f"<p>{rationale}</p>" if is_correct and rationale else ""
+        )
+
+    return True
 
 
 # Alles, was irgendwie „wahr" oder „falsch" bedeutet

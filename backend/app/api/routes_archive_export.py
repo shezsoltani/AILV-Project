@@ -12,7 +12,7 @@ from ..db import get_db
 from ..models.sql_models import User, SlideDeck, GenerationRequest
 from ..persistence.archive_repo import get_archive_questions
 from ..services.moodle_export_service import build_moodle_xml
-from ..services.pdf_export_service import build_questions_pdf
+from ..services.pdf_export_service import build_questions_pdf, build_questions_pdf_exam
 from ..services.pptx_export_service import build_slides_pptx
 
 router = APIRouter()
@@ -39,11 +39,12 @@ def export_archive_pdf(
     # SQL-Objekte in dicts umwandeln, die build_questions_pdf erwartet
     questions_dicts = [
         {
-            "question": q.stem or "",
+            "stem": q.stem or "",
             "type": q.type or "",
             "difficulty": q.difficulty or "",
             "choices": q.choices,
             "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
             "answer": q.answer,
             "rationale": q.rationale,
         }
@@ -55,6 +56,51 @@ def export_archive_pdf(
 
     safe_topic = topic.replace(" ", "_").replace("/", "-")
     filename = f"{safe_topic}_fragen.pdf"
+
+    return StreamingResponse(
+        iter([pdf_bytes]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/archive/{request_id}/export/pdf/exam")
+def export_archive_pdf_exam(
+    request_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    """Klausur-PDF aus dem Archiv: nur Fragen und Antwortoptionen, ohne Lösungen und Begründungen."""
+    generation_request, questions = get_archive_questions(db, request_id)
+
+    if not generation_request:
+        raise HTTPException(status_code=404, detail="Archiv-Eintrag nicht gefunden.")
+
+    if generation_request.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert.")
+
+    if not questions:
+        raise HTTPException(status_code=422, detail="Keine Fragen in diesem Archiv-Eintrag.")
+
+    questions_dicts = [
+        {
+            "stem": q.stem or "",
+            "type": q.type or "",
+            "difficulty": q.difficulty or "",
+            "choices": q.choices,
+            "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
+            "answer": q.answer,
+            "rationale": q.rationale,
+        }
+        for q in questions
+    ]
+
+    topic = generation_request.topic or "Fragen"
+    pdf_bytes = build_questions_pdf_exam(questions=questions_dicts, topic=topic)
+
+    safe_topic = topic.replace(" ", "_").replace("/", "-")
+    filename = f"{safe_topic}_klausur.pdf"
 
     return StreamingResponse(
         iter([pdf_bytes]),
@@ -83,11 +129,12 @@ def export_archive_xml(
 
     questions_dicts = [
         {
-            "question": q.stem or "",
+            "stem": q.stem or "",
             "type": q.type or "",
             "difficulty": q.difficulty or "",
             "choices": q.choices,
             "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
             "answer": q.answer,
             "rationale": q.rationale,
         }

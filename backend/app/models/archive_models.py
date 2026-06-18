@@ -39,6 +39,8 @@ class ArchiveQuestionUpdate(BaseModel):
     question: str
     difficulty: str
     choices: Optional[List[str]] = None
+    correct_index: Optional[int] = None
+    correct_indices: Optional[List[int]] = None
     answer: Optional[str] = None
     rationale: Optional[str] = None
 
