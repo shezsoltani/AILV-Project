@@ -39,11 +39,12 @@ def export_archive_pdf(
     # SQL-Objekte in dicts umwandeln, die build_questions_pdf erwartet
     questions_dicts = [
         {
-            "question": q.stem or "",
+            "stem": q.stem or "",
             "type": q.type or "",
             "difficulty": q.difficulty or "",
             "choices": q.choices,
             "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
             "answer": q.answer,
             "rationale": q.rationale,
         }
@@ -83,11 +84,12 @@ def export_archive_pdf_exam(
 
     questions_dicts = [
         {
-            "question": q.stem or "",
+            "stem": q.stem or "",
             "type": q.type or "",
             "difficulty": q.difficulty or "",
             "choices": q.choices,
             "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
             "answer": q.answer,
             "rationale": q.rationale,
         }
@@ -127,11 +129,12 @@ def export_archive_xml(
 
     questions_dicts = [
         {
-            "question": q.stem or "",
+            "stem": q.stem or "",
             "type": q.type or "",
             "difficulty": q.difficulty or "",
             "choices": q.choices,
             "correct_index": q.correct_index,
+            "correct_indices": q.correct_indices,
             "answer": q.answer,
             "rationale": q.rationale,
         }

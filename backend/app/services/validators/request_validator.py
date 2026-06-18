@@ -3,7 +3,7 @@ from ...core.exceptions import ContextTextTooLongError
 from ...models.generate_models import GenerateRequest
 from .custom_prompt_validator import validate_custom_prompts_dict
 
-ALLOWED_TYPES = {"MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
+ALLOWED_TYPES = {"SCQ", "MCQ", "SHORT_ANSWER", "TRUE_FALSE"}
 ALLOWED_DIFFICULTIES = {"easy", "medium", "hard"}
 MAX_CONTEXT_TEXT_LENGTH = 5000
 

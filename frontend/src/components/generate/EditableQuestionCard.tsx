@@ -49,7 +49,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
     onQuestionChange(updated);
   };
 
-  // Antwortmöglichkeiten für Multiple-Choice-Fragen bearbeiten
+  // Antwortmöglichkeiten für SCQ/MCQ/TRUE_FALSE bearbeiten
   const handleChoiceChange = (index: number, value: string) => {
     if (readOnly || !onQuestionChange || !localQuestion.choices) {
       return;
@@ -57,6 +57,30 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
     const updatedChoices = [...localQuestion.choices];
     updatedChoices[index] = value;
     const updated = { ...localQuestion, choices: updatedChoices };
+    setLocalQuestion(updated);
+    onQuestionChange(updated);
+  };
+
+  // SCQ/TRUE_FALSE: Setzt correct_index auf den gewählten Index
+  const handleCorrectIndexChange = (index: number) => {
+    if (readOnly || !onQuestionChange) return;
+    const updated = { ...localQuestion, correct_index: index };
+    setLocalQuestion(updated);
+    onQuestionChange(updated);
+  };
+
+  // MCQ: Toggelt einen Index in correct_indices (an/aus); mindestens 1 muss markiert bleiben
+  const handleCorrectIndicesToggle = (index: number) => {
+    if (readOnly || !onQuestionChange) return;
+    const currentIndices = localQuestion.correct_indices ?? [];
+    const isSelected = currentIndices.includes(index);
+    if (isSelected && currentIndices.length <= 1) {
+      return;
+    }
+    const updatedIndices = isSelected
+      ? currentIndices.filter((i) => i !== index)
+      : [...currentIndices, index].sort((a, b) => a - b);
+    const updated = { ...localQuestion, correct_indices: updatedIndices };
     setLocalQuestion(updated);
     onQuestionChange(updated);
   };
@@ -85,6 +109,11 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
       }
     });
   }, [localQuestion.choices, localQuestion.answer]);
+
+  // Hilfsfunktionen zur Typbestimmung
+  const isSCQ = localQuestion.type === 'SCQ' || localQuestion.type === 'TRUE_FALSE';
+  const isMCQ = localQuestion.type === 'MCQ';
+  const hasChoices = (isSCQ || isMCQ) && localQuestion.choices && localQuestion.choices.length > 0;
 
   return (
     <article className="question-card">
@@ -125,58 +154,139 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
         />
       </div>
 
-      {/* Bei Multiple-Choice und Wahr/Falsch-Fragen die Antwortmöglichkeiten anzeigen */}
-      {(localQuestion.type === 'MCQ' || localQuestion.type === 'TRUE_FALSE') && localQuestion.choices && (
+      {/* Antwortmöglichkeiten für SCQ, MCQ und TRUE_FALSE */}
+      {hasChoices && (
         <div className="question-choices-container">
-          <label className="question-choices-label">Antwortmöglichkeiten:</label>
-          {/* Für jede Antwortmöglichkeit eine Textarea - richtige Antwort wird grün markiert */}
-          {localQuestion.choices.map((choice, index) => {
-            const isCorrect = showCorrectAnswer && localQuestion.correct_index === index;
-            return (
-              <div key={`${localQuestion.id}-choice-${index}`} className="question-choice-item">
-                <label 
-                  htmlFor={`choice-${localQuestion.id}-${index}`} 
-                  className="question-choice-label"
-                >
-                  {String.fromCharCode(65 + index)})
-                </label>
-                <div className="question-choice-content">
-                  <textarea
-                    ref={(el) => {
-                      const key = `choice-${localQuestion.id}-${index}`;
-                      textareaRefs.current[key] = el;
-                      if (el) {
-                        adjustTextareaHeight(el);
-                      }
-                    }}
-                    id={`choice-${localQuestion.id}-${index}`}
-                    value={choice}
-                    onChange={(e) => {
-                      if (!readOnly) {
-                        adjustTextareaHeight(e.target);
-                        handleChoiceChange(index, e.target.value);
-                      }
-                    }}
-                    readOnly={readOnly}
-                    className={`question-choice-input ${isCorrect ? 'question-choice-input--correct' : ''}`}
-                    placeholder={`Antwortmöglichkeit ${index + 1}`}
-                    rows={1}
-                  />
-                  {isCorrect && (
-                    <span className="question-correct-badge">✓ Korrekt</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {isMCQ ? (
+            /* MCQ: Mehrere Antworten können als korrekt markiert werden (Checkboxen) */
+            <>
+              <label className="question-choices-label">
+                Antwortmöglichkeiten:
+                {showCorrectAnswer && (
+                  <span className="question-choices-hint"> (Mehrere Antworten können korrekt sein)</span>
+                )}
+              </label>
+              {localQuestion.choices!.map((choice, index) => {
+                const isCorrect =
+                  showCorrectAnswer &&
+                  (localQuestion.correct_indices ?? []).includes(index);
+                return (
+                  <div key={`${localQuestion.id}-choice-${index}`} className="question-choice-item">
+                    <div className="question-choice-selector">
+                      {/* Checkbox-Indikator für korrekte Antwort */}
+                      {showCorrectAnswer && (
+                        <button
+                          type="button"
+                          aria-label={isCorrect ? 'Als korrekt markiert' : 'Als korrekt markieren'}
+                          title={isCorrect ? 'Korrekte Antwort – klicken zum Entfernen' : 'Als korrekte Antwort markieren'}
+                          className={`question-correct-toggle question-correct-toggle--checkbox ${isCorrect ? 'question-correct-toggle--active' : ''}`}
+                          onClick={() => !readOnly && handleCorrectIndicesToggle(index)}
+                          disabled={readOnly}
+                        >
+                          {isCorrect ? '☑' : '☐'}
+                        </button>
+                      )}
+                      <label
+                        htmlFor={`choice-${localQuestion.id}-${index}`}
+                        className="question-choice-label"
+                      >
+                        {String.fromCharCode(65 + index)})
+                      </label>
+                    </div>
+                    <div className="question-choice-content">
+                      <textarea
+                        ref={(el) => {
+                          const key = `choice-${localQuestion.id}-${index}`;
+                          textareaRefs.current[key] = el;
+                          if (el) adjustTextareaHeight(el);
+                        }}
+                        id={`choice-${localQuestion.id}-${index}`}
+                        value={choice}
+                        onChange={(e) => {
+                          if (!readOnly) {
+                            adjustTextareaHeight(e.target);
+                            handleChoiceChange(index, e.target.value);
+                          }
+                        }}
+                        readOnly={readOnly}
+                        className={`question-choice-input ${isCorrect ? 'question-choice-input--correct' : ''}`}
+                        placeholder={`Antwortmöglichkeit ${index + 1}`}
+                        rows={1}
+                      />
+                      {isCorrect && (
+                        <span className="question-correct-badge">✓ Korrekt</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          ) : (
+            /* SCQ / TRUE_FALSE: Genau 1 Antwort ist korrekt (Radio-ähnliche Auswahl) */
+            <>
+              <label className="question-choices-label">Antwortmöglichkeiten:</label>
+              {localQuestion.choices!.map((choice, index) => {
+                const isCorrect = showCorrectAnswer && localQuestion.correct_index === index;
+                return (
+                  <div key={`${localQuestion.id}-choice-${index}`} className="question-choice-item">
+                    <div className="question-choice-selector">
+                      {/* Radio-Indikator für die einzig korrekte Antwort */}
+                      {showCorrectAnswer && (
+                        <button
+                          type="button"
+                          aria-label={isCorrect ? 'Korrekte Antwort' : 'Als korrekte Antwort setzen'}
+                          title={isCorrect ? 'Korrekte Antwort' : 'Als einzig korrekte Antwort setzen'}
+                          className={`question-correct-toggle question-correct-toggle--radio ${isCorrect ? 'question-correct-toggle--active' : ''}`}
+                          onClick={() => !readOnly && handleCorrectIndexChange(index)}
+                          disabled={readOnly}
+                        >
+                          {isCorrect ? '◉' : '○'}
+                        </button>
+                      )}
+                      <label
+                        htmlFor={`choice-${localQuestion.id}-${index}`}
+                        className="question-choice-label"
+                      >
+                        {String.fromCharCode(65 + index)})
+                      </label>
+                    </div>
+                    <div className="question-choice-content">
+                      <textarea
+                        ref={(el) => {
+                          const key = `choice-${localQuestion.id}-${index}`;
+                          textareaRefs.current[key] = el;
+                          if (el) adjustTextareaHeight(el);
+                        }}
+                        id={`choice-${localQuestion.id}-${index}`}
+                        value={choice}
+                        onChange={(e) => {
+                          if (!readOnly) {
+                            adjustTextareaHeight(e.target);
+                            handleChoiceChange(index, e.target.value);
+                          }
+                        }}
+                        readOnly={readOnly}
+                        className={`question-choice-input ${isCorrect ? 'question-choice-input--correct' : ''}`}
+                        placeholder={`Antwortmöglichkeit ${index + 1}`}
+                        rows={1}
+                      />
+                      {isCorrect && (
+                        <span className="question-correct-badge">✓ Korrekt</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
 
       {/* Bei Kurzantwort-Fragen die erwartete Antwort anzeigen */}
       {localQuestion.type === 'SHORT_ANSWER' && (
         <div className="question-answer-container">
-          <label 
-            htmlFor={`answer-${localQuestion.id}`} 
+          <label
+            htmlFor={`answer-${localQuestion.id}`}
             className="question-answer-label"
           >
             Erwartete Antwort:
@@ -185,9 +295,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
             ref={(el) => {
               const key = `answer-${localQuestion.id}`;
               textareaRefs.current[key] = el;
-              if (el) {
-                adjustTextareaHeight(el);
-              }
+              if (el) adjustTextareaHeight(el);
             }}
             id={`answer-${localQuestion.id}`}
             value={localQuestion.answer || ''}
@@ -207,4 +315,3 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
     </article>
   );
 };
-

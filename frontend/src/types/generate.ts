@@ -1,6 +1,6 @@
 export type Language = 'de' | 'en';
 
-export type QuestionType = 'MCQ' | 'SHORT_ANSWER' | 'TRUE_FALSE';
+export type QuestionType = 'SCQ' | 'MCQ' | 'SHORT_ANSWER' | 'TRUE_FALSE';
 
 export interface DifficultyDistribution {
   easy: number | '';

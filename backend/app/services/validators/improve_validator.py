@@ -37,3 +37,17 @@ def validate_improve(improved, original):
             raise ImproveValidationError(
                 f"Item {i} field 'rationale' must be string"
             )
+
+        # correct_indices bei MCQ-Typen prüfen: muss Liste bleiben, darf sich ändern (Verbesserung erlaubt)
+        if old.get("type") == "MCQ" and "correct_indices" in new:
+            if not isinstance(new["correct_indices"], list):
+                raise ImproveValidationError(
+                    f"Item {i} field 'correct_indices' must be a list"
+                )
+
+        # correct_index bei SCQ/TRUE_FALSE prüfen: muss Integer bleiben
+        if old.get("type") in ("SCQ", "TRUE_FALSE") and "correct_index" in new:
+            if not isinstance(new["correct_index"], int):
+                raise ImproveValidationError(
+                    f"Item {i} field 'correct_index' must be an integer"
+                )

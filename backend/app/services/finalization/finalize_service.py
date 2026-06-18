@@ -34,13 +34,14 @@ def finalize_questions(
             Question(
                 request_id=gq.request_id,
                 prompt_id=gq.prompt_id,
-                type=q.type or gq.type,
-                difficulty=q.difficulty or gq.difficulty,
-                stem=q.stem or gq.stem,
-                choices=q.choices or gq.choices,
-                correct_index=q.correct_index or gq.correct_index,
-                answer=q.answer or gq.answer,
-                rationale=q.rationale or gq.rationale,
+                type=q.type if q.type is not None else gq.type,
+                difficulty=q.difficulty if q.difficulty is not None else gq.difficulty,
+                stem=q.stem if q.stem is not None else gq.stem,
+                choices=q.choices if q.choices is not None else gq.choices,
+                correct_index=q.correct_index if q.correct_index is not None else gq.correct_index,
+                correct_indices=q.correct_indices if q.correct_indices is not None else gq.correct_indices,
+                answer=q.answer if q.answer is not None else gq.answer,
+                rationale=q.rationale if q.rationale is not None else gq.rationale,
             )
         )
         finalized_count += 1

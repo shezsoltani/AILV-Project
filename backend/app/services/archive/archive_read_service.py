@@ -93,6 +93,7 @@ def get_questions_for_request(
                 difficulty=q.difficulty or "",
                 choices=q.choices,
                 correct_index=q.correct_index,
+                correct_indices=q.correct_indices,
                 answer=q.answer,
                 rationale=q.rationale,
             )

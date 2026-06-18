@@ -52,12 +52,13 @@ CREATE TABLE IF NOT EXISTS generated_questions (
     stem TEXT,
     choices JSONB,
     correct_index INT,
-    answer TEXT,                      -- for SHORT_ANSWER: correct answer
+    correct_indices JSONB,
+    answer TEXT,                  -- for SHORT_ANSWER: correct answer
     rationale TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
 
--- QUESTIONS table (generated items)
+-- QUESTIONS table (finalized items)
 CREATE TABLE IF NOT EXISTS questions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID NOT NULL REFERENCES generation_requests(id) ON DELETE CASCADE,
@@ -65,8 +66,9 @@ CREATE TABLE IF NOT EXISTS questions (
     type VARCHAR(50),
     difficulty VARCHAR(20),
     stem TEXT,
-    choices JSONB,                      -- for MCQ: array of choices
-    correct_index INT,                  -- index into choices (0-based)
+    choices JSONB,
+    correct_index INT,
+    correct_indices JSONB,
     answer TEXT,                        -- for SHORT_ANSWER: correct answer
     rationale TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()

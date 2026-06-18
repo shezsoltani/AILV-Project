@@ -21,10 +21,11 @@ def _difficulty_label(difficulty: str) -> str:
     return mapping.get(difficulty.lower(), difficulty.capitalize()) if difficulty else "–"
 
 
-# Übersetzt Fragetyp-Codes ("MCQ" etc.) in lesbare deutsche Bezeichnungen
+# Übersetzt Fragetyp-Codes in lesbare deutsche Bezeichnungen
 def _type_label(question_type: str) -> str:
     mapping = {
-        "MCQ": "Multiple Choice",
+        "SCQ": "Single Choice (SCQ)",
+        "MCQ": "Multiple Choice / Multiple Response (MCQ)",
         "SHORT_ANSWER": "Kurzantwort",
         "TRUE_FALSE": "Wahr / Falsch",
     }
@@ -149,6 +150,7 @@ class _QuestionPDF(FPDF):
         difficulty: str = q.get("difficulty") or ""
         choices: list[str] = q.get("choices") or []
         correct_index: int | None = q.get("correct_index")
+        correct_indices: list[int] = q.get("correct_indices") or []
         answer: str | None = q.get("answer")
         rationale: str | None = q.get("rationale")
 
@@ -169,10 +171,23 @@ class _QuestionPDF(FPDF):
         self._gap(3)
 
         if choices:
-            # MCQ: jede Option mit gezeichneter Checkbox; korrekte Antwort grün und fett
+            # SCQ/MCQ: jede Option mit gezeichneter Checkbox
+            # SCQ: genau 1 Häkchen (correct_index)
+            # MCQ: mehrere Häkchen (correct_indices)
+            is_mcq = q_type.upper() == "MCQ"
             self._label("Antwortoptionen:")
+            if is_mcq and correct_indices:
+                hint_text = f"(Mehrere Antworten korrekt: {len(correct_indices)} von {len(choices)})"
+                self.set_x(self.l_margin)
+                self.set_font("Helvetica", "I", 8)
+                self.set_text_color(*_LABEL_COLOR)
+                self.cell(self.epw, 5, hint_text, new_x="LMARGIN", new_y="NEXT")
+                self.set_text_color(*_DEFAULT_COLOR)
             for i, choice in enumerate(choices):
-                is_correct = (correct_index is not None and i == correct_index)
+                if is_mcq:
+                    is_correct = i in correct_indices
+                else:
+                    is_correct = (correct_index is not None and i == correct_index)
                 # Checkbox zeichnen, dann Beschriftungstext daneben
                 cb_x = self.l_margin + 2
                 cb_y = self.get_y() + 1.5

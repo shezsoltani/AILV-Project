@@ -22,6 +22,7 @@ export function calculateQuestionDiff(
       if (q.type) finalQuestion.type = q.type;
       if (q.choices) finalQuestion.choices = q.choices;
       if (q.correct_index !== undefined) finalQuestion.correct_index = q.correct_index;
+      if (q.correct_indices !== undefined) finalQuestion.correct_indices = q.correct_indices;
       if (q.answer) finalQuestion.answer = q.answer;
       if (q.rationale) finalQuestion.rationale = q.rationale;
       
@@ -58,6 +59,18 @@ export function calculateQuestionDiff(
     if (q.correct_index !== originalQ.correct_index) {
       finalQuestion.correct_index = q.correct_index;
     }
+
+    // Prüfen ob sich die korrekten Indices (MCQ) geändert haben
+    const correctIndicesChanged = (() => {
+      const current = q.correct_indices || [];
+      const original = originalQ.correct_indices || [];
+      if (current.length !== original.length) return true;
+      return current.some((val, idx) => val !== original[idx]);
+    })();
+    if (correctIndicesChanged) {
+      finalQuestion.correct_indices = q.correct_indices;
+    }
+
     if (q.answer !== originalQ.answer) {
       finalQuestion.answer = q.answer;
     }
