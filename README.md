@@ -27,6 +27,9 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 
 ## Schnellstart
 
+Für die lokale Ollama-Einrichtung und den geprüften Verbindungstest aus Docker:
+[Ollama-Anleitung (SCRUM-31)](docs/ollama.md).
+
 ### Voraussetzungen
 
 - Docker Desktop installiert und laufend
