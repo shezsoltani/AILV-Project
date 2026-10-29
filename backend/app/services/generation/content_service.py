@@ -1,3 +1,4 @@
+from ..llm_provider import LLMProvider
 from sqlalchemy.orm import Session
 from uuid import UUID
 import json
@@ -17,6 +18,7 @@ async def generate_valid_content(
     context_text: Optional[str] = None,
     upload_context: Optional[str] = None,
     custom_prompt: Optional[str] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> list[dict]:
 
     context = {
@@ -37,6 +39,7 @@ async def generate_valid_content(
             language=language,
             context=context,
             custom_prompt=custom_prompt,
+            llm_provider=llm_provider,
         )
 
         try:

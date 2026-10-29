@@ -268,3 +268,27 @@ Extrahiert den Text aus einer PDF-Datei und gibt ihn zurück. Der Text kann ansc
 |---------|------|--------------|
 | `GET` | `/health` | Statusprüfung |
 | `GET` | `/docs` | Interaktive API-Dokumentation (Swagger UI) |
+
+
+## KI-Auswahl f?r Fragen (SCRUM-5)
+
+`POST /api/generate` akzeptiert zus?tzlich `provider` (`openai` oder `ollama`)
+und `model` (z. B. `qwen3:8b`). Ohne Auswahl bleibt OpenAI der Standard.
+Die aufgel?ste Auswahl wird in den Job-Eingaben gespeichert. Nicht freigegebene
+Anbieter oder Modelle werden vor dem Jobstart mit HTTP 422 abgelehnt.
+
+`GET /api/generation/models` ben?tigt wie die Generierung eine Anmeldung und liefert:
+
+```json
+{"models": [{"provider": "ollama", "model": "qwen3:8b", "available": true, "reason": null}]}
+```
+
+Die Liste enth?lt nur serverseitig freigegebene Modelle. OpenAI-Verf?gbarkeit
+bedeutet hier: API-Key vorhanden (keine kostenpflichtige Probe). Bei Ollama werden
+Erreichbarkeit und Installation gepr?ft; dies garantiert noch keine erfolgreiche
+Generierung bei hoher Auslastung. Der Browser ?bergibt keine Serveradresse.
+
+Lokal in `.env`: `OLLAMA_ENABLED=true`. Weitere Einstellungen stehen in
+`.env.example`: `OLLAMA_BASE_URL`, `OLLAMA_MODELS` (kommagetrennt) und
+`OLLAMA_TIMEOUT_SECONDS`. Nach ?nderungen: `docker compose up -d backend`.
+Ohne Freischaltung bleibt Ollama deaktiviert. Kein automatischer Wechsel zu OpenAI.

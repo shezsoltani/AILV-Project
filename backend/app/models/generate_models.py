@@ -9,6 +9,8 @@ class Language(str, Enum):
     en = "en"
 
 class GenerateRequest(BaseModel):
+    provider: str = "openai"
+    model: Optional[str] = None
     topic: str = Field(..., min_length=3, description="Thema oder Kapitel")
     language: Language = Field(Language.de, description="Sprache (ISO-Code), z.B. 'de' oder 'en'")
     count: int = Field(10, ge=1, le=50, description="Anzahl der Fragen")

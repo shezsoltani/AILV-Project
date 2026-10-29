@@ -22,6 +22,11 @@ class Settings:
 
     enable_docs: bool
 
+    ollama_enabled: bool = False
+    ollama_base_url: str = "http://host.docker.internal:11434"
+    ollama_models: tuple[str, ...] = ("qwen3:8b",)
+    ollama_timeout_seconds: float = 120.0
+
     @classmethod
     def from_env(cls) -> "Settings":
         """Liest Konfiguration aus Environment-Variablen."""
@@ -72,6 +77,10 @@ class Settings:
             mail_from=mail_from,
             allowed_origins=allowed_origins,
             enable_docs=enable_docs,
+            ollama_enabled=os.getenv("OLLAMA_ENABLED", "false").lower() == "true",
+            ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434").rstrip("/"),
+            ollama_models=tuple(m.strip() for m in os.getenv("OLLAMA_MODELS", "qwen3:8b").split(",") if m.strip()),
+            ollama_timeout_seconds=float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120")),
         )
 
 # Zentrale Settings-Instanz, importierbar via: from app.config import settings

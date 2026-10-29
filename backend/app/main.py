@@ -41,7 +41,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_check():
     if not settings.openai_api_key:
-        logger.warning("OPENAI_API_KEY missing; LLM features disabled.")
+        logger.warning("OPENAI_API_KEY missing; OpenAI generation unavailable.")
 
 @app.exception_handler(AppError)
 async def handle_app_error(request: Request, exc: AppError):

@@ -23,6 +23,10 @@ services:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/aildb
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL_NAME: ${OPENAI_MODEL_NAME:-gpt-4o}
+      OLLAMA_ENABLED: ${OLLAMA_ENABLED:-false}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODELS: ${OLLAMA_MODELS:-qwen3:8b}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-120}
 
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}

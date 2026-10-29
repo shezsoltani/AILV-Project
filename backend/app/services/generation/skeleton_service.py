@@ -1,3 +1,4 @@
+from ..llm_provider import LLMProvider
 from typing import Optional
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
@@ -14,6 +15,7 @@ async def generate_valid_skeleton(
     expected_count: int,
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ):
     context = dict(base_context)
     last_error: Exception | None = None
@@ -27,6 +29,7 @@ async def generate_valid_skeleton(
             language=language,
             context=context,
             custom_prompt=custom_prompt,
+            llm_provider=llm_provider,
         )
 
         try:
