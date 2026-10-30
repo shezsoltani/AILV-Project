@@ -5,7 +5,7 @@ import json
 from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, ImproveValidationError
 from ..validators.improve_validator import validate_improve
-from .stage_runner import run_stage
+from .stage_runner import StageRunner, run_stage
 
 async def generate_valid_improved_content(
     db: Session,
@@ -14,8 +14,9 @@ async def generate_valid_improved_content(
     original_questions: list[dict],
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
+    stage_runner: Optional[StageRunner] = None,
 ) -> list[dict]:
-
+    runner = run_stage if stage_runner is None else stage_runner
     context = {
         "questions_raw": json.dumps(original_questions, ensure_ascii=False, indent=2)
     }
@@ -23,7 +24,7 @@ async def generate_valid_improved_content(
     last_error: Exception | None = None
 
     for attempt in range(1, max_attempts + 1):
-        llm_response = await run_stage(
+        llm_response = await runner(
             db=db,
             request_id=request_id,
             stage="IMPROVE",

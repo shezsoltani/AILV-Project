@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, SkeletonValidationError
 from ..validators.skeleton_validator import validate_skeleton
-from .stage_runner import run_stage
+from .stage_runner import StageRunner, run_stage
 
 async def generate_valid_skeleton(
     db: Session,
@@ -14,13 +14,15 @@ async def generate_valid_skeleton(
     expected_count: int,
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
+    stage_runner: Optional[StageRunner] = None,
 ):
+    runner = run_stage if stage_runner is None else stage_runner
     context = dict(base_context)
     last_error: Exception | None = None
     difficulty_distribution: dict | None = base_context.get("difficulty_distribution")
 
     for attempt in range(1, max_attempts + 1):
-        llm_response = await run_stage(
+        llm_response = await runner(
             db=db,
             request_id=request_id,
             stage="SKELETON",
