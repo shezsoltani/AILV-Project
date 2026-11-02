@@ -10,9 +10,8 @@ from ...models.generate_models import (
 from .skeleton_service import generate_valid_skeleton
 from .content_service import generate_valid_content
 from .improve_service import generate_valid_improved_content
-from ...persistence.generation_repo import create_generation_request_db, get_generation_request
-from ...persistence.prompt_repo import get_latest_prompt_by_stage
-from ...persistence.generated_questions_repo import store_generated_questions
+from .persistence import QuestionGenerationPersistence, SqlQuestionGenerationPersistence
+from .stage_runner import StageRunner
 from ...core.exceptions import PromptStateError
 
 async def generate_questions(
@@ -22,12 +21,15 @@ async def generate_questions(
     on_progress: Optional[Callable[[int, str], None]] = None,
     existing_request_id: UUID | None = None,
     custom_prompts: Optional[dict[str, str]] = None,
+    persistence: Optional[QuestionGenerationPersistence] = None,
+    stage_runner: Optional[StageRunner] = None,
 ) -> GenerateResponse:
+    persistence = persistence or SqlQuestionGenerationPersistence()
+
     # Request speichern
-    if existing_request_id is not None:
-        db_req = get_generation_request(db, existing_request_id)
-    else:
-        db_req = create_generation_request_db(db, req, user_id)
+    db_req = persistence.create_or_load_request(
+        db, req=req, user_id=user_id, existing_request_id=existing_request_id,
+    )
 
     base_context = {
         "topic": req.topic,
@@ -48,6 +50,7 @@ async def generate_questions(
         expected_count=req.count,
         max_attempts=3,
         custom_prompt=cp.get("SKELETON"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(33, "Grundstruktur wird erstellt")
@@ -63,6 +66,7 @@ async def generate_questions(
         context_text=req.context_text,
         upload_context=req.upload_context,
         custom_prompt=cp.get("CONTENT"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(66, "Inhalte werden generiert")
@@ -75,25 +79,24 @@ async def generate_questions(
         original_questions=content,
         max_attempts=3,
         custom_prompt=cp.get("IMPROVE"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(100, "Fragen werden optimiert")
     
     # letzter Prompt = IMPROVE
-    improve_prompt = get_latest_prompt_by_stage(
-        db=db,
-        request_id=db_req.id,
-        stage="IMPROVE",
+    improve_prompt = persistence.get_latest_prompt(
+        db, request_id=db_req.id, stage="IMPROVE",
     )
-    
+
     if not improve_prompt:
         raise PromptStateError(
             "No IMPROVE prompt found for request"
         )
 
 
-    stored_questions = store_generated_questions(
-        db=db,
+    stored_questions = persistence.store_questions(
+        db,
         request_id=db_req.id,
         prompt_id=improve_prompt.id,
         stage="IMPROVE",

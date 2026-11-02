@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from uuid import UUID
 
 from ..db import SessionLocal
@@ -17,8 +18,11 @@ async def run_questions_job(
     job_id: UUID,
     request_data: dict,
     user_id: UUID,
+    *,
+    session_factory: Callable = SessionLocal,
+    question_batch_runner: Callable = run_question_batches,
 ) -> None:
-    db = SessionLocal()
+    db = session_factory()
     try:
         ensure_job_not_cancelled(db, job_id)
         update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
@@ -29,7 +33,7 @@ async def run_questions_job(
 
         #request_data ist ein Dict aus der DB — **request_data entpackt es als Keyword-Argumente für den Pydantic-Konstruktor
         req = GenerateRequest(**request_data)
-        accumulated_questions, shared_request_id = await run_question_batches(
+        accumulated_questions, shared_request_id = await question_batch_runner(
             job_id=job_id,
             req=req,
             user_id=user_id,
@@ -66,8 +70,11 @@ async def run_slides_job(
     job_id: UUID,
     request_data: dict,
     user_id: UUID,
+    *,
+    session_factory: Callable = SessionLocal,
+    slide_batch_runner: Callable = run_slide_batches,
 ) -> None:
-    db = SessionLocal()
+    db = session_factory()
     try:
         ensure_job_not_cancelled(db, job_id)
         update_job(db, job_id, status="running", progress=0, stage_label="Wird gestartet")
@@ -77,7 +84,7 @@ async def run_slides_job(
             update_job(db, job_id, progress=progress, stage_label=stage_label)
 
         req = SlidesGenerateRequest(**request_data)
-        accumulated_slides, shared_request_id = await run_slide_batches(
+        accumulated_slides, shared_request_id = await slide_batch_runner(
             job_id=job_id,
             req=req,
             user_id=user_id,

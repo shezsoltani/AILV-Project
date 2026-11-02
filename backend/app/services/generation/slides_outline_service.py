@@ -5,7 +5,7 @@ from uuid import UUID
 from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, SlideOutlineValidationError
 from ..validators.slides_outline_validator import validate_slide_outline
-from .stage_runner import run_stage
+from .stage_runner import StageRunner, run_stage
 
 
 async def generate_valid_slides_outline(
@@ -16,12 +16,14 @@ async def generate_valid_slides_outline(
     expected_count: int,
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
+    stage_runner: Optional[StageRunner] = None,
 ) -> list[dict]:
+    runner = run_stage if stage_runner is None else stage_runner
     context = dict(base_context)
     last_error: Exception | None = None
 
     for attempt in range(1, max_attempts + 1):
-        llm_response = await run_stage(
+        llm_response = await runner(
             db=db,
             request_id=request_id,
             stage="SLIDES_OUTLINE",
