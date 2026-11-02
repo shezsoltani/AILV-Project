@@ -45,7 +45,4 @@ async def generate_valid_improved_slides(
             context["previous_error"] = str(e)
             context["attempt"] = attempt
 
-    raise SlidesImproveValidationError(
-        "Failed to generate valid improved slides after "
-        f"{max_attempts} attempts. Last error: {last_error}"
-    )
+    raise last_error

@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.core.exceptions import LLMAPIError, LLMJSONError, SlidesImproveValidationError
+from app.core.exceptions import LLMAPIError, LLMJSONError
 from app.services.generation import (
     content_service,
     improve_service,
@@ -142,9 +142,8 @@ async def test_retry_keeps_validation_and_records_previous_error(case, invalid_r
 
 async def test_retry_limit_and_final_error_are_preserved(case):
     runner = FakeStageRunner(["not json", "still not json", as_json(case.response)])
-    expected_error = SlidesImproveValidationError if case.stage == "SLIDES_IMPROVE" else LLMJSONError
 
-    with pytest.raises(expected_error):
+    with pytest.raises(LLMJSONError):
         await case.generate(
             db=None, request_id=uuid4(), language="de", max_attempts=2, stage_runner=runner,
         )
