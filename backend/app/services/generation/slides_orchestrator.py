@@ -7,6 +7,7 @@ from .slides_outline_service import generate_valid_slides_outline
 from .slides_content_service import generate_valid_slides_content
 from .slides_improve_service import generate_valid_improved_slides
 from .persistence import SlidesGenerationPersistence, SqlSlidesGenerationPersistence
+from .stage_runner import StageRunner
 from ...models.generate_models import GenerateRequest
 from ...core.exceptions import PromptStateError
 
@@ -19,6 +20,7 @@ async def generate_slides(
     existing_request_id: Optional[UUID] = None,
     custom_prompts: Optional[dict[str, str]] = None,
     persistence: Optional[SlidesGenerationPersistence] = None,
+    stage_runner: Optional[StageRunner] = None,
 ) -> SlidesGenerateResponse:
     persistence = persistence or SqlSlidesGenerationPersistence()
 
@@ -55,6 +57,7 @@ async def generate_slides(
         expected_count=req.slide_count,
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_OUTLINE"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(33, "Gliederung wird erstellt")
@@ -67,6 +70,7 @@ async def generate_slides(
         base_context=base_context,
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_CONTENT"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(66, "Folieninhalte werden generiert")
@@ -78,6 +82,7 @@ async def generate_slides(
         content_slides=content,
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_IMPROVE"),
+        stage_runner=stage_runner,
     )
     if on_progress:
         on_progress(100, "Folien werden optimiert")
