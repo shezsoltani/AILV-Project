@@ -105,6 +105,10 @@ export const SlidesGeneratePage: React.FC = () => {
   const isPreviewOpen =
     (form.jobId !== null || generationResponse !== null) &&
     !isModalHidden;
+  const isGenerating =
+    form.jobStatus === 'pending' || form.jobStatus === 'running';
+  const showSkeleton =
+    form.jobId !== null && !generationResponse && form.jobStatus !== 'failed';
 
   function handleSlideChange(index: number, updatedSlide: import('../../types/slides').SlideDraft): void {
     if (!generationResponse) return;
@@ -161,7 +165,7 @@ export const SlidesGeneratePage: React.FC = () => {
         size="large"
         labelledById="slides-preview-title"
       >
-        {form.jobId !== null && !generationResponse ? (
+        {showSkeleton ? (
           <>
             <GenerationSkeleton
               count={1}
@@ -169,20 +173,24 @@ export const SlidesGeneratePage: React.FC = () => {
               progress={form.jobProgress ?? undefined}
               stageLabel={form.jobStageLabel}
             />
-            <div className="slides-preview__actions">
-              <button
-                type="button"
-                className="primary-button danger-button"
-                onClick={async () => {
-                  await form.cancelGeneration();
-                  setGenerationResponse(null);
-                  setIsModalHidden(false);
-                }}
-              >
-                Generierung abbrechen
-              </button>
-            </div>
+            {isGenerating && (
+              <div className="slides-preview__actions">
+                <button
+                  type="button"
+                  className="primary-button danger-button"
+                  onClick={async () => {
+                    await form.cancelGeneration();
+                    setGenerationResponse(null);
+                    setIsModalHidden(false);
+                  }}
+                >
+                  Generierung abbrechen
+                </button>
+              </div>
+            )}
           </>
+        ) : form.jobStatus === 'failed' && !generationResponse ? (
+          <ErrorBanner message={form.submitError} />
         ) : generationResponse ? (
           <>
             <SlidesPreview

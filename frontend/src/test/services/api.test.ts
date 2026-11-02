@@ -16,13 +16,12 @@ describe('API Services', () => {
     difficultyDistribution: { easy: 40, medium: 40, hard: 20 }
   };
 
-  it('generateQuestions sollte den richtigen Endpunkt mit POST aufrufen', async () => {
-    const mockResponse = { 
-      accepted: true,
-      questions: [], 
-      request_id: '123' 
+  it('generateQuestions sollte den richtigen Endpunkt mit POST aufrufen und job_id zurueckgeben', async () => {
+    const mockResponse = {
+      job_id: 'job-123',
+      status: 'pending',
     };
-    
+
     (fetch as any).mockResolvedValue({
       ok: true,
       status: 200,
@@ -30,8 +29,9 @@ describe('API Services', () => {
       text: () => Promise.resolve(JSON.stringify(mockResponse)),
     });
 
-    await generateQuestions(validFormValues);
+    const result = await generateQuestions(validFormValues);
 
+    expect(result).toEqual(mockResponse);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/generate'),
       expect.objectContaining({
@@ -42,9 +42,8 @@ describe('API Services', () => {
 
   it('sollte den gespeicherten Token automatisch als Authorization-Header mitsenden', async () => {
     const mockResponse = {
-      accepted: true,
-      questions: [],
-      request_id: '123'
+      job_id: 'job-123',
+      status: 'pending',
     };
 
     localStorage.setItem('authToken', 'mein-token');
