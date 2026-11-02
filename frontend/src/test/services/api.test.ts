@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateQuestions } from '../../services/questionsApi';
+import {
+  generateQuestions,
+  getArchiveTopics,
+  getArchiveQuestions,
+  updateArchiveQuestions,
+} from '../../services/questionsApi';
 import { loginUser } from '../../services/authApi';
 
 describe('API Services', () => {
@@ -108,6 +113,102 @@ describe('API Services', () => {
     // Wir suchen nur nach dem Hauptteil der Fehlermeldung per Regex.
     // Das 'i' am Ende steht für case-insensitive (Groß-/Kleinschreibung egal).
     await expect(generateQuestions(validFormValues)).rejects.toThrow(/Server kaputt/i);
+  });
+
+  it('getArchiveTopics lädt archivierte Themen', async () => {
+    const mockResponse = {
+      topics: [
+        {
+          request_id: 'req-1',
+          topic: 'Datenbanken',
+          language: 'de',
+          question_count: 2,
+          types: ['SCQ'],
+          created_at: '2026-01-10T10:00:00Z',
+          finalized_at: '2026-01-10T11:00:00Z',
+        },
+      ],
+    };
+
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify(mockResponse)),
+    });
+
+    const result = await getArchiveTopics();
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/archive/topics'),
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('getArchiveQuestions lädt Fragen eines Archiv-Themas', async () => {
+    const mockResponse = {
+      request_id: 'req-1',
+      topic: 'Datenbanken',
+      language: 'de',
+      questions: [
+        {
+          id: 'q1',
+          question: 'Was ist ein Primärschlüssel?',
+          type: 'SHORT_ANSWER',
+          difficulty: 'easy',
+          answer: 'UUID',
+        },
+      ],
+    };
+
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify(mockResponse)),
+    });
+
+    const result = await getArchiveQuestions('req-1');
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/archive/req-1/questions'),
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('updateArchiveQuestions speichert bearbeitete Fragen', async () => {
+    const questions = [
+      {
+        id: 'q1',
+        question: 'Was ist ein Primärschlüssel?',
+        type: 'SHORT_ANSWER' as const,
+        difficulty: 'easy' as const,
+        answer: 'Neue Antwort',
+      },
+    ];
+    const mockResponse = {
+      request_id: 'req-1',
+      topic: 'Datenbanken',
+      language: 'de',
+      questions,
+    };
+
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify(mockResponse)),
+    });
+
+    const result = await updateArchiveQuestions('req-1', questions);
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/archive/req-1/questions'),
+      expect.objectContaining({ method: 'PUT' }),
+    );
   });
 
 });

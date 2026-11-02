@@ -28,4 +28,16 @@ describe('EditableQuestionCard Interactions', () => {
     const input = screen.getByDisplayValue('Wien');
     expect(input).toHaveAttribute('readOnly');
   });
+
+  it('sollte leere Fragetexte weitergeben (Validierung erfolgt serverseitig)', () => {
+    const mockOnChange = vi.fn();
+    render(<EditableQuestionCard question={mockQuestion as any} onQuestionChange={mockOnChange} />);
+
+    const questionInput = screen.getByDisplayValue('Was ist die Hauptstadt?');
+    fireEvent.change(questionInput, { target: { value: '' } });
+
+    expect(mockOnChange).toHaveBeenCalledWith(
+      expect.objectContaining({ question: '', answer: 'Wien' }),
+    );
+  });
 });
