@@ -18,26 +18,26 @@ class SlidesGenerateRequestValidator:
         topic = req.topic.strip()
         if len(topic) < MIN_TOPIC_LENGTH:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"topic muss mindestens {MIN_TOPIC_LENGTH} Zeichen enthalten (nach trim).",
             )
         if len(topic) > MAX_TOPIC_LENGTH:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"topic darf maximal {MAX_TOPIC_LENGTH} Zeichen enthalten (nach trim).",
             )
 
         # Anzahl prüfen
         if not (MIN_SLIDE_COUNT <= req.slide_count <= MAX_SLIDE_COUNT):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"slide_count muss zwischen {MIN_SLIDE_COUNT} und {MAX_SLIDE_COUNT} liegen.",
             )
 
         # 3) Sprache prüfen
         if req.language.value not in ALLOWED_LANGUAGES:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Unbekannte Sprache: {req.language.value}. Erlaubt: {ALLOWED_LANGUAGES}",
             )
 

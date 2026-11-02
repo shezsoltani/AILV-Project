@@ -13,14 +13,14 @@ class GenerateRequestValidator:
         # 1) Typen erlauben only
         if not req.types:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="types muss mindestens einen Fragetyp enthalten.",
             )
 
         for t in req.types:
             if t not in ALLOWED_TYPES:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail=f"Unerlaubter Fragetyp: {t}",
                 )
 
@@ -29,14 +29,14 @@ class GenerateRequestValidator:
         if not keys <= ALLOWED_DIFFICULTIES:
             extra = keys - ALLOWED_DIFFICULTIES
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Unbekannte difficulty keys: {sorted(list(extra))}",
             )
 
         total = sum(int(v) for v in req.difficulty_distribution.values())
         if total != 100:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"difficulty_distribution muss insgesamt 100 ergeben (aktuell {total}).",
             )
 

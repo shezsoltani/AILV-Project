@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 from contextlib import contextmanager
 from uuid import uuid4
 
@@ -105,3 +106,16 @@ def _isolated_session(connection):
 def db_session(db_connection):
     with _isolated_session(db_connection) as session:
         yield session
+
+
+@pytest.fixture
+def tmp_path(tmp_path):
+    """Überschreibt die eingebaute Fixture: Testdateien werden nach jedem Test entfernt.
+
+    Pytest löscht ``tmp_path`` standardmäßig erst Sitzungen später und behält
+    Verzeichnisse fehlgeschlagener Tests. Hier wird das Verzeichnis nach jedem
+    Test sofort entfernt, auch bei Fehlschlägen. Dateitests verwenden
+    ausschließlich diese Fixture (keine absoluten oder produktiven Pfade).
+    """
+    yield tmp_path
+    shutil.rmtree(tmp_path, ignore_errors=True)

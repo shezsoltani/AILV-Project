@@ -66,6 +66,18 @@ App-Overrides werden ebenfalls zurückgesetzt. Den synchronen Client und die
 Session innerhalb eines Tests nacheinander verwenden, nicht parallel.
 Hintergrundjobs mit eigener `SessionLocal` benötigen weiterhin einen Test-Double.
 
+## Fortschritt und Dateiverarbeitung
+
+- `tests/fakes/progress_recorder.py`: `ProgressRecorder` ersetzt den
+  `on_progress(progress, stage_label)`-Callback (z. B. bei `generate_questions`,
+  `run_question_batches`). Er speichert alle Meldungen in Aufrufreihenfolge;
+  Assertions: `assert_progress([...])`, `assert_messages([...])`,
+  `assert_events([(33, "Text"), ...])`, `assert_event(index, progress, message)`.
+  Beispiele stehen in `tests/unit/test_progress_recorder.py`.
+- Dateitests verwenden ausschließlich `tmp_path`. Die Fixture ist in
+  `tests/conftest.py` so erweitert, dass das Verzeichnis nach jedem Test sofort
+  entfernt wird, auch bei Fehlschlägen. Keine absoluten oder produktiven Pfade.
+
 Nur den Smoke-Test ausführen (ohne Datenbankstart):
 
 ```shell
