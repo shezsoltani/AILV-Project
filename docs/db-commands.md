@@ -155,6 +155,107 @@ WHERE t.used = FALSE AND t.expires_at > NOW();
 
 ---
 
+## Migrationen (bestehende Datenbanken)
+
+`db-init/*.sql` wird von Postgres nur ausgeführt, wenn das Datenbank-Volume **leer** ist. Bei einer bereits vorhandenen Datenbank müssen Änderungen deshalb als Migration aus `db-migrations/` eingespielt werden. Das Volume wird dafür **nicht** gelöscht.
+
+> Nur auf der eigenen lokalen Datenbank oder einer Testdatenbank ausführen. Ein Umbau einer gemeinsamen oder produktiven Datenbank erfolgt nur nach Abstimmung im Team.
+
+### Aktuelle Migrationen
+
+| Nr. | Datei | Inhalt |
+|---|---|---|
+| 001 | `001_add_courses.up.sql` / `.down.sql` | Tabellen `courses` und `question_courses` (Lehrveranstaltungen, SCRUM-7) |
+
+### Ablauf (UP)
+
+Voraussetzung: Die DB läuft (`docker-compose up -d db`). Im Projektordner:
+
+```bash
+# 1. Sicherung der gesamten Datenbank (empfohlen, vor jeder Migration)
+docker-compose exec -T db pg_dump -U postgres -d aildb > backup_vor_001.sql
+
+# 2. Migration einspielen (bricht bei einem Fehler ab, nichts wird halb übernommen)
+docker-compose exec -T db psql -U postgres -d aildb -v ON_ERROR_STOP=1 < db-migrations/001_add_courses.up.sql
+
+# 3. Ergebnis prüfen
+docker-compose exec db psql -U postgres -d aildb -c "\d courses" -c "\d question_courses"
+```
+
+PowerShell (Windows) kennt `<` nicht; dort stattdessen:
+
+```powershell
+Get-Content db-migrations\001_add_courses.up.sql | docker-compose exec -T db psql -U postgres -d aildb -v ON_ERROR_STOP=1
+```
+
+**Erwartetes Ergebnis:**
+
+- Die Ausgabe endet mit `COMMIT`.
+- `\d courses` und `\d question_courses` zeigen die neuen Tabellen.
+- Alle bisherigen Fragen haben dieselbe ID und `request_id`, aber noch keine LV:
+
+```sql
+SELECT count(*) FROM questions;          -- gleiche Anzahl wie vor der Migration
+SELECT count(*) FROM courses;            -- 0
+SELECT count(*) FROM question_courses;   -- 0
+```
+
+Die Migration ist idempotent: Ein zweiter Lauf zeigt nur Hinweise „already exists, skipping“ und ändert nichts.
+
+### Rücknahme (DOWN)
+
+**Achtung:** Dabei gehen alle LVs und alle Zuordnungen Frage ↔ LV verloren. Fragen, Requests und User bleiben unverändert. Vorher nur die LV-Tabellen sichern:
+
+```bash
+# 1. Sicherung der LV-Daten
+docker-compose exec -T db pg_dump -U postgres -d aildb -t courses -t question_courses --data-only --column-inserts > backup_lv.sql
+
+# 2. Rücknahme
+docker-compose exec -T db psql -U postgres -d aildb -v ON_ERROR_STOP=1 < db-migrations/001_add_courses.down.sql
+```
+
+**LV-Daten wiederherstellen** (wenn die Rücknahme ein Versehen war): erst die Migration (UP) erneut einspielen, dann die Sicherung:
+
+```bash
+docker-compose exec -T db psql -U postgres -d aildb -v ON_ERROR_STOP=1 < db-migrations/001_add_courses.up.sql
+docker-compose exec -T db psql -U postgres -d aildb -v ON_ERROR_STOP=1 < backup_lv.sql
+```
+
+### Migration automatisch testen
+
+Das Skript legt eigene Wegwerf-Datenbanken (`mig_test_old`, `mig_test_new`) mit Testdaten an, führt UP, ein zweites UP, das Löschverhalten und DOWN aus, vergleicht die Datensätze vorher/nachher und löscht die Testdatenbanken wieder. Es berührt `aildb` nicht.
+
+```bash
+# Postgres-Client (psql, pg_dump) wird benötigt; Port 5432 der Docker-DB ist freigegeben
+PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres bash db-migrations/test_001_courses.sh
+```
+
+Erwartete letzte Zeile: `ALLE TESTS BESTANDEN`.
+
+Voraussetzungen: `bash` sowie die PostgreSQL-Clientprogramme `psql` und `pg_dump` auf dem Rechner (unter Windows z. B. Git Bash und eine PostgreSQL-Client-Installation). Das Skript wurde mit PostgreSQL 16 geprüft.
+
+### Abfragen zu Lehrveranstaltungen
+
+```sql
+-- Alle LVs eines Users mit Anzahl zugeordneter Fragen
+SELECT c.id, c.name, count(qc.question_id) AS fragen
+FROM courses c LEFT JOIN question_courses qc ON qc.course_id = c.id
+WHERE c.user_id = 'user-uuid-hier'
+GROUP BY c.id, c.name ORDER BY c.name;
+
+-- Fragen ohne LV
+SELECT q.id, q.request_id, q.stem FROM questions q
+LEFT JOIN question_courses qc ON qc.question_id = q.id
+WHERE qc.question_id IS NULL;
+
+-- Fragen einer LV
+SELECT q.id, q.request_id, q.stem FROM questions q
+JOIN question_courses qc ON qc.question_id = q.id
+WHERE qc.course_id = 'course-uuid-hier';
+```
+
+---
+
 ## Datenbank zurücksetzen
 
 ```bash

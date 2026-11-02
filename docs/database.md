@@ -320,8 +320,8 @@ Begründung:
 
 - Eine LV gehört genau einem User (`courses.user_id`), analog zu `slide_decks.user_id`.
 - Eine Zuordnung ist nur erlaubt, wenn **beides** zutrifft:
-    1. `courses.user_id = aktueller User`
-    2. Besitzer der Frage (über `questions.request_id → generation_requests.user_id`) = aktueller User
+  1. `courses.user_id = aktueller User`
+  2. Besitzer der Frage (über `questions.request_id → generation_requests.user_id`) = aktueller User
 - Es gibt **keine** benutzerübergreifende Freigabe und keine Übertragung von LVs. Das wird nicht stillschweigend eingeführt; falls gewünscht, ist es ein eigenes Ticket.
 - Zwei verschiedene User dürfen gleich benannte LVs haben (Eindeutigkeit gilt pro User).
 - Wird ein User gelöscht, werden seine LVs und deren Zuordnungen per `CASCADE` entfernt (Fragen werden ohnehin über die Requests mitgelöscht).
@@ -386,56 +386,56 @@ Primärschlüssel: (`question_id`, `course_id`) – verhindert doppelte Zuordnun
 | Request-IDs | unverändert, `questions.request_id` wird nicht angefasst |
 | Bisherige Archivaufrufe | `GET /api/archive/topics` ohne neue Parameter und `GET /api/archive/{request_id}/questions` liefern dasselbe wie bisher (neue Antwortfelder sind nur zusätzlich) |
 
-### 7. Vorlage für SCRUM-7 (SQL)
+### 7. Umsetzung (SCRUM-7)
 
-Für neue Datenbanken in `db-init/01_tables.sql` ergänzen, für bestehende Datenbanken als separate Migration ausführen (die `db-init`-Skripte laufen nur bei leerer DB):
+| Was | Wo |
+|---|---|
+| SQLAlchemy-Modelle `Course`, `QuestionCourse`, Beziehung `Question.courses` | `backend/app/models/sql_models.py` |
+| Neue Installation (leere DB) | `db-init/01_tables.sql` (nach der Tabelle `questions`) |
+| Bestehende Datenbanken (Migration) | `db-migrations/001_add_courses.up.sql` |
+| Rücknahme der Migration | `db-migrations/001_add_courses.down.sql` |
+| Automatischer Test von Migration und Rücknahme | `db-migrations/test_001_courses.sh` |
+| Ausführbare Anleitung | `docs/db-commands.md`, Abschnitt „Migrationen“ |
 
-```sql
-CREATE TABLE IF NOT EXISTS courses (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    CONSTRAINT chk_course_name_not_blank CHECK (length(btrim(name)) > 0)
-);
+**Eigenschaften des Schemas**
 
-CREATE INDEX IF NOT EXISTS idx_courses_user_id ON courses(user_id);
-CREATE UNIQUE INDEX IF NOT EXISTS uq_courses_user_name ON courses(user_id, lower(name));
+- Nur zwei neue Tabellen. Keine bestehende Tabelle wird geändert, es gibt keinen Pflichtwert für bestehende Fragen.
+- `question_courses`: Primärschlüssel (`question_id`, `course_id`) verhindert doppelte Zuordnungen.
+- `courses`: Eindeutigkeit pro Benutzer über `(user_id, lower(name))`; ein leerer oder nur aus Leerzeichen bestehender Name wird von der Datenbank abgelehnt (`chk_course_name_not_blank`).
+- Indizes: `idx_courses_user_id` (Filter „meine LVs“), `idx_question_courses_course_id` (Filter „Fragen einer LV“). Die Suche nach den LVs einer Frage wird vom Primärschlüssel abgedeckt.
+- **Löschverhalten:** `ON DELETE CASCADE` gilt ausschließlich für die Zuordnungstabelle (LV löschen, Frage löschen, Request löschen oder User löschen entfernt Zuordnungszeilen). Es gibt keine Kaskade von `courses` nach `questions`. Im ORM ist deshalb bewusst kein `cascade="delete"` auf `Course.questions` gesetzt.
+- Der Eigentümercheck (Frage und LV gehören demselben User) wird in der Service-Schicht von SCRUM-8 geprüft, nicht in der Datenbank.
 
-CREATE TABLE IF NOT EXISTS question_courses (
-    question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
-    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    PRIMARY KEY (question_id, course_id)
-);
+**Migrationsverfahren**
 
-CREATE INDEX IF NOT EXISTS idx_question_courses_course_id ON question_courses(course_id);
-```
+Das Projekt nutzt kein Migrationswerkzeug (z. B. Alembic). Bis ein anderes Verfahren mit InnoLab3 abgestimmt ist, gilt:
 
-SQLAlchemy-Modelle für `backend/app/models/sql_models.py`:
+- Migrationen liegen im Ordner `db-migrations/` (nicht in `db-init/`, denn alles in `db-init/` wird bei einer leeren Datenbank automatisch mit ausgeführt).
+- Dateiname: `NNN_beschreibung.up.sql` und `NNN_beschreibung.down.sql`, fortlaufend nummeriert.
+- Jede Migration ist additiv, idempotent (`IF NOT EXISTS`) und läuft in einer Transaktion.
+- Aufrufreihenfolge, Sicherung und Rücknahme: siehe `docs/db-commands.md`.
 
-```python
-from sqlalchemy import PrimaryKeyConstraint  # zusätzlich zu den bestehenden Imports
+**Geprüftes Ergebnis auf einer Testdatenbank** (3 User, 6 Requests, 6 Prompts, 30 Fragen, 3 Decks)
 
-class Course(Base):
-    __tablename__ = "courses"
-    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
-    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    name = Column(String(255), nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    user = relationship("User")
+| Prüfung | Ergebnis |
+|---|---|
+| Anzahl und Inhalt (inkl. IDs und `request_id`) aller bisherigen Datensätze vorher/nachher | identisch |
+| Bestehende Fragen nach der Migration | keine LV, weiterhin abfragbar |
+| Migration ein zweites Mal ausführen | kein Fehler |
+| Dieselbe Frage in zwei LVs | möglich, ohne Kopie |
+| Doppelte Zuordnung, doppelter LV-Name (auch anders geschrieben), leerer LV-Name | von der Datenbank abgelehnt |
+| Gleicher LV-Name bei verschiedenen Benutzern | erlaubt |
+| LV löschen | Zuordnungen weg, alle Fragen bleiben |
+| Frage oder Archiv-Eintrag löschen | Zuordnungen weg, LV bleibt |
+| Struktur Neuinstallation (`01_tables.sql`) vs. migrierte DB | identisch |
+| Rücknahme (DOWN) | LV-Tabellen entfernt, alle übrigen Daten unverändert |
+| Rücknahme: neue LVs und Zuordnungen | **gehen verloren**; mit Sicherung wiederherstellbar (UP, dann Sicherung einspielen) |
 
-
-class QuestionCourse(Base):
-    __tablename__ = "question_courses"
-    question_id = Column(Uuid, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
-    course_id = Column(Uuid, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    __table_args__ = (PrimaryKeyConstraint("question_id", "course_id"),)
-```
+Getestet mit PostgreSQL 16 (das Projekt nutzt `postgres:15`; die verwendeten SQL-Funktionen sind identisch). Das Skript `db-migrations/test_001_courses.sh` wiederholt alle Prüfungen auf Wegwerf-Datenbanken.
 
 ### 8. Noch offen (nicht als beschlossen zu behandeln)
 
 - Ob beim Finalisieren direkt LVs mitgegeben werden dürfen (Vorschlag: nein, erst nachträglich zuordnen).
 - Ob Folien-Decks später ebenfalls LVs bekommen (nicht Teil dieses Tickets).
-- Konkrete Schnittstelle (Feldnamen, Statuscodes): Abstimmung mit der API-Umsetzung in `docs/api.md`.
+- Konkrete Schnittstelle (Feldnamen, Statuscodes): Abstimmung mit der API-Umsetzung (SCRUM-8) in `docs/api.md`.
+- Ob und wann das Migrationsverfahren auf ein Werkzeug wie Alembic umgestellt wird (Abstimmung mit InnoLab3). Bis dahin gilt `db-migrations/`.

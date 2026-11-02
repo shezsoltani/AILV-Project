@@ -1,5 +1,5 @@
 # app/models/sql_models.py
-from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, String, Text, TIMESTAMP, func, Integer, ForeignKey, Boolean, Index, CheckConstraint, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Uuid
@@ -98,6 +98,37 @@ class Question(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     generation_request = relationship("GenerationRequest")
     prompt = relationship("PromptEntry")
+    # Optionale Zuordnung zu LVs (N:M, SCRUM-6). Keine Kaskade: Loeschen entfernt nur Zuordnungszeilen.
+    courses = relationship("Course", secondary="question_courses", back_populates="questions", passive_deletes=True)
+
+
+class Course(Base):
+    """Lehrveranstaltung (LV). Gehoert genau einem Benutzer (user_id)."""
+    __tablename__ = "courses"
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    # Bewusst KEIN cascade="delete": Loeschen einer LV loescht nie Fragen, nur Zuordnungen.
+    questions = relationship("Question", secondary="question_courses", back_populates="courses", passive_deletes=True)
+
+    __table_args__ = (
+        CheckConstraint("length(btrim(name)) > 0", name="chk_course_name_not_blank"),
+        Index("uq_courses_user_name", "user_id", func.lower(name), unique=True),
+    )
+
+
+class QuestionCourse(Base):
+    """Zuordnung Frage <-> LV. Primaerschluessel verhindert doppelte Zuordnungen."""
+    __tablename__ = "question_courses"
+    question_id = Column(Uuid, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(Uuid, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    __table_args__ = (PrimaryKeyConstraint("question_id", "course_id"),)
+
 
 class GeneratedSlide(Base):
     __tablename__ = "generated_slides"
