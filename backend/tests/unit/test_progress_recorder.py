@@ -17,10 +17,16 @@ from uuid import uuid4
 import pymupdf
 import pytest
 
+from app.core.exceptions import PromptStateError
 from app.models.generate_models import GenerateRequest
 from app.models.slides_models import SlidesGenerateRequest
 from app.services.context_upload.pdf_service import extract_text_from_pdf
 from tests.fakes.progress_recorder import ProgressEvent, ProgressRecorder
+from tests.fakes.fake_generation_persistence import (
+    FakeGenerationRequest,
+    FakeQuestionGenerationPersistence,
+    PromptLookupCall,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -376,25 +382,30 @@ async def test_orchestrator_reports_progress_to_recorder(monkeypatch, orchestrat
     async def fake_stage(**kwargs):
         return []
 
-    monkeypatch.setattr(
-        orchestrator, "get_generation_request", lambda db, rid: type("R", (), {"id": rid})()
-    )
+    class NoPromptPersistence(FakeQuestionGenerationPersistence):
+        def get_latest_prompt(self, db, *, request_id, stage):
+            self.prompt_lookup_calls.append(PromptLookupCall(request_id, stage))
+            return None
+
+    persistence = NoPromptPersistence(request=FakeGenerationRequest(id=request_id))
     monkeypatch.setattr(orchestrator, "generate_valid_skeleton", fake_stage)
     monkeypatch.setattr(orchestrator, "generate_valid_content", fake_stage)
     monkeypatch.setattr(orchestrator, "generate_valid_improved_content", fake_stage)
     # Kein IMPROVE-Prompt -> Abbruch nach der Fortschrittsmeldung, ohne Datenbank.
-    monkeypatch.setattr(orchestrator, "get_latest_prompt_by_stage", lambda **kwargs: None)
     recorder = ProgressRecorder()
 
-    with pytest.raises(Exception, match="IMPROVE"):
+    with pytest.raises(PromptStateError, match="IMPROVE"):
         await orchestrator.generate_questions(
             _question_request(count=2),
-            db=object(),
+            db=None,
             user_id=uuid4(),
             on_progress=recorder,
             existing_request_id=request_id,
+            persistence=persistence,
         )
 
+    assert persistence.prompt_lookup_calls == [PromptLookupCall(request_id, "IMPROVE")]
+    assert persistence.store_calls == []
     recorder.assert_events(
         [
             (33, "Grundstruktur wird erstellt"),

@@ -21,12 +21,19 @@ IMPROVED_QUESTIONS = QUESTIONS
 
 OUTLINE = [
     {"position": 1, "slide_type": "title", "title": "Datenbanken"},
-    {"position": 2, "slide_type": "closing", "title": "Zusammenfassung"},
+    {"position": 2, "slide_type": "content", "title": "Tabellen"},
+    {"position": 3, "slide_type": "content", "title": "Primaerschluessel"},
+    {"position": 4, "slide_type": "content", "title": "Beziehungen"},
+    {"position": 5, "slide_type": "closing", "title": "Zusammenfassung"},
 ]
 SLIDES = [
     {**OUTLINE[0], "bullets": ["Einführung in Datenbanken"], "examples": []},
     {**OUTLINE[1], "bullets": ["Tabellen strukturieren Daten", "Schlüssel verbinden Tabellen"], "examples": []},
 ]
+SLIDES.extend(
+    {**slide, "bullets": [slide["title"]], "examples": []}
+    for slide in OUTLINE[2:]
+)
 IMPROVED_SLIDES = SLIDES
 
 
@@ -67,7 +74,7 @@ def make_question_request(**overrides):
 
 
 def make_slides_request(**overrides):
-    return SlidesGenerateRequest(topic="Datenbanken", slide_count=2, **overrides)
+    return SlidesGenerateRequest(topic="Datenbanken", slide_count=len(OUTLINE), **overrides)
 
 
 async def test_generate_questions_runs_with_fake_persistence_and_no_db(stub_question_stages):
@@ -132,6 +139,7 @@ async def test_generate_slides_runs_with_fake_persistence_and_no_db(stub_slides_
     response = await slides_orchestrator.generate_slides(req, db=None, user_id=user_id, persistence=fake)
 
     assert response.status == "ok"
+    assert len(response.slides) == req.slide_count
     assert response.request_id == fake.request.id
     assert [s.title for s in response.slides] == [s["title"] for s in IMPROVED_SLIDES]
 
