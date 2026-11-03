@@ -5,6 +5,7 @@ from ...models.generate_models import GeneratedQuestion
 from ...models.sql_models import GenerationRequest
 from ...core.exceptions import ArchiveNotFoundError, ArchiveServiceError
 from ...persistence.archive_repo import get_questions_by_request_id, update_archive_questions
+from ...persistence.course_repo import get_course_ids_for_questions
 from fastapi import HTTPException
 
 
@@ -120,6 +121,8 @@ def update_questions_for_request(
 
         # Fragen neu laden für Response
         updated_questions = get_questions_by_request_id(db, request_id)
+        question_ids = [q.id for q in updated_questions]
+        courses_map = get_course_ids_for_questions(db, question_ids)
 
         mapped_questions = [
             GeneratedQuestion(
@@ -132,6 +135,7 @@ def update_questions_for_request(
                 correct_indices=q.correct_indices,
                 answer=q.answer,
                 rationale=q.rationale,
+                course_ids=courses_map.get(q.id, []),
             )
             for q in updated_questions
         ]

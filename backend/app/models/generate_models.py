@@ -35,6 +35,7 @@ class GeneratedQuestion(BaseModel):
     correct_indices: Optional[List[int]] = None
     answer: Optional[str] = None  # for SHORT_ANSWER: correct answer
     rationale: Optional[str] = None
+    course_ids: List[UUID] = Field(default_factory=list)
 
 class GenerateResponse(BaseModel):
     accepted: bool

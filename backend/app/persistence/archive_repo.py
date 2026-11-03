@@ -3,12 +3,17 @@
 
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
-from ..models.sql_models import GenerationRequest, Question
+from ..models.sql_models import GenerationRequest, Question, QuestionCourse
 
 # Holt ein Thema und alle zugehörigen finalisierten Fragen aus der Datenbank
-def get_archive_questions(db: Session, request_id: UUID) -> tuple[GenerationRequest | None, List[Question]]:
+def get_archive_questions(
+    db: Session,
+    request_id: UUID,
+    course_ids: Optional[List[UUID]] = None,
+    unassigned: bool = False,
+) -> tuple[GenerationRequest | None, List[Question]]:
     generation_request = (
         db.query(GenerationRequest)
         .filter(GenerationRequest.id == request_id)
@@ -19,9 +24,26 @@ def get_archive_questions(db: Session, request_id: UUID) -> tuple[GenerationRequ
     if not generation_request:
         return None, []
     
-    questions = (
+    query = (
         db.query(Question)
         .filter(Question.request_id == request_id)
+    )
+
+    if course_ids:
+        query = query.filter(
+            Question.id.in_(
+                db.query(QuestionCourse.question_id).filter(
+                    QuestionCourse.course_id.in_(course_ids)
+                )
+            )
+        )
+    elif unassigned:
+        query = query.filter(
+            ~Question.id.in_(db.query(QuestionCourse.question_id))
+        )
+
+    questions = (
+        query
         .order_by(Question.created_at.asc())
         .all()
     )

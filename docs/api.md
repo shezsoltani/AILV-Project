@@ -168,18 +168,19 @@ Verschiebt generierte Fragen aus dem temporären Speicher ins Archiv. Die Fragen
 
 | Methode | Pfad | Beschreibung |
 |---------|------|--------------|
-| `GET`    | `/api/archive/topics` | Eigene finalisierte Themen (optional `?q=Suchbegriff`) |
-| `GET`    | `/api/archive/{request_id}/questions` | Alle Fragen eines Themas |
+| `GET`    | `/api/archive/topics` | Eigene finalisierte Themen (optional `?q=Suchbegriff`, `?course_id=...`, `?unassigned=true`) |
+| `GET`    | `/api/archive/{request_id}/questions` | Alle Fragen eines Themas (optional `?course_id=...`, `?unassigned=true`) |
 | `PUT`    | `/api/archive/{request_id}/questions` | Fragen eines Themas aktualisieren |
 | `DELETE` | `/api/archive/{request_id}` | Themen-Eintrag löschen |
+| `PUT` / `PATCH` | `/api/archive/questions/{question_id}/courses` | Vollständige LV-Zuordnung einer Frage setzen oder entfernen |
 
 ---
 
 ## Lehrveranstaltungen (LV)
 
-> **Status:** Das Datenmodell ist von der Product Ownerin bestätigt (Variante B: keine bis mehrere LVs pro Frage, Fragen ohne LV erlaubt, LV nur mit Bezeichnung; siehe `docs/database.md`). Die konkreten Felder, Pfade und Statuscodes unten sind ein **Vorschlag**, der noch mit der API-Umsetzung (SCRUM-7/SCRUM-8) abgestimmt wird.
+> **Status:** Umgesetzt in SCRUM-30 (Modell: SCRUM-6 / Migration: SCRUM-7, Variante B: keine bis mehrere LVs pro Frage, Fragen ohne LV erlaubt, LV mit Bezeichnung).
 
-Alle Endpunkte erfordern einen JWT. Es sind ausschließlich **eigene** LVs und **eigene** Fragen erreichbar. Fehlerantworten haben wie bisher die Form `{"detail": "..."}`.
+Alle Endpunkte erfordern einen JWT als Bearer-Token. Es sind ausschließlich **eigene** LVs und **eigene** Fragen erreichbar. Fremde oder unbekannte IDs werden einheitlich mit `404` beantwortet, um ID-Enumeration zu verhindern. Fehlerantworten haben die Form `{"detail": "..."}`.
 
 ### Felder
 
@@ -187,42 +188,101 @@ Alle Endpunkte erfordern einen JWT. Es sind ausschließlich **eigene** LVs und *
 |------|-----|--------------|
 | `id` | `uuid` | ID der LV |
 | `name` | `string` | Bezeichnung, 1–255 Zeichen nach dem Trimmen, eindeutig pro User (ohne Beachtung von Groß-/Kleinschreibung) |
-| `created_at` | `datetime` | Zeitstempel |
-| `question_count` | `integer` | Anzahl zugeordneter Fragen (nur in der Listenantwort) |
-| `course_ids` | `array<uuid>` | LV-IDs einer Frage (Antwortfeld, zusätzlich) |
+| `created_at` | `datetime` | Zeitstempel der Erstellung |
+| `question_count` | `integer` | Anzahl zugeordneter Fragen (in der LV-Listen-/Detailantwort) |
+| `course_ids` | `array<uuid>` | LV-IDs einer Frage (Antwortfeld in archivierten Fragen) |
 
 ### LVs verwalten
 
 | Methode | Pfad | Beschreibung |
 |---------|------|--------------|
-| `GET`    | `/api/courses` | Eigene LVs inkl. `question_count` |
-| `POST`   | `/api/courses` | LV anlegen |
-| `PUT`    | `/api/courses/{course_id}` | LV umbenennen |
-| `DELETE` | `/api/courses/{course_id}` | LV löschen (entfernt nur die Zuordnungen, keine Fragen) |
+| `GET`    | `/api/courses` | Eigene LVs auflisten inkl. `question_count` |
+| `POST`   | `/api/courses` | Neue LV anlegen |
+| `GET`    | `/api/courses/{course_id}` | Einzelne LV anzeigen |
+| `PUT` / `PATCH` | `/api/courses/{course_id}` | LV umbenennen |
+| `DELETE` | `/api/courses/{course_id}` | LV löschen (entfernt nur die Zuordnungen in `question_courses`, keine Fragen) |
 
-**Beispiel – LV anlegen**
+#### Beispiel 1: LV anlegen
 ```http
 POST /api/courses
 Authorization: Bearer eyJ...
 Content-Type: application/json
 
-{ "name": "Mathematik 1" }
+{
+  "name": "Mathematik 1"
+}
 ```
-**Response `201`:**
+**Response `201 Created`:**
 ```json
-{ "id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41", "name": "Mathematik 1", "created_at": "2026-11-01T10:00:00Z", "question_count": 0 }
+{
+  "id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41",
+  "name": "Mathematik 1",
+  "created_at": "2026-11-01T10:00:00Z",
+  "question_count": 0
+}
 ```
 
-**Antwort `DELETE` `200`:**
+#### Beispiel 2: LVs auflisten
+```http
+GET /api/courses
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
 ```json
-{ "success": true, "course_id": "uuid", "removed_assignments": 12 }
+[
+  {
+    "id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41",
+    "name": "Mathematik 1",
+    "created_at": "2026-11-01T10:00:00Z",
+    "question_count": 2
+  }
+]
 ```
 
-### Fragen einer LV zuordnen
+#### Beispiel 3: LV umbenennen
+```http
+PATCH /api/courses/3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
+Authorization: Bearer eyJ...
+Content-Type: application/json
 
-`PUT /api/archive/questions/{question_id}/courses` setzt die **vollständige** Menge der LVs einer Frage (idempotent). Eine leere Liste entfernt alle Zuordnungen; die Frage bleibt bestehen.
+{
+  "name": "Höhere Mathematik 1"
+}
+```
+*(Auch via `PUT /api/courses/3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41` möglich)*
 
-**Beispiel – dieselbe Frage in Mathematik und Statistik, ohne Kopie**
+**Response `200 OK`:**
+```json
+{
+  "id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41",
+  "name": "Höhere Mathematik 1",
+  "created_at": "2026-11-01T10:00:00Z",
+  "question_count": 2
+}
+```
+
+#### Beispiel 4: LV löschen
+```http
+DELETE /api/courses/3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "success": true,
+  "course_id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41",
+  "removed_assignments": 2
+}
+```
+
+---
+
+### Fragen einer LV zuordnen & Zuordnung entfernen
+
+`PUT /api/archive/questions/{question_id}/courses` (oder `PATCH`) setzt die **vollständige** Menge der LVs einer Frage (idempotent).
+Eine leere Liste entfernt alle Zuordnungen; die Frage bleibt dabei vollständig bestehen.
+
+#### Beispiel 1: Frage einer oder mehreren LVs zuordnen
 ```http
 PUT /api/archive/questions/9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55/courses
 Authorization: Bearer eyJ...
@@ -235,7 +295,7 @@ Content-Type: application/json
   ]
 }
 ```
-**Response `200`:**
+**Response `200 OK`:**
 ```json
 {
   "question_id": "9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55",
@@ -246,6 +306,26 @@ Content-Type: application/json
 }
 ```
 
+#### Beispiel 2: Zuordnung entfernen (Frage wieder ohne LV)
+```http
+PUT /api/archive/questions/9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55/courses
+Authorization: Bearer eyJ...
+Content-Type: application/json
+
+{
+  "course_ids": []
+}
+```
+**Response `200 OK`:**
+```json
+{
+  "question_id": "9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55",
+  "course_ids": []
+}
+```
+
+---
+
 ### Archiv filtern
 
 `GET /api/archive/topics` und `GET /api/archive/{request_id}/questions` erhalten optionale Query-Parameter:
@@ -255,45 +335,85 @@ Content-Type: application/json
 | `course_id` | `uuid`, mehrfach erlaubt | nur Fragen, die **mindestens einer** der angegebenen LVs zugeordnet sind (ODER-Verknüpfung) |
 | `unassigned` | `boolean` (Standard `false`) | nur Fragen **ohne** LV |
 
-Beide lassen sich weiterhin mit `q` kombinieren (UND-Verknüpfung). Bei `/archive/topics` werden nur Themen mit mindestens einer passenden Frage geliefert, `question_count` zählt dann nur die passenden Fragen. Die Antwort von `/archive/{request_id}/questions` enthält pro Frage zusätzlich `course_ids`.
+Beide lassen sich weiterhin mit `q` kombinieren (UND-Verknüpfung).
+- Bei `GET /api/archive/topics` werden nur Themen mit mindestens einer passenden Frage geliefert. `question_count` zählt dann nur die passenden Fragen dieses Themas.
+- Bei `GET /api/archive/{request_id}/questions` enthält jede Frage in der Antwortliste das Feld `course_ids: [...]`. Wenn für das Thema keine Fragen auf den Filter zutreffen, wird `200 OK` mit einer leeren Fragenliste `{"questions": []}` zurückgegeben.
 
-**Beispiel – Filterung nach LV und Suchbegriff**
+#### Beispiel 1: Themen nach einer LV filtern
 ```http
-GET /api/archive/topics?course_id=3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41&q=Ableitung
+GET /api/archive/topics?course_id=3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "topics": [
+    {
+      "request_id": "7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41",
+      "topic": "Lineare Algebra",
+      "language": "de",
+      "question_count": 2,
+      "types": ["SCQ"],
+      "created_at": "2026-11-01T10:15:00Z",
+      "finalized_at": "2026-11-01T10:16:00Z"
+    }
+  ]
+}
+```
+
+#### Beispiel 2: Themen nach Fragen ohne LV filtern
+```http
+GET /api/archive/topics?unassigned=true
 Authorization: Bearer eyJ...
 ```
 
-**Beispiel – Fragen ohne LV**
+#### Beispiel 3: Fragen eines Themas nach LV filtern
 ```http
-GET /api/archive/topics?unassigned=true
+GET /api/archive/7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41/questions?course_id=3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "request_id": "7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41",
+  "topic": "Lineare Algebra",
+  "language": "de",
+  "questions": [
+    {
+      "id": "9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55",
+      "question": "Was ist der Rang einer Matrix?",
+      "type": "SCQ",
+      "difficulty": "medium",
+      "choices": ["Dimension des Spaltenraums", "Spur der Matrix", "Determinante", "Anzahl der Zeilen"],
+      "correct_index": 0,
+      "correct_indices": null,
+      "answer": null,
+      "rationale": "Der Rang entspricht der Dimension des von den Spaltenvektoren aufgespannten Vektorraums.",
+      "course_ids": ["3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41"]
+    }
+  ]
+}
 ```
 
-Ohne die neuen Parameter ist das Verhalten unverändert, `request_id` und der Pfad bleiben gleich.
+---
 
 ### Verhalten bei Sonderfällen
 
 | Fall | Antwort |
 |------|---------|
-| `name` leer oder nur Leerzeichen | `422` |
-| `name` länger als 255 Zeichen | `422` |
-| LV-Name existiert für diesen User bereits (auch in anderer Schreibweise) | `409` |
-| `course_id` unbekannt | `404` |
-| `course_id` gehört einem anderen User | `404` (gleiche Antwort wie „unbekannt“, damit keine fremden IDs bestätigt werden) |
-| `question_id` unbekannt oder fremd | `404` |
-| `course_ids` enthält eine unbekannte oder fremde ID | `404` für den **gesamten** Aufruf; es wird nichts geändert |
+| `name` leer oder nur Leerzeichen | `422 Unprocessable Entity` |
+| `name` länger als 255 Zeichen | `422 Unprocessable Entity` |
+| LV-Name existiert für diesen User bereits (auch in anderer Schreibweise) | `409 Conflict` |
+| `course_id` unbekannt oder gehört anderem User | `404 Not Found` (einheitliche Antwort, keine Preisgabe fremder IDs) |
+| `question_id` unbekannt oder fremd | `404 Not Found` |
+| `course_ids` enthält eine unbekannte oder fremde ID | `404 Not Found` für den **gesamten** Aufruf; es wird atomar nichts geändert |
 | `course_ids` enthält Duplikate | werden ignoriert (Menge) |
 | `course_ids` leer | gültig, entfernt alle Zuordnungen |
-| Ungültige UUID | `422` |
-| `course_id` und `unassigned=true` gleichzeitig | `422` (widersprüchlich) |
-| Filter mit unbekannter/fremder `course_id` | `404` |
-| LV existiert, aber keine passende Frage | `200` mit leerer Liste |
-| Kein JWT | `401` |
-
-### Offene Punkte (nicht beschlossen)
-
-- Fremde Ressourcen liefern bei den neuen Endpunkten `404`, während `routes_archive.py` bisher `403` verwendet. Konsistenz oder Nicht-Preisgabe: noch zu entscheiden.
-- Optionales Bulk-Zuordnen (`POST /api/courses/{course_id}/questions` mit `question_ids`) ist nicht Teil des Vorschlags.
-- Ob `/api/finalize` direkt `course_ids` annehmen darf (Vorschlag: nein).
+| Ungültige UUID | `422 Unprocessable Entity` |
+| `course_id` und `unassigned=true` gleichzeitig | `422 Unprocessable Entity` (widersprüchlich) |
+| Filter mit unbekannter/fremder `course_id` | `404 Not Found` |
+| LV existiert, aber keine passende Frage im Filter | `200 OK` mit leerer Liste |
+| Kein JWT | `401 Unauthorized` |
 
 ---
 
@@ -392,25 +512,25 @@ Extrahiert den Text aus einer PDF-Datei und gibt ihn zurück. Der Text kann ansc
 | `GET` | `/docs` | Interaktive API-Dokumentation (Swagger UI) |
 
 
-## KI-Auswahl f?r Fragen (SCRUM-5)
+## KI-Auswahl für Fragen (SCRUM-5)
 
-`POST /api/generate` akzeptiert zus?tzlich `provider` (`openai` oder `ollama`)
+`POST /api/generate` akzeptiert zusätzlich `provider` (`openai` oder `ollama`)
 und `model` (z. B. `qwen3:8b`). Ohne Auswahl bleibt OpenAI der Standard.
-Die aufgel?ste Auswahl wird in den Job-Eingaben gespeichert. Nicht freigegebene
+Die aufgelöste Auswahl wird in den Job-Eingaben gespeichert. Nicht freigegebene
 Anbieter oder Modelle werden vor dem Jobstart mit HTTP 422 abgelehnt.
 
-`GET /api/generation/models` ben?tigt wie die Generierung eine Anmeldung und liefert:
+`GET /api/generation/models` benötigt wie die Generierung eine Anmeldung und liefert:
 
 ```json
 {"models": [{"provider": "ollama", "model": "qwen3:8b", "available": true, "reason": null}]}
 ```
 
-Die Liste enth?lt nur serverseitig freigegebene Modelle. OpenAI-Verf?gbarkeit
+Die Liste enthält nur serverseitig freigegebene Modelle. OpenAI-Verfügbarkeit
 bedeutet hier: API-Key vorhanden (keine kostenpflichtige Probe). Bei Ollama werden
-Erreichbarkeit und Installation gepr?ft; dies garantiert noch keine erfolgreiche
-Generierung bei hoher Auslastung. Der Browser ?bergibt keine Serveradresse.
+Erreichbarkeit und Installation geprüft; dies garantiert noch keine erfolgreiche
+Generierung bei hoher Auslastung. Der Browser übergibt keine Serveradresse.
 
 Lokal in `.env`: `OLLAMA_ENABLED=true`. Weitere Einstellungen stehen in
 `.env.example`: `OLLAMA_BASE_URL`, `OLLAMA_MODELS` (kommagetrennt) und
-`OLLAMA_TIMEOUT_SECONDS`. Nach ?nderungen: `docker compose up -d backend`.
+`OLLAMA_TIMEOUT_SECONDS`. Nach Änderungen: `docker compose up -d backend`.
 Ohne Freischaltung bleibt Ollama deaktiviert. Kein automatischer Wechsel zu OpenAI.

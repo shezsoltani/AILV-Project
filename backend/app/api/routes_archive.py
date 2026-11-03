@@ -1,7 +1,7 @@
 # backend\app\api\routes_archive.py
 # API-Endpunkte für das Archiv finalisierter Fragen
 
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -14,6 +14,11 @@ from ..models.archive_models import (
     UpdateArchiveQuestionsRequest,
     ArchiveDeleteResponse,
 )
+from ..models.course_models import (
+    QuestionCoursesAssignmentRequest,
+    QuestionCoursesAssignmentResponse,
+)
+from ..services import course_service
 from ..services.archive.archive_delete_service import delete_archive_entry
 from ..services.archive.archive_read_service import (
     get_all_finalized_topics,
@@ -29,20 +34,36 @@ router = APIRouter()
 @router.get("/archive/topics", response_model=ArchiveTopicsResponse)
 def get_archive_topics(
     q: Optional[str] = Query(default=None, description="Optionaler Suchbegriff für Titel und Frageninhalte"),
+    course_id: Optional[List[UUID]] = Query(default=None, description="Filter nach LV-IDs"),
+    unassigned: bool = Query(default=False, description="Filter nach Fragen ohne LV"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ArchiveTopicsResponse:
+    if course_id and unassigned:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Parameters 'course_id' and 'unassigned' cannot be used together.",
+        )
     # Gibt finalisierte Themen zurück – gefiltert nach q, falls angegeben
-    return get_all_finalized_topics(db, user_id=current_user.id, q=q)
+    return get_all_finalized_topics(
+        db, user_id=current_user.id, q=q, course_ids=course_id, unassigned=unassigned
+    )
 
 
 @router.get("/archive/{request_id}/questions", response_model=ArchiveQuestionsResponse)
 def get_archive_questions_endpoint(
     request_id: UUID,
+    course_id: Optional[List[UUID]] = Query(default=None, description="Filter nach LV-IDs"),
+    unassigned: bool = Query(default=False, description="Filter nach Fragen ohne LV"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> ArchiveQuestionsResponse:
-     # Ownership Check
+    if course_id and unassigned:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Parameters 'course_id' and 'unassigned' cannot be used together.",
+        )
+    # Ownership Check
     generation_request = (
         db.query(GenerationRequest)
         .filter(GenerationRequest.id == request_id)
@@ -58,7 +79,22 @@ def get_archive_questions_endpoint(
             detail="Not allowed to access this resource",
         )
     # Holt alle finalisierten Fragen zu einem bestimmten Thema
-    return get_questions_for_request(db, request_id)
+    return get_questions_for_request(
+        db, request_id, course_ids=course_id, unassigned=unassigned, user_id=current_user.id
+    )
+
+
+@router.put("/archive/questions/{question_id}/courses", response_model=QuestionCoursesAssignmentResponse)
+@router.patch("/archive/questions/{question_id}/courses", response_model=QuestionCoursesAssignmentResponse)
+def assign_question_courses_endpoint(
+    question_id: UUID,
+    payload: QuestionCoursesAssignmentRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> QuestionCoursesAssignmentResponse:
+    return course_service.assign_courses_to_question(
+        db, current_user.id, question_id, payload
+    )
 
 
 @router.put("/archive/{request_id}/questions", response_model=ArchiveQuestionsResponse)
