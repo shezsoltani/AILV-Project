@@ -105,6 +105,7 @@ backend/tests/
 │   ├── conftest.py          # Setzt Pflicht-Env-Variablen für Unit-Tests
 │   ├── test_auth_service.py
 │   ├── test_batch_runner.py
+│   ├── test_course_models.py
 │   ├── test_database_safety.py
 │   ├── test_fake_llm_provider.py
 │   ├── test_progress_recorder.py
@@ -118,6 +119,7 @@ backend/tests/
 └── integration/
     ├── test_app_smoke.py
     ├── test_api_fixtures.py
+    ├── test_courses_api.py
     └── test_database.py
 ```
 
@@ -239,6 +241,8 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 | `user_factory(**overrides)` | Erstellt weitere Benutzer pro Test |
 | `request_data` | Gültige Generierungs-Anfragedaten (auch ohne DB verwendbar) |
 | `test_generation_request` | Gespeicherter `GenerationRequest` des `test_user` |
+| `auth_headers` | Authorization-Header mit Bearer-Token für beliebige Testbenutzer |
+| `two_users_dataset` | Vollständiges Zwei-Benutzer-Szenario (Benutzer A mit 2 LVs und Fragen mit/ohne Zuordnung, Benutzer B mit eigener LV und Fragen) für Isolations- und Rechteschutz-Tests (SCRUM-34) |
 | `tmp_path` | Überschreibt die eingebaute pytest-Fixture: löscht temporäre Dateien sofort nach jedem Test, auch bei Fehlschlägen |
 
 ---
@@ -259,6 +263,7 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 
 | Bereich | Status | Hinweis |
 |---|---|---|
+| Lehrveranstaltungen (`/api/courses`, `/api/archive/*`) | ✅ vollständig | CRUD, Zwei-Benutzer-Isolation, Rechteschutz vor Fremdzugriff, Filterkombinationen, Kaskadenprüfung und Migrationskompatibilität (`test_courses_api.py`) |
 | Authentifizierungs-Endpunkte (`/auth/*`) | ⚠️ teilweise | Unit Tests für Service-Schicht vorhanden; HTTP-Integrationstests fehlen noch |
 | Passwort-Reset-Flow (vollständiger E2E-Fluss) | 🔲 geplant | Token-Erstellung und E-Mail werden bereits Unit-getestet |
 | LLM-Generierung unter Fehlerbedingungen | ⚠️ teilweise | Batch-Runner getestet; Orchestrator-Integrationstests fehlen |

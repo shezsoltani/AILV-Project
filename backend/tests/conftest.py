@@ -4,6 +4,16 @@ import shutil
 from contextlib import contextmanager
 from uuid import uuid4
 
+# app.config liest beim Modulimport Pflicht-Variablen aus der Umgebung.
+os.environ.setdefault('JWT_SECRET_KEY', 'test-secret-not-for-production')
+os.environ.setdefault('JWT_ALGORITHM', 'HS256')
+os.environ.setdefault('OPENAI_API_KEY', '')
+os.environ.setdefault('SMTP_HOST', 'smtp.example.invalid')
+os.environ.setdefault('SMTP_PORT', '587')
+os.environ.setdefault('SMTP_USER', 'test')
+os.environ.setdefault('SMTP_PASSWORD', 'test')
+os.environ.setdefault('MAIL_FROM', 'tests@example.com')
+
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine, make_url
@@ -119,3 +129,4 @@ def tmp_path(tmp_path):
     """
     yield tmp_path
     shutil.rmtree(tmp_path, ignore_errors=True)
+

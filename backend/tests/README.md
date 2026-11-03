@@ -22,6 +22,7 @@ Nach dem ersten Build:
 
 ```shell
 docker compose -f compose.test.yml run --rm tests tests/integration/test_database.py -v
+docker compose -f compose.test.yml run --rm tests tests/integration/test_courses_api.py -v
 docker compose -f compose.test.yml run --rm tests tests/unit -q
 ```
 
@@ -57,6 +58,8 @@ Startdaten, die nur in `db-init` definiert sind, werden damit nicht abgebildet.
 - `smoke_client`: App-Start und `/health` ohne Datenbank; DB-Endpunkte sind gesperrt.
 - `test_user`, `test_password`: gespeicherter Benutzer mit bekanntem Testpasswort.
 - `user_factory(**overrides)`: weitere Benutzer pro Test anlegen.
+- `auth_headers`: Authorization-Header mit Bearer-Token für beliebige Testbenutzer.
+- `two_users_dataset`: Vollständiges Zwei-Benutzer-Szenario (Benutzer A mit 2 LVs und Fragen mit/ohne Zuordnung, Benutzer B mit eigener LV und Fragen) für Isolations- und Rechteschutz-Tests (SCRUM-34).
 - `request_data`: gültige Request-Daten, auch ohne Datenbank verwendbar.
 - `test_generation_request`: gespeicherter Request des `test_user`.
 

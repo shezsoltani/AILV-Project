@@ -47,3 +47,12 @@ def client(app, db_session):
 def smoke_client(app):
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def auth_headers():
+    def _headers(user):
+        from app.core.auth_utils import create_access_token
+        token = create_access_token({'sub': str(user.id)})
+        return {'Authorization': f'Bearer {token}'}
+    return _headers

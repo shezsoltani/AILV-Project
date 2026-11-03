@@ -433,9 +433,16 @@ Das Projekt nutzt kein Migrationswerkzeug (z. B. Alembic). Bis ein anderes Verfa
 
 Getestet mit PostgreSQL 16 (das Projekt nutzt `postgres:15`; die verwendeten SQL-Funktionen sind identisch). Das Skript `db-migrations/test_001_courses.sh` wiederholt alle Prüfungen auf Wegwerf-Datenbanken.
 
-### 8. Noch offen (nicht als beschlossen zu behandeln)
+### 8. Stand und verifizierte Prüfungen (SCRUM-34)
 
-- Ob beim Finalisieren direkt LVs mitgegeben werden dürfen (Vorschlag: nein, erst nachträglich zuordnen).
-- Ob Folien-Decks später ebenfalls LVs bekommen (nicht Teil dieses Tickets).
-- Konkrete Schnittstelle (Feldnamen, Statuscodes): Abstimmung mit der API-Umsetzung (SCRUM-8) in `docs/api.md`.
+- **Lehrveranstaltungs-Modell & API:** Vollständig umgesetzt in `routes_courses.py`, `routes_archive.py`, `course_service.py` und `course_repo.py` (SCRUM-30).
+- **Zwei-Benutzer-Isolation & Rechteschutz:** Vollständig automatisiert geprüft (`tests/integration/test_courses_api.py`). Fremde LVs und fremde Fragen liefern einheitlich `404` (bzw. `403` bei fremden Generation-Requests); fremde Inhalte werden unter keinen Umständen preisgegeben.
+- **Kaskaden- und Löschverhalten:** Nachgewiesen, dass `DELETE /api/courses/{id}` ausschließlich die Zuordnungszeilen in `question_courses` entfernt (`removed_assignments`), alle Fragen in `questions` bleiben vollständig erhalten.
+- **Rückwärtskompatibilität & Migration:** Vorhandene Testdaten ohne LVs bleiben ohne Einschränkung abfragbar (`course_ids: []`), Request-IDs und Fragen-IDs bleiben 1:1 identisch. Das Migrationsskript `db-migrations/test_001_courses.sh` sowie alle 246 Tests der Suite sind grün.
+- **Frontend-Übergabe:** Beispielanfragen, Antwortstrukturen und Fehlercodes für Sprint 2 sind in `docs/api.md` dokumentiert.
+
+### 9. Noch offen (künftige Sprints)
+
+- Ob beim Finalisieren direkt LVs mitgegeben werden dürfen (Vorschlag: erst nachträglich zuordnen).
+- Ob Folien-Decks später ebenfalls LVs bekommen (nicht Teil von Sprint 1).
 - Ob und wann das Migrationsverfahren auf ein Werkzeug wie Alembic umgestellt wird (Abstimmung mit InnoLab3). Bis dahin gilt `db-migrations/`.

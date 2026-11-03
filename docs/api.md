@@ -239,6 +239,21 @@ Authorization: Bearer eyJ...
 ]
 ```
 
+#### Beispiel 2b: Einzelne LV anzeigen
+```http
+GET /api/courses/3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "id": "3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41",
+  "name": "Mathematik 1",
+  "created_at": "2026-11-01T10:00:00Z",
+  "question_count": 2
+}
+```
+
 #### Beispiel 3: LV umbenennen
 ```http
 PATCH /api/courses/3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41
@@ -395,6 +410,90 @@ Authorization: Bearer eyJ...
 }
 ```
 
+#### Beispiel 4: Fragen eines Themas nach Fragen ohne LV filtern
+```http
+GET /api/archive/7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41/questions?unassigned=true
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "request_id": "7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41",
+  "topic": "Lineare Algebra",
+  "language": "de",
+  "questions": [
+    {
+      "id": "4e7a1c20-1b2c-3d4e-5f6a-7b8c9d0e1f2a",
+      "question": "Was ist eine Basis eines Vektorraums?",
+      "type": "SHORT_ANSWER",
+      "difficulty": "hard",
+      "choices": null,
+      "correct_index": null,
+      "correct_indices": null,
+      "answer": "Ein linear unabhängiges Erzeugendensystem.",
+      "rationale": "Jeder Vektor lässt sich eindeutig als Linearkombination der Basisvektoren darstellen.",
+      "course_ids": []
+    }
+  ]
+}
+```
+
+#### Beispiel 5: Fragen eines Themas ungefiltert (Standard / Rückwärtskompatibilität)
+```http
+GET /api/archive/7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41/questions
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "request_id": "7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41",
+  "topic": "Lineare Algebra",
+  "language": "de",
+  "questions": [
+    {
+      "id": "9a1c7e20-5b3d-4f88-a2c4-7e6d0b1f3a55",
+      "question": "Was ist der Rang einer Matrix?",
+      "type": "SCQ",
+      "difficulty": "medium",
+      "choices": ["Dimension des Spaltenraums", "Spur der Matrix", "Determinante", "Anzahl der Zeilen"],
+      "correct_index": 0,
+      "correct_indices": null,
+      "answer": null,
+      "rationale": "Der Rang entspricht der Dimension des von den Spaltenvektoren aufgespannten Vektorraums.",
+      "course_ids": ["3f2b8c1e-0a6d-4c52-9f0e-1d7a5b9c2e41"]
+    },
+    {
+      "id": "4e7a1c20-1b2c-3d4e-5f6a-7b8c9d0e1f2a",
+      "question": "Was ist eine Basis eines Vektorraums?",
+      "type": "SHORT_ANSWER",
+      "difficulty": "hard",
+      "choices": null,
+      "correct_index": null,
+      "correct_indices": null,
+      "answer": "Ein linear unabhängiges Erzeugendensystem.",
+      "rationale": "Jeder Vektor lässt sich eindeutig als Linearkombination der Basisvektoren darstellen.",
+      "course_ids": []
+    }
+  ]
+}
+```
+
+#### Beispiel 6: Filter ohne Treffer (leere Fragenliste)
+```http
+GET /api/archive/7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41/questions?course_id=c84d1a77-92be-4e0f-b3a6-5f1e2d9c8b10
+Authorization: Bearer eyJ...
+```
+**Response `200 OK`:**
+```json
+{
+  "request_id": "7b1f3a55-5b3d-4f88-a2c4-9a1c7e202e41",
+  "topic": "Lineare Algebra",
+  "language": "de",
+  "questions": []
+}
+```
+*(Hinweis für Frontend: Gibt bei gültiger, aber nicht zutreffender LV `200 OK` mit leerem `questions`-Array zurück, kein 404).*
+
 ---
 
 ### Verhalten bei Sonderfällen
@@ -414,6 +513,45 @@ Authorization: Bearer eyJ...
 | Filter mit unbekannter/fremder `course_id` | `404 Not Found` |
 | LV existiert, aber keine passende Frage im Filter | `200 OK` mit leerer Liste |
 | Kein JWT | `401 Unauthorized` |
+
+#### Typische Fehlerantworten für die Frontend-Arbeit:
+
+- **404 Not Found** (fremde oder unbekannte `course_id` oder `question_id`):
+  ```json
+  {
+    "detail": "Course not found"
+  }
+  ```
+- **403 Forbidden** (Zugriffsversuch auf fremden Archiv-Request):
+  ```json
+  {
+    "detail": "Not allowed to access this resource"
+  }
+  ```
+- **409 Conflict** (LV-Name für diesen Benutzer bereits vergeben):
+  ```json
+  {
+    "detail": "A course with this name already exists"
+  }
+  ```
+- **422 Unprocessable Entity** (widersprüchliche Parameter `course_id` und `unassigned=true` gleichzeitig):
+  ```json
+  {
+    "detail": "Parameters 'course_id' and 'unassigned' cannot be used together."
+  }
+  ```
+- **422 Unprocessable Entity** (leerer oder ungültiger LV-Name):
+  ```json
+  {
+    "detail": [
+      {
+        "loc": ["body", "name"],
+        "msg": "Course name cannot be empty",
+        "type": "value_error"
+      }
+    ]
+  }
+  ```
 
 ---
 
