@@ -1,8 +1,9 @@
 // src/services/questionsApi.ts
-// API-Calls für Fragen: generieren, abschließen und archivierte Inhalte laden.
+// API-Aufrufe für Fragengenerierung, Finalisierung und Fragenarchiv.
 
 import type { GenerateRequestFormValues } from '../types/generate';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
+
 import type {
   FinalizeRequest,
   FinalizeResponse,
@@ -10,33 +11,51 @@ import type {
   ArchiveQuestionsResponse,
   ArchiveDeleteResponse,
 } from '../types/api';
+
 import type { JobCreateResponse } from '../types/jobs';
+
 import { toNumber } from '../utils/numberUtils';
 import { apiCall, API_BASE_URL } from './apiClient';
 
-// Startet die asynchrone Generierung von Fragen.
+// Startet die asynchrone Fragengenerierung.
+// Anbieter, Modell und sämtliche bisherigen Formulareingaben
+// werden gemeinsam als JSON an das Backend übergeben.
 export async function generateQuestions(
-  formValues: GenerateRequestFormValues
+  formValues: GenerateRequestFormValues,
 ): Promise<JobCreateResponse> {
-  // Formularwerte in das Format umwandeln, das das Backend erwartet.
   const payload = {
     topic: formValues.topic,
     language: formValues.language,
+
+    // Ohne explizite Auswahl bleibt OpenAI der Standard.
+    provider: formValues.provider ?? 'openai',
+
+    // Ohne Modellangabe löst das Backend das Standardmodell auf.
+    ...(formValues.model ? { model: formValues.model } : {}),
+
     count: toNumber(formValues.count),
     types: formValues.types,
+
     difficulty_distribution: {
       easy: toNumber(formValues.difficultyDistribution.easy),
       medium: toNumber(formValues.difficultyDistribution.medium),
       hard: toNumber(formValues.difficultyDistribution.hard),
     },
-    // Optionale Felder: nur mitsenden, wenn befüllt
-    ...(formValues.contextText && { context_text: formValues.contextText }),
-    ...(formValues.uploadContext && { upload_context: formValues.uploadContext }),
-    ...(formValues.customPrompts && { custom_prompts: formValues.customPrompts }),
+
+    ...(formValues.contextText
+      ? { context_text: formValues.contextText }
+      : {}),
+
+    ...(formValues.uploadContext
+      ? { upload_context: formValues.uploadContext }
+      : {}),
+
+    ...(formValues.customPrompts
+      ? { custom_prompts: formValues.customPrompts }
+      : {}),
   };
 
-  // Das Backend startet die Generierung asynchron und gibt sofort job_id + status zurück.
-  return await apiCall<JobCreateResponse>(
+  return apiCall<JobCreateResponse>(
     `${API_BASE_URL}/api/generate`,
     {
       method: 'POST',
@@ -44,15 +63,15 @@ export async function generateQuestions(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-    }
+    },
   );
 }
 
-// Schließt eine Fragensitzung ab und speichert sie permanent.
+// Schließt eine Fragensitzung ab und speichert sie im Archiv.
 export async function finalizeQuestions(
-  payload: FinalizeRequest
+  payload: FinalizeRequest,
 ): Promise<FinalizeResponse> {
-  return await apiCall<FinalizeResponse>(
+  return apiCall<FinalizeResponse>(
     `${API_BASE_URL}/api/finalize`,
     {
       method: 'POST',
@@ -60,73 +79,77 @@ export async function finalizeQuestions(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-    }
+    },
   );
 }
 
-// Lädt alle Themen aus dem Fragen-Archiv, optional gefiltert nach Suchbegriff.
-export async function getArchiveTopics(searchTerm?: string): Promise<ArchiveTopicsResponse> {
+// Lädt die Themen aus dem Fragenarchiv.
+// Ein optionaler Suchbegriff wird als Query-Parameter übergeben.
+export async function getArchiveTopics(
+  searchTerm?: string,
+): Promise<ArchiveTopicsResponse> {
   const url = new URL(`${API_BASE_URL}/api/archive/topics`);
-  if (searchTerm && searchTerm.trim()) {
-    url.searchParams.set('q', searchTerm.trim());
+  const trimmedSearchTerm = searchTerm?.trim();
+
+  if (trimmedSearchTerm) {
+    url.searchParams.set('q', trimmedSearchTerm);
   }
-  return await apiCall<ArchiveTopicsResponse>(url.toString(), { method: 'GET' });
+
+  return apiCall<ArchiveTopicsResponse>(url.toString(), {
+    method: 'GET',
+  });
 }
 
-// Lädt alle generierten Fragen zu einer bestimmten Archiv-ID.
+// Lädt die archivierten Fragen eines Eintrags.
 export async function getArchiveQuestions(
-  requestId: string
+  requestId: string,
 ): Promise<ArchiveQuestionsResponse> {
-  return await apiCall<ArchiveQuestionsResponse>(
-    `${API_BASE_URL}/api/archive/${requestId}/questions`,
+  return apiCall<ArchiveQuestionsResponse>(
+    `${API_BASE_URL}/api/archive/${encodeURIComponent(requestId)}/questions`,
     {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    },
   );
 }
 
-// Aktualisiert bearbeitete Fragen in einem bestehenden Archiv-Eintrag.
+// Speichert bearbeitete Fragen eines Archiveintrags.
 export async function updateArchiveQuestions(
   requestId: string,
-  questions: GeneratedQuestion[]
+  questions: GeneratedQuestion[],
 ): Promise<ArchiveQuestionsResponse> {
   const payload = {
-    questions: questions.map((q) => ({
-      id: q.id,
-      difficulty: q.difficulty,
-      question: q.question,
-      choices: q.choices,
-      correct_index: q.correct_index,
-      correct_indices: q.correct_indices,
-      answer: q.answer,
-      rationale: q.rationale,
+    questions: questions.map((question) => ({
+      id: question.id,
+      difficulty: question.difficulty,
+      question: question.question,
+      choices: question.choices,
+      correct_index: question.correct_index,
+      correct_indices: question.correct_indices,
+      answer: question.answer,
+      rationale: question.rationale,
     })),
   };
 
-  return await apiCall<ArchiveQuestionsResponse>(
-    `${API_BASE_URL}/api/archive/${requestId}/questions`,
+  return apiCall<ArchiveQuestionsResponse>(
+    `${API_BASE_URL}/api/archive/${encodeURIComponent(requestId)}/questions`,
     {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-    }
+    },
   );
 }
 
-// Löscht einen kompletten Eintrag aus dem Fragen-Archiv.
-export async function deleteArchiveEntry(requestId: string): Promise<ArchiveDeleteResponse> {
-  return await apiCall<ArchiveDeleteResponse>(
-    `${API_BASE_URL}/api/archive/${requestId}`,
+// Löscht einen vollständigen Archiveintrag.
+export async function deleteArchiveEntry(
+  requestId: string,
+): Promise<ArchiveDeleteResponse> {
+  return apiCall<ArchiveDeleteResponse>(
+    `${API_BASE_URL}/api/archive/${encodeURIComponent(requestId)}`,
     {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    },
   );
 }

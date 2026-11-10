@@ -1,45 +1,94 @@
 // src/hooks/questions/useGenerateForm.ts
-// Verwaltet Formular-State, Validierung und Eingabeverarbeitung
+// Verwaltet Formularzustand, Validierung und KI-Modellauswahl.
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useEffect, useState } from 'react';
+import type {
+  ChangeEvent,
+  FocusEvent,
+  FormEvent,
+  KeyboardEvent,
+} from 'react';
+
 import type {
   GenerateRequestFormValues,
   Language,
   QuestionType,
 } from '../../types/generate';
+
 import { DEFAULT_FORM_VALUES } from '../../constants/formConstants';
-import { validate, type ValidationErrors } from '../../validators/generateValidator';
+import {
+  validate,
+  type ValidationErrors,
+} from '../../validators/generateValidator';
 import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
+
+import {
+  getGenerationModels,
+  type GenerationModel,
+  type GenerationProvider,
+} from '../../services/generationModelsApi';
 
 interface UseGenerateFormProps {
   onSubmit?: (values: GenerateRequestFormValues) => void;
   isLoading?: boolean;
 }
 
+interface DisplayValues {
+  count: string;
+  difficultyEasy: string;
+  difficultyMedium: string;
+  difficultyHard: string;
+}
+
+type DifficultyKey = 'easy' | 'medium' | 'hard';
+
+const DIFFICULTY_DISPLAY_KEYS = {
+  easy: 'difficultyEasy',
+  medium: 'difficultyMedium',
+  hard: 'difficultyHard',
+} as const;
+
+function getDifficultyKey(name: string): DifficultyKey | null {
+  switch (name) {
+    case 'difficultyDistribution.easy':
+      return 'easy';
+    case 'difficultyDistribution.medium':
+      return 'medium';
+    case 'difficultyDistribution.hard':
+      return 'hard';
+    default:
+      return null;
+  }
+}
+
 export interface UseGenerateFormReturn {
+  models: GenerationModel[];
+  modelsLoading: boolean;
+  modelsError: string | null;
+  selectionError: string | null;
+  selectionValid: boolean;
+
+  reloadModels: () => void;
+  setProvider: (provider: GenerationProvider) => void;
+  setModel: (model: string) => void;
+
   formValues: GenerateRequestFormValues;
-  // String-Werte für Eingabefelder (separat von formValues für Anzeige während Eingabe)
-  displayValues: {
-    count: string;
-    difficultyEasy: string;
-    difficultyMedium: string;
-    difficultyHard: string;
-  };
+  displayValues: DisplayValues;
   errors: ValidationErrors;
   showSuccessMessage: boolean;
   isLoading: boolean;
+
   handleInputChange: (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    event: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => void;
-  // Wird aufgerufen, wenn Benutzer ein Eingabefeld verlässt
-  handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
-  // Pfeiltasten-Handler für Zahlenfelder (↑/↓)
-  handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+
+  handleBlur: (event: FocusEvent<HTMLInputElement>) => void;
+  handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   handleLanguageChange: (event: ChangeEvent<HTMLSelectElement>) => void;
-  // Toggelt Fragetyp (hinzufügen/entfernen)
   handleTypeToggle: (type: QuestionType) => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  // Wird von T3.2.3 (PDF-Upload) genutzt, um uploadContext zu setzen
   setUploadContext: (value: string | undefined) => void;
 }
 
@@ -47,202 +96,457 @@ export const useGenerateForm = ({
   onSubmit,
   isLoading = false,
 }: UseGenerateFormProps): UseGenerateFormReturn => {
-  // Formularwerte (typisiert: Zahlen als Zahlen, Strings als Strings)
   const [formValues, setFormValues] =
-    useState<GenerateRequestFormValues>(DEFAULT_FORM_VALUES);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
+    useState<GenerateRequestFormValues>(() => ({
+      ...DEFAULT_FORM_VALUES,
+      types: [...DEFAULT_FORM_VALUES.types],
+      difficultyDistribution: {
+        ...DEFAULT_FORM_VALUES.difficultyDistribution,
+      },
+      provider: DEFAULT_FORM_VALUES.provider ?? 'openai',
+      model: DEFAULT_FORM_VALUES.model ?? '',
+    }));
 
-  const [displayValues, setDisplayValues] = useState({
+  const [displayValues, setDisplayValues] = useState<DisplayValues>({
     count: String(DEFAULT_FORM_VALUES.count),
     difficultyEasy: String(DEFAULT_FORM_VALUES.difficultyDistribution.easy),
     difficultyMedium: String(DEFAULT_FORM_VALUES.difficultyDistribution.medium),
     difficultyHard: String(DEFAULT_FORM_VALUES.difficultyDistribution.hard),
   });
 
-  // Aktualisiert formValues und validiert sofort
-  const updateFormValues = (updater: (prev: GenerateRequestFormValues) => GenerateRequestFormValues) => {
-    setFormValues((prev) => {
-      const next = updater(prev);
-      setErrors(validate(next));
-      return next;
-    });
-  };
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [validationStarted, setValidationStarted] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  // Verarbeitet Zahlenfelder (count und difficultyDistribution)
-  const handleNumericField = (name: string, value: string) => {
-    const cleanedValue = sanitizeToDigitsOnly(value);
-    
-    if (name === 'count') {
-      setDisplayValues((prev) => ({ ...prev, count: cleanedValue }));
-      if (cleanedValue === '') {
-        updateFormValues((prev) => ({ ...prev, count: '' }));
-      } else {
-        const numValue = Number(cleanedValue);
-        if (!Number.isNaN(numValue)) {
-          updateFormValues((prev) => ({ ...prev, count: numValue }));
+  const [models, setModels] = useState<GenerationModel[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [modelsReload, setModelsReload] = useState(0);
+
+  // Nach der ersten Eingabe werden Änderungen laufend validiert.
+  // Der State-Updater selbst bleibt frei von weiteren State-Änderungen.
+  useEffect(() => {
+    if (validationStarted) {
+      setErrors(validate(formValues));
+    }
+  }, [formValues, validationStarted]);
+
+  // Optionen ausschließlich vom Backend laden.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadModels = async (): Promise<void> => {
+      setModelsLoading(true);
+      setModelsError(null);
+      setSelectionError(null);
+
+      try {
+        const response = await getGenerationModels();
+
+        if (cancelled) return;
+
+        const nextModels = response.models;
+
+        setModels(nextModels);
+
+        setFormValues((previous) => {
+          const currentProvider = previous.provider ?? 'openai';
+
+          const providerExists = nextModels.some(
+            (entry) => entry.provider === currentProvider,
+          );
+
+          // Einen vorhandenen Anbieter bei erneuter Prüfung beibehalten.
+          // Bei Ausfall nicht unbemerkt auf einen anderen Anbieter wechseln.
+          const provider = providerExists
+            ? currentProvider
+            : (
+                nextModels.find((entry) => entry.provider === 'openai') ??
+                nextModels[0]
+              )?.provider ?? 'openai';
+
+          const availableModels = nextModels.filter(
+            (entry) => entry.provider === provider && entry.available,
+          );
+
+          const currentModel = availableModels.find(
+            (entry) => entry.model === previous.model,
+          );
+
+          const model =
+            currentModel?.model ?? availableModels[0]?.model ?? '';
+
+          if (
+            previous.provider === provider &&
+            previous.model === model
+          ) {
+            return previous;
+          }
+
+          return {
+            ...previous,
+            provider,
+            model,
+          };
+        });
+      } catch {
+        if (cancelled) return;
+
+        setModels([]);
+        setModelsError(
+          'Die KI-Anbieter konnten nicht geladen werden. ' +
+            'Bitte die Verbindung prüfen und erneut versuchen.',
+        );
+      } finally {
+        if (!cancelled) {
+          setModelsLoading(false);
         }
       }
-      return true;
-    }
+    };
 
-    if (name.startsWith('difficultyDistribution.')) {
-      const key = name.split('.')[1] as 'easy' | 'medium' | 'hard';
-      const displayKey = `difficulty${key.charAt(0).toUpperCase() + key.slice(1)}` as
-        | 'difficultyEasy'
-        | 'difficultyMedium'
-        | 'difficultyHard';
+    void loadModels();
 
-      setDisplayValues((prev) => ({ ...prev, [displayKey]: cleanedValue }));
-      if (cleanedValue === '') {
-        updateFormValues((prev) => ({
-          ...prev,
-          difficultyDistribution: {
-            ...prev.difficultyDistribution,
-            [key]: '',
-          },
-        }));
-      } else {
-        const numValue = Number(cleanedValue);
-        if (!Number.isNaN(numValue)) {
-          updateFormValues((prev) => ({
-            ...prev,
-            difficultyDistribution: {
-              ...prev.difficultyDistribution,
-              [key]: numValue,
-            },
-          }));
-        }
-      }
-      return true;
-    }
+    return () => {
+      cancelled = true;
+    };
+  }, [modelsReload]);
 
-    return false;
+  const selectionValid =
+    !modelsLoading &&
+    modelsError === null &&
+    models.some(
+      (entry) =>
+        entry.provider === formValues.provider &&
+        entry.model === formValues.model &&
+        entry.available,
+    );
+
+  const updateFormValues = (
+    updater: (
+      previous: GenerateRequestFormValues,
+    ) => GenerateRequestFormValues,
+  ): void => {
+    setValidationStarted(true);
+    setShowSuccessMessage(false);
+    setFormValues(updater);
   };
 
-  // Verarbeitet Eingaben, bereinigt und validiert sofort
-  const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
+  const reloadModels = (): void => {
+    if (isLoading || modelsLoading) return;
 
-    // Zahlenfelder (count, difficultyDistribution)
-    if (handleNumericField(name, value)) {
+    // Sofort sperren, bevor der neue Lade-Effekt ausgeführt wird.
+    setModelsLoading(true);
+    setModelsError(null);
+    setSelectionError(null);
+    setShowSuccessMessage(false);
+    setModelsReload((previous) => previous + 1);
+  };
+
+  const setProvider = (provider: GenerationProvider): void => {
+    if (isLoading || modelsLoading || modelsError) return;
+
+    const providerExists = models.some(
+      (entry) => entry.provider === provider,
+    );
+
+    if (!providerExists) {
+      setSelectionError(
+        'Dieser KI-Anbieter wird vom Server nicht angeboten.',
+      );
       return;
     }
 
-    // Thema-Feld
-    if (name === 'topic') {
-      updateFormValues((prev) => ({ ...prev, topic: value }));
-      return;
-    }
+    const firstAvailable = models.find(
+      (entry) => entry.provider === provider && entry.available,
+    );
 
-    // Kontext-Textarea
-    if (name === 'contextText') {
-      updateFormValues((prev) => ({ ...prev, contextText: value || undefined }));
-      return;
-    }
+    const unavailableReason = models.find(
+      (entry) => entry.provider === provider && entry.reason,
+    )?.reason;
 
-    console.warn(`Unbekanntes Formularfeld: ${name}`);
-  };
+    setSelectionError(
+      firstAvailable
+        ? null
+        : unavailableReason ??
+            'Für diesen Anbieter ist momentan kein Modell verfügbar.',
+    );
 
-  // Zusätzliche Validierung beim Verlassen des Feldes
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    
-    // Bei leeren Zahlenfeldern nochmal validieren
-    if (value === '' && (name === 'count' || name.startsWith('difficultyDistribution.'))) {
-      handleNumericField(name, value);
-    }
-  };
-
-  // Pfeiltasten-Handler für Zahlenfelder (↑ erhöht, ↓ verringert)
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const { name, value } = event.target as HTMLInputElement;
-    
-    // Nur bei Zahlenfeldern und Pfeiltasten reagieren
-    if ((name === 'count' || name.startsWith('difficultyDistribution.')) && 
-        (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
-      event.preventDefault();
-      
-      // Aktuellen Wert als Zahl parsen
-      const currentValue = value === '' ? 0 : Number(value);
-      if (Number.isNaN(currentValue)) {
-        return;
-      }
-
-      // Schrittweite: 1 für count, 1 für difficulty
-      const step = 1;
-      let newValue: number;
-
-      if (event.key === 'ArrowUp') {
-        newValue = currentValue + step;
-      } else {
-        newValue = Math.max(0, currentValue - step);
-      }
-
-      // Grenzen setzen
-      if (name === 'count') {
-        newValue = Math.max(1, Math.min(50, newValue));
-      } else {
-        // difficulty: 0-100
-        newValue = Math.max(0, Math.min(100, newValue));
-      }
-
-      // Wert aktualisieren
-      const newValueString = String(newValue);
-      handleNumericField(name, newValueString);
-    }
-  };
-
-  // Ändert Sprache
-  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const language = event.target.value as Language;
-    updateFormValues((prev) => ({ ...prev, language }));
-  };
-
-  // Toggelt Fragetyp (mehrfach auswählbar)
-  const handleTypeToggle = (type: QuestionType) => {
-    updateFormValues((prev) => {
-      const isSelected = prev.types.includes(type);
-      const nextTypes = isSelected
-        ? prev.types.filter((t) => t !== type)
-        : [...prev.types, type];
+    updateFormValues((previous) => {
+      const currentModel = models.find(
+        (entry) =>
+          entry.provider === provider &&
+          entry.model === previous.model &&
+          entry.available,
+      );
 
       return {
-        ...prev,
-        types: nextTypes,
+        ...previous,
+        provider,
+        model:
+          previous.provider === provider && currentModel
+            ? currentModel.model
+            : firstAvailable?.model ?? '',
       };
     });
   };
 
-  // Validiert Formular und ruft onSubmit auf, wenn gültig
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const setModel = (model: string): void => {
+    if (isLoading || modelsLoading || modelsError) return;
+
+    const selectedModel = models.find(
+      (entry) =>
+        entry.provider === formValues.provider &&
+        entry.model === model,
+    );
+
+    if (!selectedModel?.available) {
+      setSelectionError(
+        selectedModel?.reason ??
+          'Dieses Modell ist nicht verfügbar oder nicht freigegeben.',
+      );
+
+      updateFormValues((previous) => ({
+        ...previous,
+        model: '',
+      }));
+
+      return;
+    }
+
+    setSelectionError(null);
+
+    updateFormValues((previous) => ({
+      ...previous,
+      model: selectedModel.model,
+    }));
+  };
+
+  const handleNumericField = (
+    name: string,
+    value: string,
+  ): boolean => {
+    const difficultyKey = getDifficultyKey(name);
+
+    if (name !== 'count' && difficultyKey === null) {
+      return false;
+    }
+
+    const cleanedValue = sanitizeToDigitsOnly(value);
+
+    const numericValue: number | '' =
+      cleanedValue === '' ? '' : Number(cleanedValue);
+
+    if (numericValue !== '' && !Number.isFinite(numericValue)) {
+      return true;
+    }
+
+    if (name === 'count') {
+      setDisplayValues((previous) => ({
+        ...previous,
+        count: cleanedValue,
+      }));
+
+      updateFormValues((previous) => ({
+        ...previous,
+        count: numericValue,
+      }));
+
+      return true;
+    }
+
+    if (difficultyKey !== null) {
+      const displayKey = DIFFICULTY_DISPLAY_KEYS[difficultyKey];
+
+      setDisplayValues((previous) => ({
+        ...previous,
+        [displayKey]: cleanedValue,
+      }));
+
+      updateFormValues((previous) => ({
+        ...previous,
+        difficultyDistribution: {
+          ...previous.difficultyDistribution,
+          [difficultyKey]: numericValue,
+        },
+      }));
+    }
+
+    return true;
+  };
+
+  const handleInputChange = (
+    event: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ): void => {
+    const { name, value } = event.target;
+
+    if (name === 'provider') {
+      if (value === 'openai' || value === 'ollama') {
+        setProvider(value);
+      }
+      return;
+    }
+
+    if (name === 'model') {
+      setModel(value);
+      return;
+    }
+
+    if (handleNumericField(name, value)) {
+      return;
+    }
+
+    if (name === 'topic') {
+      updateFormValues((previous) => ({
+        ...previous,
+        topic: value,
+      }));
+      return;
+    }
+
+    if (name === 'contextText') {
+      updateFormValues((previous) => ({
+        ...previous,
+        contextText: value || undefined,
+      }));
+    }
+  };
+
+  const handleBlur = (
+    event: FocusEvent<HTMLInputElement>,
+  ): void => {
+    const { name, value } = event.target;
+
+    if (
+      value === '' &&
+      (name === 'count' || getDifficultyKey(name) !== null)
+    ) {
+      handleNumericField(name, value);
+    }
+  };
+
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>,
+  ): void => {
+    const { name, value } = event.currentTarget;
+
+    if (name !== 'count' && getDifficultyKey(name) === null) {
+      return;
+    }
+
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+      return;
+    }
+
     event.preventDefault();
+
+    const currentValue = value === '' ? 0 : Number(value);
+
+    if (!Number.isFinite(currentValue)) return;
+
+    const nextValue =
+      currentValue + (event.key === 'ArrowUp' ? 1 : -1);
+
+    const minimum = name === 'count' ? 1 : 0;
+    const maximum = name === 'count' ? 50 : 100;
+
+    const boundedValue = Math.max(
+      minimum,
+      Math.min(maximum, nextValue),
+    );
+
+    handleNumericField(name, String(boundedValue));
+  };
+
+  const handleLanguageChange = (
+    event: ChangeEvent<HTMLSelectElement>,
+  ): void => {
+    const value = event.target.value;
+
+    if (value !== 'de' && value !== 'en') return;
+
+    const language: Language = value;
+
+    updateFormValues((previous) => ({
+      ...previous,
+      language,
+    }));
+  };
+
+  const handleTypeToggle = (type: QuestionType): void => {
+    updateFormValues((previous) => ({
+      ...previous,
+      types: previous.types.includes(type)
+        ? previous.types.filter((entry) => entry !== type)
+        : [...previous.types, type],
+    }));
+  };
+
+  const handleSubmit = (
+    event: FormEvent<HTMLFormElement>,
+  ): void => {
+    event.preventDefault();
+
+    if (isLoading) return;
+
+    setValidationStarted(true);
+    setShowSuccessMessage(false);
 
     const validationErrors = validate(formValues);
     setErrors(validationErrors);
 
-    // Bei Fehlern nicht absenden
-    if (Object.keys(validationErrors).length > 0) {
-      setShowSuccessMessage(false);
+    if (!selectionValid) {
+      const unavailableReason = models.find(
+        (entry) =>
+          entry.provider === formValues.provider &&
+          (!formValues.model || entry.model === formValues.model) &&
+          !entry.available &&
+          entry.reason,
+      )?.reason;
+
+      setSelectionError(
+        modelsLoading
+          ? 'Die KI-Anbieter werden noch geladen.'
+          : modelsError ??
+              unavailableReason ??
+              'Bitte einen verfügbaren KI-Anbieter und ein Modell auswählen.',
+      );
       return;
     }
 
-    console.log('GenerateRequest form values:', formValues);
-    setShowSuccessMessage(true);
+    setSelectionError(null);
 
-    if (onSubmit) {
-      onSubmit(formValues);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
     }
+
+    // Unabhängiger Snapshot für den gestarteten Auftrag.
+    const submittedValues = structuredClone(formValues);
+
+    onSubmit?.(submittedValues);
+    setShowSuccessMessage(true);
   };
 
-  // Setter für uploadContext – wird von T3.2.3 (PDF-Upload) aufgerufen
-  const setUploadContext = (value: string | undefined) => {
-    updateFormValues((prev) => ({ ...prev, uploadContext: value }));
+  const setUploadContext = (
+    value: string | undefined,
+  ): void => {
+    updateFormValues((previous) => ({
+      ...previous,
+      uploadContext: value,
+    }));
   };
 
   return {
+    models,
+    modelsLoading,
+    modelsError,
+    selectionError,
+    selectionValid,
+    reloadModels,
+    setProvider,
+    setModel,
     formValues,
     displayValues,
     errors,
