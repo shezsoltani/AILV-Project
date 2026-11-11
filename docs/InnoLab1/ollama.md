@@ -1,161 +1,174 @@
-# Ollama einrichten und für die Fragengenerierung nutzen (SCRUM-31 / SCRUM-5)
+# Lokale KI-Modelle mit Ollama
 
-## Aufbau und Stand
+Mit Ollama können Fragen statt über OpenAI mit einem KI-Modell auf dem eigenen
+Rechner generiert werden. Das spart API-Kosten bei Entwicklung und Tests.
 
-Die Anwendung läuft mit Frontend, Backend und PostgreSQL in Docker Desktop.
-Ollama wird separat unter Windows installiert. Das Modell wird auf dem jeweiligen
-Rechner heruntergeladen und nicht im Git-Repository gespeichert.
+**Stand (11.11.2026):** Für die Fragengenerierung fertig (Epic SCRUM-29 mit
+SCRUM-31, SCRUM-5, SCRUM-32, SCRUM-33). Im Formular lassen sich Anbieter und
+Modell auswählen. Ein Auftrag mit `qwen3:8b` läuft durch alle drei Stufen, die
+Fragen lassen sich speichern und erscheinen im Archiv.
 
-Stand 29.10.2026: Ollama ist an die dreistufige Fragengenerierung angebunden.
-Ein kleiner Auftrag mit `qwen3:8b` lief über die Backend-API erfolgreich durch
-SKELETON, CONTENT und IMPROVE. Das Auswahlfeld auf der Website folgt in SCRUM-32.
+## Was ist Ollama?
 
-## Voraussetzungen
+Ollama ist ein Programm, das KI-Modelle lokal ausführt. Es läuft im Hintergrund
+wie ein kleiner Server unter `http://localhost:11434`. Man schickt einen Prompt
+und bekommt Text zurück, wie bei OpenAI, nur ohne Cloud und ohne Kosten pro
+Anfrage. Ein Modell wird einmal heruntergeladen (`ollama pull qwen3:8b`) und
+liegt dann auf der Festplatte, nicht im Git-Repository.
 
-- Docker Desktop mit Linux-Containern läuft.
-- Ollama für Windows ist installiert: https://ollama.com/download/windows
-- Genügend Speicher für Programm und Modell. `qwen3:8b` benötigt etwa 5,2 GB
-  Download; während der Ausführung wird zusätzlicher Arbeitsspeicher benötigt.
-- Die GPU-Beschleunigung muss auf dem jeweiligen Rechner geprüft werden.
+## Wie es in AILV eingebaut ist
 
-## Modell herunterladen und Ollama starten
+Am Kern der Anwendung musste fast nichts geändert werden: Die drei Stufen
+(SKELETON, CONTENT, IMPROVE), die Prompts, die Validatoren und die
+Wiederholungen bei Fehlern sind gleich geblieben.
 
-Ollama über das Startmenü öffnen. Das Fenster muss nicht dauerhaft offen bleiben,
-der Hintergrunddienst muss jedoch laufen. In einer neuen PowerShell:
+Das ging, weil es bereits eine gemeinsame Schnittstelle gab: `LLMProvider` mit
+einer Methode `complete(prompt) -> str`. OpenAI war bisher die einzige
+Umsetzung. Ollama ist jetzt eine zweite. Die Pipeline merkt nicht, mit wem sie
+redet.
 
-```powershell
-ollama --version
-ollama pull qwen3:8b
-ollama list
+| Wo | Was |
+|---|---|
+| `backend/app/services/ollama_provider.py` (neu) | Schickt den Prompt an Ollama (`POST /api/generate`) und gibt die Antwort zurück. Verständliche Fehlermeldungen („nicht erreichbar“, „Modell nicht gefunden“) und Zeitlimit. |
+| `backend/app/services/llm_selection.py` (neu) | Der „Türsteher“: prüft, ob Anbieter und Modell freigegeben sind, und erzeugt den passenden Provider. Liefert auch die Modellliste für das Formular. |
+| `backend/app/models/generate_models.py` | `GenerateRequest` hat zwei neue Felder: `provider` (`openai` oder `ollama`, Standard `openai`) und `model`. |
+| `batch_runner.py`, `orchestrator.py`, Stufen-Services | Erzeugen den Provider einmal pro Auftrag und reichen ihn durch alle Batches und Stufen weiter, statt fest OpenAI zu verwenden. |
+| `backend/app/api/routes_generate.py` | Neuer Endpunkt `GET /api/generation/models`. |
+| `backend/app/config.py`, `.env`, `docker-compose.yml` | Neue Einstellungen `OLLAMA_*` (siehe unten). |
+| Frontend (`GenerateForm.tsx`, `useGenerateForm.ts`, `generationModelsApi.ts`, `questionsApi.ts`) | Auswahlfelder „KI-Anbieter“ und „Modell“; die Auswahl wird beim Generieren mitgeschickt. |
+
+Das Backend läuft in Docker, Ollama direkt unter Windows. Aus dem Container ist
+der eigene Rechner deshalb unter `http://host.docker.internal:11434` erreichbar,
+nicht unter `localhost` (das wäre der Container selbst).
+
+Einstellungen für die Ollama-Anfrage: `stream: false` (Antwort am Stück),
+`think: false` (Denkmodus von Qwen3 aus, schneller), `temperature: 0.7` (wie bei
+OpenAI), Modell bleibt 5 Minuten im Speicher (`keep_alive`).
+
+## Welche Modelle auswählbar sind
+
+```
+Browser  ->  Backend: GET /api/generation/models  ->  Ollama: GET /api/tags
 ```
 
-Der Download ist nur einmal nötig. Spätere Anfragen laden das gespeicherte Modell
-bei Bedarf in den Speicher. Docker startet die Windows-Anwendung Ollama nicht mit.
-Zum Beenden des Diensts das Ollama-Symbol im Infobereich der Taskleiste verwenden.
+1. Das Formular fragt nur das Backend, nie Ollama direkt.
+2. Das Backend vergleicht zwei Listen:
+   - **Freigegeben:** `OLLAMA_MODELS` in der `.env`, festgelegt vom Betreiber.
+   - **Installiert:** was Ollama unter `/api/tags` meldet.
+3. Auswählbar ist ein Modell nur, wenn es auf **beiden** Listen steht. Sonst
+   zeigt das Formular es als „nicht verfügbar“ mit Begründung an
+   („Modell ist nicht installiert“ bzw. „Ollama ist nicht erreichbar …“).
+4. Beim Generieren prüft das Backend erneut. Ein nicht freigegebener Anbieter
+   oder ein nicht freigegebenes Modell ergibt HTTP 422.
+5. Mit `OLLAMA_ENABLED=false` erscheint Ollama gar nicht in der Liste. Für
+   OpenAI wird nur geprüft, ob ein API-Key hinterlegt ist.
 
-## Verbindung aus dem Backend prüfen
+Die Auswahl wird mit dem Auftrag gespeichert. Fällt Ollama während der
+Generierung aus, schlägt der Auftrag mit einer Meldung fehl. Es gibt keinen
+automatischen Wechsel zu OpenAI.
 
-Unter Windows ist Ollama unter `http://localhost:11434` erreichbar. Aus dem
-Docker-Desktop-Container wird `http://host.docker.internal:11434` verwendet.
-`localhost` im Container würde den Container selbst bezeichnen.
+## Einrichten
 
-```powershell
-docker compose exec -T backend curl --fail --silent --show-error --max-time 15 http://host.docker.internal:11434/api/version
-```
+1. Ollama für Windows installieren: https://ollama.com/download/windows
+2. In einer neuen PowerShell das Modell laden:
+   ```powershell
+   ollama pull qwen3:8b
+   ollama list
+   ```
+3. In der lokalen `.env`:
+   ```dotenv
+   OLLAMA_ENABLED=true
+   OLLAMA_MODELS=qwen3:8b
+   # optional, Standardwerte:
+   # OLLAMA_BASE_URL=http://host.docker.internal:11434
+   # OLLAMA_TIMEOUT_SECONDS=120
+   ```
+4. Backend neu starten: `docker compose up -d backend`
+5. Ollama muss während der Generierung laufen. Docker startet es nicht mit.
+6. Im Formular „Ollama (lokal)“ und das Modell auswählen.
 
-Kurze Modellanfrage aus demselben Container:
+Weitere Modelle: mit `ollama pull <name>` laden und in `OLLAMA_MODELS`
+kommagetrennt ergänzen, z. B. `OLLAMA_MODELS=qwen3:8b,<weiteres-modell>`.
 
-```powershell
-'{"model":"qwen3:8b","prompt":"Antworte auf Deutsch in einem Satz: Was ist eine Datenbank?","stream":false,"think":false,"keep_alive":"5m","options":{"num_ctx":4096,"num_predict":100,"temperature":0}}' | docker compose exec -T backend curl --fail --silent --show-error --max-time 120 -H 'Content-Type: application/json' --data-binary '@-' http://host.docker.internal:11434/api/generate
-```
+## Welches Modell passt?
 
-`stream=false` liefert die Antwort am Stück. `think=false` deaktiviert für diesen
-einfachen Test den zusätzlichen Denkmodus. `num_ctx=4096` begrenzt den Kontext,
-`num_predict=100` die Antwortlänge. Diese Werte sind Testeinstellungen, noch keine
-Einstellungen der Fragenpipeline.
+In der App wird nichts automatisch erkannt. Welches Modell sinnvoll ist, hängt
+vor allem vom Grafikspeicher (VRAM) ab. Grobe Faustwerte, nicht für jeden
+Rechner gemessen:
 
-## Fragengenerierung mit Ollama (SCRUM-5)
+| Modellgröße | ungefähr nötig |
+|---|---|
+| ~8 Mrd. Parameter („8b“), z. B. `qwen3:8b` | ~6 GB VRAM |
+| ~14 Mrd. | ~10–12 GB VRAM |
+| ~30 Mrd. und mehr | 20 GB VRAM und mehr |
 
-In der lokalen `.env` Ollama freischalten und die erlaubten Modelle festlegen:
+Ohne passende Grafikkarte läuft das Modell auf dem Prozessor, das ist deutlich
+langsamer. Für AILV zählen außerdem:
 
-```dotenv
-OLLAMA_ENABLED=true
-OLLAMA_MODELS=qwen3:8b
-```
+- **Gutes Deutsch:** Nicht jedes kleine Modell schreibt gut Deutsch. Qwen3 ist
+  bei mehreren Sprachen recht solide.
+- **Sauberes JSON:** Die Validatoren verlangen ein genaues Format. Kleine Modelle
+  brauchen dafür öfter einen zweiten Versuch.
 
-Danach `docker compose up -d backend` ausführen. Ollama muss zusätzlich unter
-Windows laufen. Standardmäßig verwendet das Backend die Adresse
-`http://host.docker.internal:11434` und ein Zeitlimit von 120 Sekunden pro
-Modellanfrage. Beides lässt sich über `OLLAMA_BASE_URL` und
-`OLLAMA_TIMEOUT_SECONDS` ändern. Weitere Modelle können kommagetrennt freigegeben
-werden; sie müssen in Ollama installiert sein. Ohne Freischaltung bleibt Ollama
-deaktiviert, etwa auf einem Server ohne lokalen KI-Dienst.
+Ob die Grafikkarte genutzt wird, zeigt `ollama ps` direkt nach einer Anfrage
+(`100% GPU` = Modell vollständig auf der GPU).
 
-Ein angemeldeter Nutzer kann über `POST /api/generate` beispielsweise senden:
+Gemessene Konfiguration (SCRUM-31, 29.10.2026):
 
-```json
-{
-  "topic": "Grundlagen relationaler Datenbanken",
-  "count": 1,
-  "types": ["SCQ"],
-  "provider": "ollama",
-  "model": "qwen3:8b"
-}
-```
+| Punkt | Ergebnis |
+|---|---|
+| Modell | `qwen3:8b` (ca. 5,2 GB Download) |
+| Grafikkarte | AMD Radeon RX 9070 XT, ca. 16 GB, ROCm automatisch, alle Schichten auf der GPU |
+| Einzelne Antwort | ca. 7 s, davon ca. 6,5 s Laden des Modells |
+| Auftrag mit 2 Fragen über die Website (11.11.2026) | ca. 18 s |
 
-Die Antwort enthält die `job_id`. Über `GET /api/jobs/{job_id}` lassen sich
-Fortschritt, Ergebnis oder Fehler abrufen. Alle Aufrufe benötigen das Anmeldetoken
-im Header `Authorization: Bearer <Token>`.
+## Ollama oder GPT-4o?
 
-Anbieter und Modell werden mit dem Auftrag gespeichert und für alle Batches und
-Stufen beibehalten. Ohne Auswahl bleibt OpenAI der Standard. Bei einem Ollama-Fehler
-erfolgt kein automatischer Wechsel zu OpenAI.
+Ollama ist für **Entwicklung und Tests ohne API-Kosten** gedacht. Für Fragen,
+die Lehrende tatsächlich verwenden, ist GPT-4o deutlich stärker:
 
-`GET /api/generation/models` liefert die freigegebenen Modelle samt Verfügbarkeit
-für das spätere Auswahlfeld. Bei Ollama werden Erreichbarkeit und installierte
-Modelle geprüft. Bei OpenAI wird nur geprüft, ob ein API-Key hinterlegt ist.
-Weitere API-Details stehen in [api.md](../api.md).
+- `qwen3:8b` ist ein sehr kleines Modell, GPT-4o um ein Vielfaches größer.
+- Typische Unterschiede: einfachere Fragen, leichter durchschaubare falsche
+  Antwortoptionen, häufiger sachliche Fehler, holprigeres Deutsch und mehr
+  Wiederholungen wegen Formatfehlern.
+- Beispiel: Beim Testlauf am 11.11.2026 waren die zwei Fragen in Ordnung, die
+  erste Stufe (SKELETON) brauchte aber einen zweiten Versuch.
+- `think: false` macht die Antworten schneller, kostet aber etwas Qualität.
 
-### Prüfung
+Belastbare Zahlen liefert erst der geplante Vergleich Ollama gegen GPT-4o in
+Sprint 5 (Genauigkeit, Antwortzeit, Fehlerrate, Kosten).
 
-Am 29.10.2026 bestanden 230 Backend-Tests, einschließlich der Tests für Provider,
-Auswahl und Weitergabe. Zusätzlich wurde eine einzelne SCQ-Frage mit `qwen3:8b`
-über die echte API generiert und als Auftragsergebnis gespeichert. Für einen
-Eintrag im Archiv ist anschließend das normale Abschließen/Speichern nötig.
-Ein echter OpenAI-Aufruf und die noch fehlende Website-Auswahl wurden nicht getestet.
+## Grenzen
 
-Die neuen automatisierten Tests liegen in
-`backend/tests/unit/test_ollama_provider.py` und
-`backend/tests/unit/test_llm_selection.py`. Sie laufen ohne echte KI-Aufrufe in
-der bestehenden Testsuite:
+- Nur die **Fragengenerierung** nutzt Ollama. Die Foliengenerierung läuft
+  weiterhin über OpenAI.
+- Auf dem **FH-Server** ist Ollama nicht eingerichtet (`OLLAMA_ENABLED=false`).
+- Das Formular wählt zu Beginn immer OpenAI vor, auch wenn dafür kein Key
+  hinterlegt ist und nur Ollama verfügbar wäre.
+
+## Tests
+
+Die Backend-Tests laufen ohne echte KI-Aufrufe:
+
+- `backend/tests/unit/test_ollama_provider.py`: Anfrage, Antworten und Fehler
+  des Ollama-Providers
+- `backend/tests/unit/test_llm_selection.py`: Freigabe, Auswahl und Modellliste
 
 ```powershell
 docker compose -f backend/compose.test.yml run --rm tests -q
 ```
 
-## GPU prüfen und gemessenes Ergebnis
-
-Direkt nach einer Modellanfrage in PowerShell ausführen:
-
-```powershell
-ollama ps
-```
-
-`100% GPU` bedeutet, dass das Modell vollständig auf der GPU geladen ist, nicht
-dass die GPU dauerhaft zu 100 Prozent ausgelastet ist. Die konkrete GPU und das
-verwendete Verfahren stehen in `%LOCALAPPDATA%\Ollama\server.log`.
-
-Getestete Konfiguration und Ergebnisse:
-
-| Punkt                       | Ergebnis                                                             |
-| --------------------------- | -------------------------------------------------------------------- |
-| Ollama                      | 0.40.12                                                              |
-| Modell                      | qwen3:8b, ID 500a1f067a9f                                            |
-| Grafikkarte                 | AMD Radeon RX 9070 XT, ca. 15,9 GiB Grafikspeicher                   |
-| Treiberversion laut Windows | 32.0.32015.7029                                                      |
-| Beschleunigung              | ROCm automatisch gewählt; 37/37 Schichten auf der GPU                |
-| Kontext beim Test           | 4096 Tokens                                                          |
-| Windows-Test                | Deutsche Antwort erfolgreich; ca. 6,85 s einschließlich 6,33 s Laden |
-| Container-Test              | Deutsche Antwort erfolgreich; ca. 7,10 s einschließlich 6,59 s Laden |
-
-Es war keine manuelle Vulkan-Konfiguration und keine Änderung an Ollamas
-Netzwerkbindung nötig. Diese Einzelergebnisse sind kein Qualitätsbenchmark und
-keine Garantie für andere Hardware. Ein CPU-Fallback wurde nicht getestet, da die
-GPU-Beschleunigung funktionierte.
+Für die Auswahlfelder im Frontend gibt es noch keine eigenen Tests.
 
 ## Fehler eingrenzen
 
-- `ollama` nicht gefunden: nach Installation ein neues Terminal öffnen; alternativ
-  `%LOCALAPPDATA%\Programs\Ollama\ollama.exe` verwenden.
-- Verbindung verweigert: Ollama starten und zuerst die Versionsabfrage unter
-  `http://localhost:11434/api/version` auf Windows prüfen.
-- Modell fehlt: `ollama list` prüfen und den exakten Namen herunterladen.
-- Windows funktioniert, Container nicht: Docker Desktop und die Adresse
-  `host.docker.internal` prüfen. Netzwerkeinstellungen nicht pauschal ändern.
-- Langsame erste Antwort: Ladezeit und eigentliche Antwortzeit unterscheiden.
-- `ollama ps` ist leer: Das Modell wurde noch nicht geladen oder nach der Haltezeit
-  entladen. Eine neue Anfrage senden und direkt danach erneut prüfen.
+| Problem | Lösung |
+|---|---|
+| `ollama` nicht gefunden | Neues Terminal öffnen oder `%LOCALAPPDATA%\Programs\Ollama\ollama.exe` verwenden. |
+| „Ollama ist nicht erreichbar“ | Ollama starten; `http://localhost:11434/api/version` im Browser prüfen. |
+| „Modell ist nicht installiert“ | `ollama list` prüfen und den exakten Namen aus `OLLAMA_MODELS` mit `ollama pull` laden. |
+| Unter Windows erreichbar, aus Docker nicht | `docker compose exec backend curl http://host.docker.internal:11434/api/version` |
+| Ollama erscheint nicht im Formular | `OLLAMA_ENABLED=true` in der `.env` und Backend neu starten. |
+| Erste Antwort sehr langsam | Das Modell wird erst geladen; danach bleibt es 5 Minuten im Speicher. |
 
-Beim ersten Projektstart wurden zwei bestehende Startprobleme behoben:
-Das Frontend verwendet jetzt Node 22 und `npm ci` mit der vorhandenen Lockdatei.
-Die Docker-Datenbank-URL nennt ausdrücklich den installierten Treiber `psycopg2`.
+API-Details: [api.md](api.md)

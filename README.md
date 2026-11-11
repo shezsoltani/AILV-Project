@@ -27,8 +27,8 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 
 ## Schnellstart
 
-Für die lokale Ollama-Einrichtung und den geprüften Verbindungstest aus Docker:
-[Ollama-Anleitung (SCRUM-31 / SCRUM-5)](docs/InnoLab1/ollama.md).
+Lokale KI-Modelle mit Ollama (Funktionsweise, Einrichtung, Modellwahl):
+[Ollama-Dokumentation](docs/InnoLab1/ollama.md).
 
 ### Voraussetzungen
 
