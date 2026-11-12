@@ -18,9 +18,12 @@
 
 .app-header-inner {
   display: flex;
+  /* Passt die Navigation nicht mehr neben den Titel, rutscht sie in die nächste Zeile,
+     statt rechts aus dem Bildschirm zu ragen. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-md) var(--spacing-xl);
   max-width: 1560px;
   margin: 0 auto;
   width: 100%;
@@ -57,7 +60,7 @@
   gap: var(--spacing-xl);
   margin-left: auto;
   padding-right: var(--spacing-lg);
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .app-nav-list {
@@ -70,6 +73,12 @@
 
 .app-nav-item {
   margin: 0;
+}
+
+/* Einfacher Navigationslink ohne Dropdown (z. B. Lehrveranstaltungen) */
+.app-nav-item--link {
+  display: inline-flex;
+  align-items: center;
 }
 
 .app-nav-link {
@@ -459,6 +468,9 @@
 
 @media (max-width: 1024px) {
   .app-content {
+    /* auto statt 100 %: sonst kommen die Seitenränder zur vollen Breite dazu
+       und die Seite lässt sich waagrecht scrollen */
+    width: auto;
     margin: var(--spacing-lg) var(--spacing-md) 0;
     padding: var(--spacing-lg);
   }
@@ -528,6 +540,15 @@
   .app-nav-list,
   .app-auth-actions {
     width: 100%;
+  }
+
+  /* Schmalere Links, damit Fragen, Folien und Lehrveranstaltungen in eine Zeile passen */
+  .app-nav-list {
+    gap: 0;
+  }
+
+  .app-nav-link {
+    padding: var(--spacing-sm);
   }
 
   .app-content {

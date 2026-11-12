@@ -103,6 +103,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </NavLink>
                 </div>
               </li>
+              <li className="app-nav-item app-nav-item--link">
+                <NavLink
+                  to="/courses"
+                  className={function ({ isActive }) {
+                    return 'app-nav-link' + (isActive ? ' app-nav-link--active' : '');
+                  }}
+                >
+                  Lehrveranstaltungen
+                </NavLink>
+              </li>
             </ul>
             <div className="app-auth-actions">
               {isAuthenticated ? (

@@ -79,3 +79,16 @@ export function getChangePasswordErrorMessage(error: unknown): string {
 
   return getUserFriendlyMessage(error);
 }
+
+// Fehler der LV-Endpunkte (/api/courses) verständlich machen.
+export function getCourseErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.statusCode === 409) {
+    return 'Eine Lehrveranstaltung mit diesem Namen gibt es bereits.';
+  }
+
+  if (error instanceof ApiError && error.statusCode === 404) {
+    return 'Diese Lehrveranstaltung gibt es nicht mehr.';
+  }
+
+  return getUserFriendlyMessage(error);
+}

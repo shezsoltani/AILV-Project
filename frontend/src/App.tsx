@@ -9,6 +9,7 @@ import { SlidesGeneratePage } from './pages/slides/SlidesGeneratePage';
 import { ArchivePage } from './pages/questions/ArchivePage';
 import { SlidesArchivePage } from './pages/slides/SlidesArchivePage';
 import { SlidesDeckDetailPage } from './pages/slides/SlidesDeckDetailPage';
+import { CoursesPage } from './pages/courses/CoursesPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
@@ -59,6 +60,14 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <ArchivePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <CoursesPage />
               </ProtectedRoute>
             }
           />
