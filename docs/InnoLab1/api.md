@@ -104,6 +104,7 @@ Startet die 3-Stage-Pipeline zur Fragegenerierung.
 | `difficulty_distribution` | `object` | nein | Prozentuale Aufteilung, Summe = 100 (Standard: `{"easy": 50, "medium": 30, "hard": 20}`) |
 | `context_text` | `string` | nein | Freitext als zusätzlicher Kontext |
 | `upload_context` | `string` | nein | Aus PDF extrahierter Text |
+| `course_ids` | `array<uuid>` | nein | Eigene Lehrveranstaltungen für diesen Auftrag (Standard: `[]` = keine LV / allgemein). Siehe [LV-Auswahl beim Generieren und Speichern](#lv-auswahl-beim-generieren-und-speichern-course_ids) |
 
 **Response:** `GenerateResponse`
 ```json
@@ -148,9 +149,12 @@ Verschiebt generierte Fragen aus dem temporären Speicher ins Archiv. Die Fragen
       "answer": null,
       "rationale": "Begründung"
     }
-  ]
+  ],
+  "course_ids": ["uuid"]
 }
 ```
+
+`course_ids` ist optional (Standard: `[]`). Ohne das Feld funktioniert der Aufruf wie bisher.
 
 **Response:**
 ```json
@@ -161,6 +165,22 @@ Verschiebt generierte Fragen aus dem temporären Speicher ins Archiv. Die Fragen
   "message": "Questions finalized successfully"
 }
 ```
+
+### LV-Auswahl beim Generieren und Speichern (`course_ids`)
+
+Fragen können schon beim Generieren eigenen Lehrveranstaltungen zugeordnet werden (SCRUM-43). Die Zuordnungen entstehen erst beim Speichern, weil erst dort die endgültigen Fragen angelegt werden.
+
+1. `POST /api/generate` mit `course_ids` senden. Das Backend prüft vor dem Jobstart, dass alle LVs dem angemeldeten Nutzer gehören, und speichert die Auswahl mit den Job-Eingaben. Die LVs werden nicht in die KI-Prompts eingebaut.
+2. `POST /api/finalize` mit **derselben** Auswahl als `course_ids` senden. Das Backend prüft die LVs erneut und legt die Zuordnungen in derselben Transaktion wie die Fragen an. Jede gespeicherte Frage erhält alle angegebenen LVs.
+
+| Fall | Antwort |
+|------|---------|
+| Feld fehlt oder `[]` | gültig; die Fragen bleiben allgemein (ohne LV) |
+| Doppelte IDs | werden ignoriert |
+| Unbekannte, gelöschte oder fremde LV | `404 Not Found` mit `"Course not found"`. Bei `/api/generate` wird kein Job gestartet. Bei `/api/finalize` wird nichts gespeichert, auch keine Fragen; die Entwürfe bleiben erhalten und können erneut gespeichert werden |
+| `null` oder ungültige UUID | `422 Unprocessable Entity` |
+
+Nachträglich ändern lassen sich die Zuordnungen über `PUT /api/archive/questions/{question_id}/courses`.
 
 ---
 

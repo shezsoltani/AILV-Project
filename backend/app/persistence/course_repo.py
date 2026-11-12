@@ -140,3 +140,16 @@ def set_question_courses(
         db.add(qc)
     db.commit()
     return unique_course_ids
+
+
+def add_question_courses(
+    db: Session, question_ids: List[UUID], course_ids: List[UUID]
+) -> None:
+    """Legt Zuordnungen für neue Fragen an, ohne zu committen.
+
+    Der Aufrufer entscheidet über Commit oder Rollback, damit Fragen und
+    Zuordnungen in derselben Transaktion gespeichert werden.
+    """
+    for question_id in question_ids:
+        for course_id in dict.fromkeys(course_ids):
+            db.add(QuestionCourse(question_id=question_id, course_id=course_id))

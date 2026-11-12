@@ -43,7 +43,7 @@ def finalize_questions_endpoint(
             detail=f"This endpoint only finalizes question requests, not '{generation_request.request_type}' requests.",
         )
 
-    count = finalize_questions(db=db, req=req)
+    count = finalize_questions(db=db, req=req, user_id=current_user.id)
 
     return FinalizeQuestionsResponse(
         success=True,

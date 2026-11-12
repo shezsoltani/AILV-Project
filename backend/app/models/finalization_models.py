@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 from typing import List, Optional
 
@@ -17,6 +17,14 @@ class FinalQuestion(BaseModel):
 class FinalizeQuestionsRequest(BaseModel):
     request_id: UUID
     questions: List[FinalQuestion]
+    # Optionale LV-Auswahl des gestarteten Auftrags (SCRUM-43).
+    # Leere Liste = Fragen bleiben allgemein.
+    course_ids: List[UUID] = Field(default_factory=list)
+
+    @field_validator("course_ids")
+    @classmethod
+    def _remove_duplicate_course_ids(cls, value: List[UUID]) -> List[UUID]:
+        return list(dict.fromkeys(value))
 
 
 class FinalizeQuestionsResponse(BaseModel):

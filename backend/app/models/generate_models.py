@@ -1,6 +1,6 @@
 # app/models/generate_models.py
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional
 from enum import Enum
 
@@ -22,7 +22,18 @@ class GenerateRequest(BaseModel):
     context_text: Optional[str] = None
     upload_context: Optional[str] = None
     custom_prompts: Optional[Dict[str, str]] = None
+    # Optionale LV-Auswahl (SCRUM-43). Leere Liste = allgemeine Fragen.
+    # Wird nur mit dem Auftrag gespeichert und nicht in die KI-Prompts eingebaut.
+    course_ids: List[UUID] = Field(
+        default_factory=list,
+        description="IDs eigener Lehrveranstaltungen; leer = keine LV / allgemein",
+    )
     # -> kein target_audience im API-Modell
+
+    @field_validator("course_ids")
+    @classmethod
+    def _remove_duplicate_course_ids(cls, value: List[UUID]) -> List[UUID]:
+        return list(dict.fromkeys(value))
 
 class GeneratedQuestion(BaseModel):
     id: Optional[UUID] = None

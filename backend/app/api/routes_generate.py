@@ -10,6 +10,7 @@ from ..core.auth_utils import get_current_user
 from ..models.sql_models import User
 from ..db import get_db
 from ..services.llm_selection import resolve_selection, available_models
+from ..services.course_service import ensure_courses_belong_to_user
 
 router = APIRouter()
 
@@ -31,6 +32,8 @@ async def generate(
 ):
     validator.validate(req)
     req = resolve_selection(req)
+    # LV-Auswahl vor dem Jobstart prüfen: fremde oder gelöschte LVs -> 404, kein Job.
+    ensure_courses_belong_to_user(db, current_user.id, req.course_ids)
 
     job = create_job(
         db=db,

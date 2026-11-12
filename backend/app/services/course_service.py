@@ -110,6 +110,27 @@ def delete_course(
     )
 
 
+def ensure_courses_belong_to_user(
+    db: Session, user_id: UUID, course_ids: List[UUID]
+) -> List[UUID]:
+    """Prüft, dass alle LVs existieren und dem Benutzer gehören.
+
+    Gibt die IDs ohne Duplikate zurück. Unbekannte, gelöschte und fremde LVs
+    ergeben einheitlich 404, damit keine fremden IDs preisgegeben werden.
+    """
+    unique_course_ids = list(dict.fromkeys(course_ids or []))
+    if unique_course_ids:
+        found_courses = course_repo.get_courses_by_ids_and_user(
+            db, unique_course_ids, user_id
+        )
+        if len(found_courses) != len(unique_course_ids):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Course not found",
+            )
+    return unique_course_ids
+
+
 def assign_courses_to_question(
     db: Session,
     user_id: UUID,
@@ -123,18 +144,9 @@ def assign_courses_to_question(
             detail="Question not found",
         )
 
-    raw_course_ids = payload.course_ids or []
-    unique_course_ids = list(dict.fromkeys(raw_course_ids))
-
-    if unique_course_ids:
-        found_courses = course_repo.get_courses_by_ids_and_user(
-            db, unique_course_ids, user_id
-        )
-        if len(found_courses) != len(unique_course_ids):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Course not found",
-            )
+    unique_course_ids = ensure_courses_belong_to_user(
+        db, user_id, payload.course_ids
+    )
 
     updated_ids = course_repo.set_question_courses(db, question_id, unique_course_ids)
     return QuestionCoursesAssignmentResponse(
