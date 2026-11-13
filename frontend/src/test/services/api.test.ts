@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateQuestions } from '../../services/questionsApi';
+import { generateQuestions, getArchiveTopics, getArchiveQuestions } from '../../services/questionsApi';
 import { loginUser } from '../../services/authApi';
 
 describe('API Services', () => {
@@ -111,4 +111,37 @@ describe('API Services', () => {
     await expect(generateQuestions(validFormValues)).rejects.toThrow(/Server kaputt/i);
   });
 
+  it('getArchiveTopics sollte Filterparameter course_id und unassigned korrekt in der URL übergeben', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ topics: [] })),
+    });
+
+    await getArchiveTopics('algebra', { courseIds: ['id-1', 'id-2'] });
+
+    const calledUrl = (fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('q=algebra');
+    expect(calledUrl).toContain('course_id=id-1');
+    expect(calledUrl).toContain('course_id=id-2');
+
+    await getArchiveTopics(undefined, { unassigned: true });
+    const calledUrlUnassigned = (fetch as any).mock.calls[1][0];
+    expect(calledUrlUnassigned).toContain('unassigned=true');
+  });
+
+  it('getArchiveQuestions sollte Filterparameter an den Fragen-Endpunkt anhängen', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ questions: [] })),
+    });
+
+    await getArchiveQuestions('req-1', { courseIds: ['id-1'] });
+
+    const calledUrl = (fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('/api/archive/req-1/questions?course_id=id-1');
+  });
 });

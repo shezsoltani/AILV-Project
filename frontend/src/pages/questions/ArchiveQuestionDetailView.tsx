@@ -25,6 +25,7 @@ interface ArchiveQuestionDetailViewProps {
   onCancelEdit: () => void;
   onSaveArchivedQuestions: () => void | Promise<void>;
   onRequestDelete: (requestId: string) => void;
+  activeFilterName?: string | null;
 }
 
 export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps> = ({
@@ -46,6 +47,7 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
   onCancelEdit,
   onSaveArchivedQuestions,
   onRequestDelete,
+  activeFilterName,
 }) => {
   return (
     <div className="page">
@@ -82,6 +84,12 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
         Archiv: {selectedTopic || 'Laden...'}
       </h1>
 
+      {activeFilterName && (
+        <div className="archive-active-filter-badge" data-testid="archive-active-filter">
+          <span>Filter aktiv: {activeFilterName}</span>
+        </div>
+      )}
+
       {/* Loading-State während Fragen geladen werden */}
       {isLoadingQuestions && (
         <div className="archive-loading-state">
@@ -109,7 +117,9 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
           </div>
           <p className="archive-empty-state-title">Keine Fragen gefunden</p>
           <p className="archive-empty-state-description">
-            Zu diesem Thema wurden keine archivierten Fragen gefunden.
+            {activeFilterName
+              ? `Für den aktiven Filter (${activeFilterName}) wurden zu diesem Thema keine archivierten Fragen gefunden.`
+              : 'Zu diesem Thema wurden keine archivierten Fragen gefunden.'}
           </p>
         </div>
       )}

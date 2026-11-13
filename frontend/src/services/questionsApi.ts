@@ -7,6 +7,7 @@ import type { GeneratedQuestion } from '../types/generatedQuestion';
 import type {
   FinalizeRequest,
   FinalizeResponse,
+  ArchiveFilterOptions,
   ArchiveTopicsResponse,
   ArchiveQuestionsResponse,
   ArchiveDeleteResponse,
@@ -87,12 +88,21 @@ export async function finalizeQuestions(
 // Ein optionaler Suchbegriff wird als Query-Parameter übergeben.
 export async function getArchiveTopics(
   searchTerm?: string,
+  filter?: ArchiveFilterOptions,
 ): Promise<ArchiveTopicsResponse> {
   const url = new URL(`${API_BASE_URL}/api/archive/topics`);
   const trimmedSearchTerm = searchTerm?.trim();
 
   if (trimmedSearchTerm) {
     url.searchParams.set('q', trimmedSearchTerm);
+  }
+
+  if (filter?.courseIds && filter.courseIds.length > 0) {
+    filter.courseIds.forEach((courseId) => {
+      url.searchParams.append('course_id', courseId);
+    });
+  } else if (filter?.unassigned) {
+    url.searchParams.set('unassigned', 'true');
   }
 
   return apiCall<ArchiveTopicsResponse>(url.toString(), {
@@ -103,13 +113,23 @@ export async function getArchiveTopics(
 // Lädt die archivierten Fragen eines Eintrags.
 export async function getArchiveQuestions(
   requestId: string,
+  filter?: ArchiveFilterOptions,
 ): Promise<ArchiveQuestionsResponse> {
-  return apiCall<ArchiveQuestionsResponse>(
+  const url = new URL(
     `${API_BASE_URL}/api/archive/${encodeURIComponent(requestId)}/questions`,
-    {
-      method: 'GET',
-    },
   );
+
+  if (filter?.courseIds && filter.courseIds.length > 0) {
+    filter.courseIds.forEach((courseId) => {
+      url.searchParams.append('course_id', courseId);
+    });
+  } else if (filter?.unassigned) {
+    url.searchParams.set('unassigned', 'true');
+  }
+
+  return apiCall<ArchiveQuestionsResponse>(url.toString(), {
+    method: 'GET',
+  });
 }
 
 // Speichert bearbeitete Fragen eines Archiveintrags.

@@ -10,18 +10,26 @@ import { ArchiveQuestionDetailView } from './ArchiveQuestionDetailView';
 export const ArchivePage: React.FC = () => {
   // Hook verwaltet den kompletten Workflow: Themen laden, Fragen eines Themas anzeigen, Bearbeitung
   const {
+    courses = [],
+    coursesError = null,
+    selectedCourseIds = [],
+    filterUnassigned = false,
+    groupedTopics = {},
+    handleSelectAll,
+    handleSelectUnassigned,
+    handleToggleCourse,
     topics,
     isLoadingTopics,
     topicsError,
-    searchTerm,
+    searchTerm = '',
     setSearchTerm,
     selectedRequestId,
     selectedTopic,
-    archivedQuestions,
+    archivedQuestions = [],
     isLoadingQuestions,
     questionsError,
     isEditMode,
-    editableQuestions,
+    editableQuestions = [],
     isSaving,
     saveError,
     saveSuccess,
@@ -36,6 +44,52 @@ export const ArchivePage: React.FC = () => {
     handleSaveArchivedQuestions,
     handleDeleteArchiveEntry,
   } = useArchiveWorkflow();
+
+  const activeFilterName = React.useMemo(() => {
+    let base: string | null = null;
+    if (filterUnassigned) base = 'Ohne LV / Allgemein';
+    else if (selectedCourseIds.length > 0) {
+      const names = selectedCourseIds
+        .map((cid) => courses.find((c) => c.id === cid)?.name)
+        .filter(Boolean);
+      base = names.join(', ');
+    }
+    const cleanTerm = (searchTerm || '').trim();
+    if (cleanTerm) {
+      return base ? `${base} (Suche: "${cleanTerm}")` : `Suche: "${cleanTerm}"`;
+    }
+    return base;
+  }, [filterUnassigned, selectedCourseIds, courses, searchTerm]);
+
+  const filteredArchivedQuestions = React.useMemo(() => {
+    const term = (searchTerm || '').trim().toLowerCase();
+    if (!term) return archivedQuestions;
+    if (selectedTopic && selectedTopic.toLowerCase().includes(term)) {
+      return archivedQuestions;
+    }
+    return archivedQuestions.filter((q) => {
+      const inQuestion = q.question?.toLowerCase().includes(term);
+      const inAnswer = q.answer?.toLowerCase().includes(term);
+      const inRationale = q.rationale?.toLowerCase().includes(term);
+      const inChoices = q.choices?.some((c) => c.toLowerCase().includes(term));
+      return inQuestion || inAnswer || inRationale || inChoices;
+    });
+  }, [archivedQuestions, searchTerm, selectedTopic]);
+
+  const filteredEditableQuestions = React.useMemo(() => {
+    const term = (searchTerm || '').trim().toLowerCase();
+    if (!term) return editableQuestions;
+    if (selectedTopic && selectedTopic.toLowerCase().includes(term)) {
+      return editableQuestions;
+    }
+    return editableQuestions.filter((q) => {
+      const inQuestion = q.question?.toLowerCase().includes(term);
+      const inAnswer = q.answer?.toLowerCase().includes(term);
+      const inRationale = q.rationale?.toLowerCase().includes(term);
+      const inChoices = q.choices?.some((c) => c.toLowerCase().includes(term));
+      return inQuestion || inAnswer || inRationale || inChoices;
+    });
+  }, [editableQuestions, searchTerm, selectedTopic]);
 
   const [deleteDialogRequestId, setDeleteDialogRequestId] = React.useState<string | null>(null);
 
@@ -59,14 +113,14 @@ export const ArchivePage: React.FC = () => {
         <ArchiveQuestionDetailView
           selectedRequestId={selectedRequestId}
           selectedTopic={selectedTopic}
-          archivedQuestions={archivedQuestions}
+          archivedQuestions={filteredArchivedQuestions}
           isLoadingQuestions={isLoadingQuestions}
           questionsError={questionsError}
           saveError={saveError}
           deleteError={deleteError}
           saveSuccess={saveSuccess}
           isEditMode={isEditMode}
-          editableQuestions={editableQuestions}
+          editableQuestions={filteredEditableQuestions}
           isSaving={isSaving}
           isDeleting={isDeleting}
           onBackToList={handleBackToList}
@@ -75,6 +129,7 @@ export const ArchivePage: React.FC = () => {
           onCancelEdit={handleCancelEdit}
           onSaveArchivedQuestions={handleSaveArchivedQuestions}
           onRequestDelete={openDeleteDialog}
+          activeFilterName={activeFilterName}
         />
       ) : (
         <ArchiveTopicListView
@@ -88,6 +143,14 @@ export const ArchivePage: React.FC = () => {
           isDeleting={isDeleting}
           onTopicSelect={handleTopicSelect}
           onRequestDelete={openDeleteDialog}
+          courses={courses}
+          coursesError={coursesError}
+          selectedCourseIds={selectedCourseIds}
+          filterUnassigned={filterUnassigned}
+          groupedTopics={groupedTopics}
+          onSelectAll={handleSelectAll}
+          onSelectUnassigned={handleSelectUnassigned}
+          onToggleCourse={handleToggleCourse}
         />
       )}
       <ConfirmDialog

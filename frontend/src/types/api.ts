@@ -48,6 +48,11 @@ export interface UploadPdfResponse {
 }
 
 // Archive Types
+export interface ArchiveFilterOptions {
+  courseIds?: string[];
+  unassigned?: boolean;
+}
+
 export interface ArchiveTopic {
   request_id: string;  // UUID
   topic: string;

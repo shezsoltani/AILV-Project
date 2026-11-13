@@ -3,11 +3,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions, deleteArchiveEntry } from '../../services/questionsApi';
+import { listCourses } from '../../services/coursesApi';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
-import type { ArchiveTopic } from '../../types/api';
+import type { ArchiveTopic, ArchiveFilterOptions } from '../../types/api';
+import type { Course } from '../../types/courses';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
 export function useArchiveWorkflow() {
+  // State für Lehrveranstaltungen und Filter
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [filterUnassigned, setFilterUnassigned] = useState<boolean>(false);
+  const [groupedTopics, setGroupedTopics] = useState<Record<string, ArchiveTopic[]>>({});
+
   // State für Themen-Liste
   const [topics, setTopics] = useState<ArchiveTopic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState<boolean>(true);
@@ -49,7 +58,53 @@ export function useArchiveWorkflow() {
     setIsEditMode(false);
   }, []);
 
-  // Themen laden – sofort beim Mount, danach mit 300ms Debounce bei Sucheingabe
+  // Lehrveranstaltungen beim Mounten laden
+  useEffect(() => {
+    let cancelled = false;
+    const loadCourses = async () => {
+      try {
+        const data = await listCourses();
+        if (!cancelled) setCourses(data);
+      } catch (error) {
+        console.error('Fehler beim Laden der Lehrveranstaltungen:', error);
+        if (!cancelled) setCoursesError(getUserFriendlyMessage(error));
+      }
+    };
+    loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Filter-Aktionen
+  const handleSelectAll = useCallback(() => {
+    setSelectedCourseIds([]);
+    setFilterUnassigned(false);
+  }, []);
+
+  const handleSelectUnassigned = useCallback(() => {
+    setSelectedCourseIds([]);
+    setFilterUnassigned(true);
+  }, []);
+
+  const handleToggleCourse = useCallback((courseId: string) => {
+    setFilterUnassigned(false);
+    setSelectedCourseIds((prev) => {
+      if (prev.includes(courseId)) {
+        return prev.filter((id) => id !== courseId);
+      }
+      return [...prev, courseId];
+    });
+  }, []);
+
+  // Aktive Filteroptionen ermitteln
+  const activeFilter: ArchiveFilterOptions = filterUnassigned
+    ? { unassigned: true }
+    : selectedCourseIds.length > 0
+    ? { courseIds: selectedCourseIds }
+    : {};
+
+  // Themen laden – sofort beim Mount/Filterwechsel, danach mit 300ms Debounce bei Sucheingabe
   useEffect(() => {
     let cancelled = false;
 
@@ -57,8 +112,35 @@ export function useArchiveWorkflow() {
       setIsLoadingTopics(true);
       setTopicsError(null);
       try {
-        const response = await getArchiveTopics(searchTerm || undefined);
-        if (!cancelled) setTopics(response.topics);
+        if (filterUnassigned) {
+          const response = await getArchiveTopics(searchTerm || undefined, { unassigned: true });
+          if (!cancelled) {
+            setTopics(response.topics);
+            setGroupedTopics({ unassigned: response.topics });
+          }
+        } else if (selectedCourseIds.length > 0) {
+          const combinedResponse = await getArchiveTopics(searchTerm || undefined, { courseIds: selectedCourseIds });
+          const groupResults = await Promise.all(
+            selectedCourseIds.map(async (cid) => {
+              const res = await getArchiveTopics(searchTerm || undefined, { courseIds: [cid] });
+              return { courseId: cid, topics: res.topics };
+            })
+          );
+          if (!cancelled) {
+            setTopics(combinedResponse.topics);
+            const groupMap: Record<string, ArchiveTopic[]> = {};
+            groupResults.forEach((gr) => {
+              groupMap[gr.courseId] = gr.topics;
+            });
+            setGroupedTopics(groupMap);
+          }
+        } else {
+          const response = await getArchiveTopics(searchTerm || undefined);
+          if (!cancelled) {
+            setTopics(response.topics);
+            setGroupedTopics({});
+          }
+        }
       } catch (error) {
         console.error('Fehler beim Laden der Archiv-Themen:', error);
         if (!cancelled) setTopicsError(getUserFriendlyMessage(error));
@@ -74,9 +156,9 @@ export function useArchiveWorkflow() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [searchTerm]);
+  }, [searchTerm, selectedCourseIds, filterUnassigned]);
 
-  // Lade Fragen, wenn ein Thema ausgewählt wurde
+  // Lade Fragen, wenn ein Thema ausgewählt wurde – mit Erhalt des aktiven Filters
   useEffect(() => {
     if (!selectedRequestId) {
       resetSelectedTopicState();
@@ -87,7 +169,12 @@ export function useArchiveWorkflow() {
       setIsLoadingQuestions(true);
       resetQuestionViewBeforeLoad();
       try {
-        const response = await getArchiveQuestions(selectedRequestId);
+        const currentFilter: ArchiveFilterOptions = filterUnassigned
+          ? { unassigned: true }
+          : selectedCourseIds.length > 0
+          ? { courseIds: selectedCourseIds }
+          : {};
+        const response = await getArchiveQuestions(selectedRequestId, currentFilter);
         setArchivedQuestions(response.questions);
         setEditableQuestions([]); // Leeren beim Laden
         setSelectedTopic(response.topic);
@@ -103,7 +190,7 @@ export function useArchiveWorkflow() {
     };
 
     loadQuestions();
-  }, [selectedRequestId, resetQuestionViewBeforeLoad, resetSelectedTopicState]);
+  }, [selectedRequestId, filterUnassigned, selectedCourseIds, resetQuestionViewBeforeLoad, resetSelectedTopicState]);
 
   // Zurück zur Themen-Liste — Reset erfolgt automatisch über den useEffect
   const handleBackToList = () => {
@@ -182,6 +269,16 @@ export function useArchiveWorkflow() {
   };
 
   return {
+    // States für Lehrveranstaltungen und Filter
+    courses,
+    coursesError,
+    selectedCourseIds,
+    filterUnassigned,
+    groupedTopics,
+    activeFilter,
+    handleSelectAll,
+    handleSelectUnassigned,
+    handleToggleCourse,
     // States für Themen-Liste
     topics,
     isLoadingTopics,

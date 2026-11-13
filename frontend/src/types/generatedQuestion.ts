@@ -13,4 +13,5 @@ export interface GeneratedQuestion {
   correct_indices?: number[];
   answer?: string;
   rationale?: string;
+  course_ids?: string[];
 }
