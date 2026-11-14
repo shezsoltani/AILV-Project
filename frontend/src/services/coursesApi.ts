@@ -57,15 +57,15 @@ export async function deleteCourse(courseId: string): Promise<CourseDeleteRespon
 // Setzt die LV-Zuordnungen einer gespeicherten Frage. Die Liste ersetzt die
 // bisherigen Zuordnungen vollständig; eine leere Liste entfernt alle.
 export async function setQuestionCourses(
-  questionId: string,
-  courseIds: string[]
+    questionId: string,
+    courseIds: string[]
 ): Promise<QuestionCoursesResponse> {
   return await apiCall<QuestionCoursesResponse>(
-    `${API_BASE_URL}/api/archive/questions/${questionId}/courses`,
-    {
-      method: 'PUT',
-      headers: JSON_HEADERS,
-      body: JSON.stringify({ course_ids: courseIds }),
-    }
+      `${API_BASE_URL}/api/archive/questions/${questionId}/courses`,
+      {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ course_ids: courseIds }),
+      }
   );
 }

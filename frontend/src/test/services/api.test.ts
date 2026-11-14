@@ -13,16 +13,17 @@ describe('API Services', () => {
     language: 'de' as const,
     count: 5,
     types: ['MCQ'] as any,
-    difficultyDistribution: { easy: 40, medium: 40, hard: 20 }
+    difficultyDistribution: { easy: 40, medium: 40, hard: 20 },
+    course_ids: [] as string[]
   };
 
   it('generateQuestions sollte den richtigen Endpunkt mit POST aufrufen', async () => {
-    const mockResponse = { 
+    const mockResponse = {
       accepted: true,
-      questions: [], 
-      request_id: '123' 
+      questions: [],
+      request_id: '123'
     };
-    
+
     (fetch as any).mockResolvedValue({
       ok: true,
       status: 200,
@@ -33,11 +34,36 @@ describe('API Services', () => {
     await generateQuestions(validFormValues);
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/generate'),
-      expect.objectContaining({
-        method: 'POST',
-      })
+        expect.stringContaining('/api/generate'),
+        expect.objectContaining({
+          method: 'POST',
+        })
     );
+  });
+
+
+  it('generateQuestions übergibt keine LV als leere Liste', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true, status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ job_id: 'job-1' })),
+    });
+
+    await generateQuestions(validFormValues);
+    const payload = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(payload.course_ids).toEqual([]);
+  });
+
+  it('generateQuestions übergibt eine oder mehrere ausgewählte LV-IDs', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true, status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ job_id: 'job-1' })),
+    });
+
+    await generateQuestions({ ...validFormValues, course_ids: ['lv-1', 'lv-2'] });
+    const payload = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(payload.course_ids).toEqual(['lv-1', 'lv-2']);
   });
 
   it('sollte den gespeicherten Token automatisch als Authorization-Header mitsenden', async () => {
@@ -81,14 +107,14 @@ describe('API Services', () => {
 
     expect(result.access_token).toBe('jwt-token');
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/auth/login'),
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({
-          username: 'max',
-          password: 'geheim',
-        }),
-      })
+        expect.stringContaining('/api/auth/login'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            username: 'max',
+            password: 'geheim',
+          }),
+        })
     );
 
     const requestOptions = (fetch as any).mock.calls[0][1];

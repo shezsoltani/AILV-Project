@@ -19,4 +19,5 @@ export interface GenerateRequestFormValues {
   customPrompts?: Record<string, string>;
   provider?: 'openai' | 'ollama';
   model?: string;
+  course_ids?: string[];
 }

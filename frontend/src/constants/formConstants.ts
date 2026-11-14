@@ -1,4 +1,4 @@
-import type { GenerateRequestFormValues, QuestionType } from '../types/generate';
+import type { GenerateRequestFormValues, QuestionType } from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
 
 
 // Verfügbare Fragetypen für das Formular
@@ -38,4 +38,5 @@ export const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
   },
   contextText: undefined,
   uploadContext: undefined,
+  course_ids: [],
 };

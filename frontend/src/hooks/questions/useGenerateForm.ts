@@ -13,7 +13,7 @@ import type {
   GenerateRequestFormValues,
   Language,
   QuestionType,
-} from '../../types/generate';
+} from '../../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
 
 import { DEFAULT_FORM_VALUES } from '../../constants/formConstants';
 import {
@@ -21,6 +21,8 @@ import {
   type ValidationErrors,
 } from '../../validators/generateValidator';
 import { sanitizeToDigitsOnly } from '../../utils/inputSanitizer';
+import { listCourses } from '../../services/coursesApi';
+import type { Course } from '../../types/courses';
 
 import {
   getGenerationModels,
@@ -62,6 +64,13 @@ function getDifficultyKey(name: string): DifficultyKey | null {
 }
 
 export interface UseGenerateFormReturn {
+  courses: Course[];
+  coursesLoading: boolean;
+  coursesError: string | null;
+  reloadCourses: () => void;
+  toggleCourse: (courseId: string) => void;
+  clearCourseSelection: () => void;
+
   models: GenerationModel[];
   modelsLoading: boolean;
   modelsError: string | null;
@@ -105,6 +114,7 @@ export const useGenerateForm = ({
       },
       provider: DEFAULT_FORM_VALUES.provider ?? 'openai',
       model: DEFAULT_FORM_VALUES.model ?? '',
+      course_ids: [...(DEFAULT_FORM_VALUES.course_ids ?? [])],
     }));
 
   const [displayValues, setDisplayValues] = useState<DisplayValues>({
@@ -117,6 +127,11 @@ export const useGenerateForm = ({
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [validationStarted, setValidationStarted] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
+  const [coursesReload, setCoursesReload] = useState(0);
 
   const [models, setModels] = useState<GenerationModel[]>([]);
   const [modelsLoading, setModelsLoading] = useState(true);
@@ -131,6 +146,28 @@ export const useGenerateForm = ({
       setErrors(validate(formValues));
     }
   }, [formValues, validationStarted]);
+
+  // Eigene Lehrveranstaltungen laden. Ein Fehler blockiert die Generierung nicht;
+  // bestehende Auswahl bleibt erhalten, bis der Benutzer sie selbst ändert.
+  useEffect(() => {
+    let cancelled = false;
+    const loadCourses = async (): Promise<void> => {
+      setCoursesLoading(true);
+      setCoursesError(null);
+      try {
+        const response = await listCourses();
+        if (!cancelled) setCourses(response);
+      } catch {
+        if (!cancelled) {
+          setCoursesError('Lehrveranstaltungen konnten nicht geladen werden. Sie können erneut laden oder bewusst ohne LV-Zuordnung fortfahren.');
+        }
+      } finally {
+        if (!cancelled) setCoursesLoading(false);
+      }
+    };
+    void loadCourses();
+    return () => { cancelled = true; };
+  }, [coursesReload]);
 
   // Optionen ausschließlich vom Backend laden.
   useEffect(() => {
@@ -230,6 +267,28 @@ export const useGenerateForm = ({
     setValidationStarted(true);
     setShowSuccessMessage(false);
     setFormValues(updater);
+  };
+
+  const reloadCourses = (): void => {
+    if (isLoading || coursesLoading) return;
+    setCoursesLoading(true);
+    setCoursesError(null);
+    setCoursesReload((previous) => previous + 1);
+  };
+
+  const toggleCourse = (courseId: string): void => {
+    if (isLoading) return;
+    updateFormValues((previous) => ({
+      ...previous,
+      course_ids: (previous.course_ids ?? []).includes(courseId)
+        ? previous.course_ids.filter((id) => id !== courseId)
+        : [...(previous.course_ids ?? []), courseId],
+    }));
+  };
+
+  const clearCourseSelection = (): void => {
+    if (isLoading) return;
+    updateFormValues((previous) => ({ ...previous, course_ids: [] }));
   };
 
   const reloadModels = (): void => {
@@ -539,6 +598,12 @@ export const useGenerateForm = ({
   };
 
   return {
+    courses,
+    coursesLoading,
+    coursesError,
+    reloadCourses,
+    toggleCourse,
+    clearCourseSelection,
     models,
     modelsLoading,
     modelsError,

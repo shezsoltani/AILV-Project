@@ -1,7 +1,7 @@
 // src/services/questionsApi.ts
 // API-Aufrufe für Fragengenerierung, Finalisierung und Fragenarchiv.
 
-import type { GenerateRequestFormValues } from '../types/generate';
+import type { GenerateRequestFormValues } from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
 import type {
@@ -11,7 +11,7 @@ import type {
   ArchiveTopicsResponse,
   ArchiveQuestionsResponse,
   ArchiveDeleteResponse,
-} from '../types/api';
+} from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/api.ts';
 
 import type { JobCreateResponse } from '../types/jobs';
 
@@ -27,6 +27,8 @@ export async function generateQuestions(
   const payload = {
     topic: formValues.topic,
     language: formValues.language,
+    // [] bedeutet ausdrücklich: keine LV-Zuordnung (allgemeine Fragen).
+    course_ids: [...(formValues.course_ids ?? [])],
 
     // Ohne explizite Auswahl bleibt OpenAI der Standard.
     provider: formValues.provider ?? 'openai',

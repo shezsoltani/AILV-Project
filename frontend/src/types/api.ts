@@ -30,6 +30,7 @@ export interface FinalQuestion {
 export interface FinalizeRequest {
   request_id: string;  // UUID
   questions: FinalQuestion[];
+  course_ids: string[];
 }
 
 // Response Interface für die finalizeQuestions API
