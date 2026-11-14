@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getArchiveTopics, getArchiveQuestions, updateArchiveQuestions, deleteArchiveEntry } from '../../services/questionsApi';
-import { listCourses } from '../../services/coursesApi';
+import { listCourses, setQuestionCourses } from '../../services/coursesApi';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
 import type { ArchiveTopic, ArchiveFilterOptions } from '../../types/api';
 import type { Course } from '../../types/courses';
@@ -39,12 +39,14 @@ export function useArchiveWorkflow() {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false);
+  const [assignmentNotice, setAssignmentNotice] = useState<string | null>(null);
 
   const resetSelectedTopicState = useCallback(() => {
     setArchivedQuestions([]);
     setEditableQuestions([]);
     setSelectedTopic(null);
     setQuestionsError(null);
+    setAssignmentNotice(null);
     setIsEditMode(false);
     setSaveError(null);
     setSaveSuccess(false);
@@ -99,10 +101,10 @@ export function useArchiveWorkflow() {
 
   // Aktive Filteroptionen ermitteln
   const activeFilter: ArchiveFilterOptions = filterUnassigned
-    ? { unassigned: true }
-    : selectedCourseIds.length > 0
-    ? { courseIds: selectedCourseIds }
-    : {};
+      ? { unassigned: true }
+      : selectedCourseIds.length > 0
+          ? { courseIds: selectedCourseIds }
+          : {};
 
   // Themen laden – sofort beim Mount/Filterwechsel, danach mit 300ms Debounce bei Sucheingabe
   useEffect(() => {
@@ -121,10 +123,10 @@ export function useArchiveWorkflow() {
         } else if (selectedCourseIds.length > 0) {
           const combinedResponse = await getArchiveTopics(searchTerm || undefined, { courseIds: selectedCourseIds });
           const groupResults = await Promise.all(
-            selectedCourseIds.map(async (cid) => {
-              const res = await getArchiveTopics(searchTerm || undefined, { courseIds: [cid] });
-              return { courseId: cid, topics: res.topics };
-            })
+              selectedCourseIds.map(async (cid) => {
+                const res = await getArchiveTopics(searchTerm || undefined, { courseIds: [cid] });
+                return { courseId: cid, topics: res.topics };
+              })
           );
           if (!cancelled) {
             setTopics(combinedResponse.topics);
@@ -170,10 +172,10 @@ export function useArchiveWorkflow() {
       resetQuestionViewBeforeLoad();
       try {
         const currentFilter: ArchiveFilterOptions = filterUnassigned
-          ? { unassigned: true }
-          : selectedCourseIds.length > 0
-          ? { courseIds: selectedCourseIds }
-          : {};
+            ? { unassigned: true }
+            : selectedCourseIds.length > 0
+                ? { courseIds: selectedCourseIds }
+                : {};
         const response = await getArchiveQuestions(selectedRequestId, currentFilter);
         setArchivedQuestions(response.questions);
         setEditableQuestions([]); // Leeren beim Laden
@@ -200,6 +202,7 @@ export function useArchiveWorkflow() {
   // Auswahl eines Themas behandeln
   const handleTopicSelect = (requestId: string) => {
     setDeleteSuccess(false);
+    setAssignmentNotice(null);
     setSelectedRequestId(requestId);
   };
 
@@ -214,7 +217,7 @@ export function useArchiveWorkflow() {
   // Änderung an einer Frage im Bearbeitungsmodus
   const handleArchivedQuestionChange = (updatedQuestion: GeneratedQuestion) => {
     setEditableQuestions((prevQuestions) =>
-      prevQuestions.map((q) => (q.id === updatedQuestion.id ? updatedQuestion : q))
+        prevQuestions.map((q) => (q.id === updatedQuestion.id ? updatedQuestion : q))
     );
   };
 
@@ -245,6 +248,64 @@ export function useArchiveWorkflow() {
       setSaveError(getUserFriendlyMessage(error));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Ändert ausschließlich die LV-Zuordnung einer bereits gespeicherten Frage.
+  // Die Frageninhalte werden dabei nicht an den Backend-Endpunkt übertragen.
+  const handleSaveQuestionCourses = async (questionId: string, courseIds: string[]) => {
+    if (!selectedRequestId) return;
+
+    setAssignmentNotice(null);
+    const response = await setQuestionCourses(questionId, courseIds);
+
+    // Erst nach erfolgreicher PUT-Antwort den lokalen Stand aktualisieren.
+    setArchivedQuestions((previous) =>
+        previous.map((question) =>
+            question.id === questionId
+                ? { ...question, course_ids: response.course_ids }
+                : question
+        )
+    );
+
+    try {
+      // Neu laden, damit die aktive LV-Auswahl sofort korrekt greift.
+      const refreshedQuestions = await getArchiveQuestions(selectedRequestId, activeFilter);
+      setArchivedQuestions(refreshedQuestions.questions);
+
+      // Themen und Gruppenzahlen ebenfalls aktualisieren.
+      const refreshedTopics = await getArchiveTopics(searchTerm || undefined, activeFilter);
+      setTopics(refreshedTopics.topics);
+
+      if (selectedCourseIds.length > 1) {
+        const groups = await Promise.all(
+            selectedCourseIds.map(async (courseId) => ({
+              courseId,
+              topics: (await getArchiveTopics(searchTerm || undefined, { courseIds: [courseId] })).topics,
+            }))
+        );
+        const groupMap: Record<string, ArchiveTopic[]> = {};
+        groups.forEach(({ courseId, topics: courseTopics }) => {
+          groupMap[courseId] = courseTopics;
+        });
+        setGroupedTopics(groupMap);
+      } else if (filterUnassigned) {
+        setGroupedTopics({ unassigned: refreshedTopics.topics });
+      } else {
+        setGroupedTopics({});
+      }
+
+      if (activeFilter.courseIds?.length || activeFilter.unassigned) {
+        const stillVisible = refreshedQuestions.questions.some((question) => question.id === questionId);
+        if (!stillVisible) {
+          setAssignmentNotice('Die LV-Zuordnung wurde gespeichert. Die Frage passt nicht mehr zum aktiven Filter und wird deshalb hier nicht mehr angezeigt.');
+        }
+      }
+    } catch (error) {
+      // Die PUT-Änderung ist bereits gespeichert. Ein Ladefehler darf sie nicht
+      // als fehlgeschlagen darstellen; die lokale Zuordnung bleibt aktualisiert.
+      console.error('Archiv nach Änderung der LV-Zuordnung konnte nicht vollständig neu geladen werden:', error);
+      setAssignmentNotice('Die Zuordnung wurde gespeichert. Die Archivliste konnte nicht automatisch aktualisiert werden; bitte laden Sie die Ansicht neu.');
     }
   };
 
@@ -300,6 +361,7 @@ export function useArchiveWorkflow() {
     isDeleting,
     deleteError,
     deleteSuccess,
+    assignmentNotice,
     // Handlers
     handleBackToList,
     handleTopicSelect,
@@ -307,6 +369,7 @@ export function useArchiveWorkflow() {
     handleArchivedQuestionChange,
     handleCancelEdit,
     handleSaveArchivedQuestions,
+    handleSaveQuestionCourses,
     handleDeleteArchiveEntry,
   };
 }

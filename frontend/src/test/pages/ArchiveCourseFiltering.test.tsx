@@ -1,14 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArchivePage } from '../../pages/questions/ArchivePage';
-import { listCourses } from '../../services/coursesApi';
+import { listCourses, setQuestionCourses } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/services/coursesApi.ts';
 import { getArchiveTopics, getArchiveQuestions } from '../../services/questionsApi';
-import type { Course } from '../../types/courses';
+import type { Course } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/courses.ts';
 import type { ArchiveTopic } from '../../types/api';
-import type { GeneratedQuestion } from '../../types/generatedQuestion';
+import type { GeneratedQuestion } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/generatedQuestion.ts';
 
 vi.mock('../../services/coursesApi', () => ({
   listCourses: vi.fn(),
+  setQuestionCourses: vi.fn(),
 }));
 
 vi.mock('../../services/questionsApi', () => ({
@@ -19,6 +20,7 @@ vi.mock('../../services/questionsApi', () => ({
 }));
 
 const mockListCourses = vi.mocked(listCourses);
+const mockSetQuestionCourses = vi.mocked(setQuestionCourses);
 const mockGetArchiveTopics = vi.mocked(getArchiveTopics);
 const mockGetArchiveQuestions = vi.mocked(getArchiveQuestions);
 
@@ -110,6 +112,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
   beforeEach(() => {
     vi.clearAllMocks();
     setupDefaultMocks();
+    mockSetQuestionCourses.mockResolvedValue({ question_id: 'q-1', course_ids: ['c-math'] });
   });
 
   it('1. Filter-Auswahl: zeigt Alle, Ohne LV / Allgemein und eigene Lehrveranstaltungen an', async () => {
@@ -281,4 +284,44 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
     expect(screen.getByText('Was ist die Determinante?')).toBeInTheDocument();
     expect(screen.queryByText('Was ist eine Matrix?')).not.toBeInTheDocument();
   });
+
+  it('8. Speichern aktualisiert den aktiven Filter und zeigt an, wenn die Frage dadurch verschwindet', async () => {
+    let assignmentSaved = false;
+    mockGetArchiveQuestions.mockImplementation(async () => ({
+      request_id: 'req-algebra',
+      topic: 'Lineare Algebra',
+      language: 'de',
+      questions: assignmentSaved ? [] : [
+        {
+          id: 'q-1',
+          question: 'Was ist eine Matrix?',
+          type: 'SCQ',
+          difficulty: 'easy',
+          choices: ['Tabelle', 'Text'],
+          correct_index: 0,
+          course_ids: ['c-math'],
+        },
+      ],
+    }));
+    mockSetQuestionCourses.mockImplementation(async (_questionId, courseIds) => {
+      assignmentSaved = true;
+      return { question_id: 'q-1', course_ids: courseIds };
+    });
+
+    render(<ArchivePage />);
+    await screen.findByRole('button', { name: 'Mathematik 1' });
+    fireEvent.click(screen.getByRole('button', { name: 'Mathematik 1' }));
+    const topicCard = await screen.findByRole('button', { name: /Thema Lineare Algebra öffnen/i });
+    fireEvent.click(topicCard);
+
+    expect(await screen.findByText('Was ist eine Matrix?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'LV-Zuordnung ändern' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mathematik 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Die Frage passt nicht mehr zum aktiven Filter');
+    expect(mockSetQuestionCourses).toHaveBeenCalledWith('q-1', []);
+    expect(screen.queryByText('Was ist eine Matrix?')).not.toBeInTheDocument();
+  });
+
 });
