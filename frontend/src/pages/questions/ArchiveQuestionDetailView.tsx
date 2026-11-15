@@ -36,11 +36,11 @@ interface ArchiveQuestionDetailViewProps {
 
 interface QuestionCourseAssignmentProps {
   question: GeneratedQuestion;
-  courses: Course[];
-  onSave: (questionId: string, courseIds: string[]) => Promise<void>;
+  courses?: Course[];
+  onSave?: (questionId: string, courseIds: string[]) => Promise<void>;
 }
 
-const QuestionCourseAssignment: React.FC<QuestionCourseAssignmentProps> = ({ question, courses, onSave }) => {
+const QuestionCourseAssignment: React.FC<QuestionCourseAssignmentProps> = ({ question, courses = [], onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftIds, setDraftIds] = useState<string[]>(question.course_ids ?? []);
   const [isSaving, setIsSaving] = useState(false);
@@ -122,8 +122,8 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
                                                                                       saveError,
                                                                                       deleteError,
                                                                                       assignmentNotice,
-                                                                                      courses,
-                                                                                      onSaveQuestionCourses,
+                                                                                      courses = [],
+                                                                                      onSaveQuestionCourses = async () => {},
                                                                                       saveSuccess,
                                                                                       isEditMode,
                                                                                       editableQuestions,

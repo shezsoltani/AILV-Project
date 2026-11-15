@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
-import type { GenerateRequestFormValues } from '../../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
-import { generateQuestions, finalizeQuestions } from '../../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/services/questionsApi.ts';
+import type { GenerateRequestFormValues } from '../../types/generate';
+import { generateQuestions, finalizeQuestions } from '../../services/questionsApi';
 import { cancelJob } from '../../services/jobsApi';
 import { calculateQuestionDiff } from '../../utils/questionUtils';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';

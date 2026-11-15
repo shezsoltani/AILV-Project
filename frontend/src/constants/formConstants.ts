@@ -1,4 +1,4 @@
-import type { GenerateRequestFormValues, QuestionType } from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
+import type { GenerateRequestFormValues, QuestionType } from '../types/generate';
 
 
 // Verfügbare Fragetypen für das Formular

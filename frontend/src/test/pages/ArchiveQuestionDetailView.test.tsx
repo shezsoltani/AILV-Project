@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ArchiveQuestionDetailView } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/pages/questions/ArchiveQuestionDetailView.tsx';
-import type { Course } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/courses.ts';
-import type { GeneratedQuestion } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/generatedQuestion.ts';
+import { ArchiveQuestionDetailView } from '../../pages/questions/ArchiveQuestionDetailView';
+import type { Course } from '../../types/courses';
+import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
 const COURSES: Course[] = [
   { id: 'course-a', name: 'Mathematik 1', created_at: '2026-11-01T10:00:00Z', question_count: 1 },

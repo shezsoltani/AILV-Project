@@ -1,7 +1,7 @@
 // src/services/questionsApi.ts
 // API-Aufrufe für Fragengenerierung, Finalisierung und Fragenarchiv.
 
-import type { GenerateRequestFormValues } from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
+import type { GenerateRequestFormValues } from '../types/generate';
 import type { GeneratedQuestion } from '../types/generatedQuestion';
 
 import type {
@@ -11,7 +11,7 @@ import type {
   ArchiveTopicsResponse,
   ArchiveQuestionsResponse,
   ArchiveDeleteResponse,
-} from '../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/api.ts';
+} from '../types/api';
 
 import type { JobCreateResponse } from '../types/jobs';
 

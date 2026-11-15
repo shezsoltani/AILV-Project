@@ -13,7 +13,7 @@ import type {
   GenerateRequestFormValues,
   Language,
   QuestionType,
-} from '../../../../../../../../Users/melek/Downloads/SCRUM-9-Dateien/frontend/src/types/generate.ts';
+} from '../../types/generate';
 
 import { DEFAULT_FORM_VALUES } from '../../constants/formConstants';
 import {

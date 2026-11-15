@@ -33,6 +33,7 @@ export const ArchivePage: React.FC = () => {
     isSaving,
     saveError,
     saveSuccess,
+    assignmentNotice,
     isDeleting,
     deleteError,
     deleteSuccess,
@@ -42,6 +43,7 @@ export const ArchivePage: React.FC = () => {
     handleArchivedQuestionChange,
     handleCancelEdit,
     handleSaveArchivedQuestions,
+    handleSaveQuestionCourses,
     handleDeleteArchiveEntry,
   } = useArchiveWorkflow();
 
@@ -130,6 +132,9 @@ export const ArchivePage: React.FC = () => {
           onSaveArchivedQuestions={handleSaveArchivedQuestions}
           onRequestDelete={openDeleteDialog}
           activeFilterName={activeFilterName}
+          courses={courses}
+          assignmentNotice={assignmentNotice}
+          onSaveQuestionCourses={handleSaveQuestionCourses}
         />
       ) : (
         <ArchiveTopicListView

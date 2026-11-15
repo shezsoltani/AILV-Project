@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArchivePage } from '../../pages/questions/ArchivePage';
-import { listCourses, setQuestionCourses } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/services/coursesApi.ts';
+import { listCourses, setQuestionCourses } from '../../services/coursesApi';
 import { getArchiveTopics, getArchiveQuestions } from '../../services/questionsApi';
-import type { Course } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/courses.ts';
+import type { Course } from '../../types/courses';
 import type { ArchiveTopic } from '../../types/api';
-import type { GeneratedQuestion } from '../../../../../../../../Users/melek/Downloads/SCRUM-Archivzuordnung-Dateien/frontend/src/types/generatedQuestion.ts';
+import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
 vi.mock('../../services/coursesApi', () => ({
   listCourses: vi.fn(),
@@ -198,8 +198,9 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Mathematik 1' }));
-
-    expect(await screen.findByText('Keine Fragen für diese LV gefunden')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Keine Fragen für diese LV gefunden')).toBeInTheDocument();
+    });
   });
 
   it('6. Detailansicht & Filtererhalt: Filter bleibt beim Öffnen erhalten und filtert Fragen', async () => {
@@ -228,7 +229,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
 
     // Detailansicht zeigt Filter-Badge
     expect(screen.getByTestId('archive-active-filter')).toHaveTextContent('Filter aktiv: Mathematik 1');
-    expect(screen.getByText('Was ist der Rang einer Matrix?')).toBeInTheDocument();
+    expect(screen.getAllByText('Was ist der Rang einer Matrix?')[0]).toBeInTheDocument();
 
     // Zurück zur Liste: Filter ist immer noch aktiv
     fireEvent.click(screen.getByRole('button', { name: /Zurück zur Liste/i }));
@@ -281,7 +282,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
 
     // Detailansicht zeigt Filter-Badge mit Suche und nur die passende Frage
     expect(await screen.findByTestId('archive-active-filter')).toHaveTextContent('Filter aktiv: Mathematik 1 (Suche: "Determinante")');
-    expect(screen.getByText('Was ist die Determinante?')).toBeInTheDocument();
+    expect(screen.getAllByText('Was ist die Determinante?')[0]).toBeInTheDocument();
     expect(screen.queryByText('Was ist eine Matrix?')).not.toBeInTheDocument();
   });
 
@@ -314,7 +315,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
     const topicCard = await screen.findByRole('button', { name: /Thema Lineare Algebra öffnen/i });
     fireEvent.click(topicCard);
 
-    expect(await screen.findByText('Was ist eine Matrix?')).toBeInTheDocument();
+    expect((await screen.findAllByText('Was ist eine Matrix?'))[0]).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'LV-Zuordnung ändern' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Mathematik 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
