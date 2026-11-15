@@ -59,6 +59,32 @@ Startdaten, die nur in `db-init` definiert sind, werden damit nicht abgebildet.
 - `user_factory(**overrides)`: weitere Benutzer pro Test anlegen.
 - `request_data`: gültige Request-Daten, auch ohne Datenbank verwendbar.
 - `test_generation_request`: gespeicherter Request des `test_user`.
+- `two_users`: Tupel aus zwei Dictionaries mit `user`, echtem Login-`token` und
+  fertigen Bearer-`headers`. Verwendet `client` und den normalen Login-Endpunkt.
+- `finalized_archive_factory(owner, topic=None)`: legt einen Fragenrequest mit
+  IMPROVE-Prompt und einer finalisierten SCQ in `questions` an. `owner` ist ein
+  User-Modell; Rückgabe: `{"request_id": UUID, "question_ids": [UUID]}`.
+- `job_factory(owner, status="pending", job_type="questions")`: erzeugt einen Job
+  über das Job-Repository und setzt den gewünschten Status ebenfalls darüber.
+  Rückgabe ist das gespeicherte Job-Modell; es wird kein Hintergrundjob gestartet.
+- `question_prompt_templates`: speichert je ein minimales deutsches Template für
+  `SKELETON`, `CONTENT` und `IMPROVE` im isolierten Testschema. Rückgabe ist ein
+  Dictionary mit Stage als Schlüssel und dem Template-Modell als Wert.
+
+Diese Testdaten werden nur angelegt, wenn ein Test die jeweilige Fixture anfordert
+(kein `autouse`). Entwicklungsdaten oder SQL-Startdaten sind dafür nicht nötig.
+
+```python
+def test_example(client, two_users, finalized_archive_factory, job_factory):
+    owner, other = two_users
+    archive = finalized_archive_factory(owner["user"], topic="SQL Grundlagen")
+    job = job_factory(owner["user"], status="completed")
+    response = client.get(
+        f'/api/archive/{archive["request_id"]}/questions',
+        headers=other["headers"],
+    )
+    assert response.status_code == 403
+```
 
 Die Fixtures stehen in Unit- und Integrationstests automatisch zur Verfügung.
 `db_session` rollt alle Änderungen nach jedem Test zurück, auch nach `commit()`.
