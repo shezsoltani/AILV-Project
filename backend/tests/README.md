@@ -90,7 +90,20 @@ Die Fixtures stehen in Unit- und Integrationstests automatisch zur Verfügung.
 `db_session` rollt alle Änderungen nach jedem Test zurück, auch nach `commit()`.
 App-Overrides werden ebenfalls zurückgesetzt. Den synchronen Client und die
 Session innerhalb eines Tests nacheinander verwenden, nicht parallel.
-Hintergrundjobs mit eigener `SessionLocal` benötigen weiterhin einen Test-Double.
+Hintergrundjobs können über ihren Parameter `session_factory` die Fixture
+`db_session_factory` verwenden. Sie erzeugt eigene schließbare Sessions auf
+derselben Testverbindung. Änderungen der Request-Seite vorher committen, IDs
+sichern und `db_session.close()` aufrufen; erst danach den Job ausführen.
+Request- und Job-Session ausschließlich nacheinander verwenden. Alle Sessions
+liegen im gemeinsamen Test-Savepoint und werden am Testende bereinigt.
+Der normale `client` überschreibt nur `get_db`, nicht die Factory eines Jobs.
+Details und Infrastrukturtest: [Job-Integrationstests](../docs/testing.md).
+
+Nur Integrationstests starten:
+
+```shell
+docker compose -f compose.test.yml run --rm tests tests/integration -v
+```
 
 ## Fortschritt und Dateiverarbeitung
 

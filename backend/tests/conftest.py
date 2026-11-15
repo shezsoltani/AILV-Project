@@ -91,20 +91,48 @@ def db_connection(test_database_url):
 
 
 @contextmanager
-def _isolated_session(connection):
-    # This savepoint survives Session.commit()/rollback(). The Session manages
-    # its own nested savepoints inside it (SQLAlchemy 2.x).
+def _isolated_session_factory(connection):
+    # All sessions share this test savepoint, but own their inner savepoints.
     transaction = connection.begin_nested()
+    sessions = []
+
+    def create_session():
+        if any(session.in_transaction() for session in sessions):
+            raise RuntimeError(
+                "Test-Sessions nacheinander verwenden: aktive Session zuerst "
+                "committen und schließen, bevor die nächste geöffnet wird."
+            )
+        session = Session(bind=connection, join_transaction_mode="create_savepoint")
+        sessions.append(session)
+        return session
+
     try:
-        with Session(bind=connection, join_transaction_mode="create_savepoint") as session:
-            yield session
+        yield create_session
     finally:
-        transaction.rollback()
+        try:
+            for session in reversed(sessions):
+                session.close()
+        finally:
+            transaction.rollback()
+
+
+@contextmanager
+def _isolated_session(connection):
+    with _isolated_session_factory(connection) as factory:
+        with factory() as session:
+            yield session
 
 
 @pytest.fixture
-def db_session(db_connection):
-    with _isolated_session(db_connection) as session:
+def db_session_factory(db_connection):
+    """Real, closable sessions on one connection and one per-test savepoint."""
+    with _isolated_session_factory(db_connection) as factory:
+        yield factory
+
+
+@pytest.fixture
+def db_session(db_session_factory):
+    with db_session_factory() as session:
         yield session
 
 
