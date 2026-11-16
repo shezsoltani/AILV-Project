@@ -57,7 +57,7 @@ def test_generation_request(db_session, test_user, request_data):
 @pytest.fixture
 def finalized_archive_factory(db_session, request_data):
     """Create a small finalized archive; owner is a User, returned IDs are UUIDs."""
-    def create_archive(owner, *, topic=None):
+    def create_archive(owner, *, topic=None, question_count=1):
         values = {**request_data, "count": 1}
         if topic is not None:
             values["topic"] = topic
@@ -70,15 +70,19 @@ def finalized_archive_factory(db_session, request_data):
         )
         db_session.add(prompt)
         db_session.flush()
-        question = Question(
-            request_id=request.id, prompt_id=prompt.id, type="SCQ",
-            difficulty="easy", stem="Wofür steht SQL?",
-            choices=["Structured Query Language", "Simple Queue List"],
-            correct_index=0, rationale="SQL ist eine Datenbankabfragesprache.",
-        )
-        db_session.add(question)
+        questions = [
+            Question(
+                request_id=request.id, prompt_id=prompt.id, type="SCQ",
+                difficulty="easy",
+                stem="Wofür steht SQL?" if number == 0 else f"Wofür steht SQL? ({number + 1})",
+                choices=["Structured Query Language", "Simple Queue List"],
+                correct_index=0, rationale="SQL ist eine Datenbankabfragesprache.",
+            )
+            for number in range(question_count)
+        ]
+        db_session.add_all(questions)
         db_session.flush()
-        return {"request_id": request.id, "question_ids": [question.id]}
+        return {"request_id": request.id, "question_ids": [q.id for q in questions]}
 
     return create_archive
 

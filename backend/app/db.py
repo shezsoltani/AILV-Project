@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@db:5432/aildb")
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@db:5432/aildb")
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
