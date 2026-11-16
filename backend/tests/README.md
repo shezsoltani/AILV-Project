@@ -33,7 +33,8 @@ Nach Änderungen an Abhängigkeiten oder `Dockerfile.test` wieder den Befehl mit
 ## Datenbank und Isolation
 
 - Jeder Entwickler erhält auf seinem Rechner eine eigene Datenbank `aildb_test`.
-- Die Testumgebung verwendet das Compose-Projekt `ailv-tests` und das eigene
+- Die Testumgebung verwendet standardmäßig das Compose-Projekt `ailv-tests`
+  (in CI über `COMPOSE_PROJECT_NAME` dynamisch anpassbar) und das eigene
   Volume `test-db-data`. Das Volume der regulären Anwendung wird nicht verwendet.
 - Bei einem neuen, leeren Testvolume legt das PostgreSQL-Image Datenbank und
   Benutzer an. Ein vorhandenes Testvolume wird weiterverwendet und nicht geleert.

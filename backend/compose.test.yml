@@ -1,4 +1,4 @@
-name: ailv-tests
+name: ${COMPOSE_PROJECT_NAME:-ailv-tests}
 
 services:
   db-test:

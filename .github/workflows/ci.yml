@@ -1,0 +1,30 @@
+name: CI
+
+'on':
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      COMPOSE_PROJECT_NAME: ailv-tests-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run backend tests
+        run: docker compose -f compose.test.yml run --build --rm tests
+
+      - name: Clean up Docker resources
+        if: always()
+        run: docker compose -f compose.test.yml down -v --remove-orphans

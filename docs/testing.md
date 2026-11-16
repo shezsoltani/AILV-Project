@@ -269,10 +269,28 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 
 ## CI-Pipeline
 
-Die Tests sind so aufgebaut, dass sie direkt in einer CI-Pipeline ausgeführt werden können. Der Befehl
+Die Backend-Testsuite wird über GitHub Actions bei jedem Pull Request sowie bei Pushes auf den Standardbranch (`main`) automatisch auf einem Linux-Runner ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
+
+### Startbefehl in der Pipeline
+
+Der CI-Job wechselt in das Verzeichnis `backend/` und führt denselben Befehl aus wie in der lokalen Entwicklung:
 
 ```shell
+# Im Verzeichnis backend/
 docker compose -f compose.test.yml run --build --rm tests
 ```
 
-liefert Exit-Code `0` bei Erfolg und einen Wert ungleich `0` bei Fehlern – kompatibel mit GitHub Actions, GitLab CI und vergleichbaren Systemen. Eine Pipeline-Konfiguration ist für einen späteren Sprint geplant.
+### Verhalten und Eigenschaften im CI-Lauf
+
+- **Exitcode-Weitergabe & Status-Check:** Docker Compose gibt den Exitcode des Testcontainers (`pytest`) direkt an GitHub Actions weiter. Der Status-Check schlägt fehl (rot), wenn ein Test fehlschlägt oder der Start bzw. der Healthcheck der PostgreSQL-Testdatenbank (`db-test`) scheitert. Nur bei erfolgreichem Gesamtlauf ist der Check grün (`0`).
+- **Isolierte Testdatenbank:** Die Tests nutzen die PostgreSQL-Testdatenbank und `TEST_DATABASE_URL` aus `compose.test.yml`. Es werden keine produktiven Zugangsdaten benötigt, und externe Netzwerkzugriffe sind über das interne Docker-Netzwerk unterbunden.
+- **Parallele Läufe auf persistenten Runnern:** Um Namenskonflikte auf persistenten oder Self-Hosted-Runnern bei parallelen CI-Läufen auszuschließen, setzt der Workflow einen eindeutigen Compose-Projektnamen über die Umgebungsvariable:
+  ```shell
+  COMPOSE_PROJECT_NAME=ailv-tests-${{ github.run_id }}-${{ github.run_attempt }}
+  ```
+  Dadurch erhalten Container, Netzwerke und Test-Volumes separate Namen pro CI-Lauf.
+- **Ressourcen-Bereinigung:** Nach Abschluss der Tests – auch im Fehlerfall (`if: always()`) – werden Container und Volumes des jeweiligen Laufs vollständig bereinigt:
+  ```shell
+  docker compose -f compose.test.yml down -v --remove-orphans
+  ```
+  Durch den eindeutigen Projektnamen betrifft das Aufräumen ausschließlich Ressourcen des jeweiligen Laufs; andere parallele Läufe bleiben unberührt.
