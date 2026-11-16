@@ -5,6 +5,7 @@ import { useQuestionWorkflow } from '../../hooks/questions/useQuestionWorkflow';
 import { JobContextProvider } from '../../context/JobContext';
 import * as questionsApi from '../../services/questionsApi';
 import * as jobsApi from '../../services/jobsApi';
+import { ApiError } from '../../error-handling/AppErrors';
 
 vi.mock('../../services/questionsApi', () => ({
   generateQuestions: vi.fn(),
@@ -48,12 +49,12 @@ const jobControls = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../context/JobContext', () => {
-  const ReactLib = require('react');
-  const MockJobContext = ReactLib.createContext(null);
+vi.mock('../../context/JobContext', async () => {
+  const ReactLib = await vi.importActual<typeof import('react')>('react');
+  const MockJobContext = ReactLib.createContext<unknown>(null);
 
   function MockJobContextProvider({ children }: { children: React.ReactNode }) {
-    const [activeJob, setActiveJob] = ReactLib.useState(null);
+    const [activeJob, setActiveJob] = ReactLib.useState<MockJob | null>(null);
 
     ReactLib.useEffect(() => {
       jobControls.register(setActiveJob);
@@ -126,12 +127,81 @@ describe('useQuestionWorkflow Hook', () => {
       await result.current.handleFormSubmit(formValues);
     });
 
-    expect(questionsApi.generateQuestions).toHaveBeenCalledWith(formValues);
+    expect(questionsApi.generateQuestions).toHaveBeenCalledWith({ ...formValues, course_ids: [] });
     expect(result.current.jobId).toBe('job-q-1');
     expect(result.current.jobStatus).toBe('pending');
     expect(result.current.isLoading).toBe(false);
     expect(result.current.questions).toHaveLength(0);
     expect(result.current.errorMessage).toBeNull();
+  });
+
+  it('übernimmt dieselbe LV-Auswahl beim Generieren und Finalisieren', async () => {
+    (questionsApi.generateQuestions as any).mockResolvedValue({ job_id: 'job-course', status: 'pending' });
+    (questionsApi.finalizeQuestions as any).mockResolvedValue({ finalized_count: 1 });
+
+    const { result } = renderHook(() => useQuestionWorkflow(), {
+      wrapper: JobContextProvider,
+    });
+
+    const submittedValues = {
+      ...formValues,
+      count: 1,
+      types: ['MCQ'] as any,
+      course_ids: ['lv-1', 'lv-2'],
+    };
+    await act(async () => { await result.current.handleFormSubmit(submittedValues); });
+    // Spätere Änderungen am Formularobjekt dürfen den Auftragssnapshot nicht ändern.
+    submittedValues.course_ids = ['lv-3'];
+
+    expect(questionsApi.generateQuestions).toHaveBeenCalledWith(
+      expect.objectContaining({ course_ids: ['lv-1', 'lv-2'] }),
+    );
+
+    await act(async () => {
+      jobControls.updateJob({
+        status: 'completed',
+        progress: 100,
+        resultData: { request_id: 'req-123', questions: completedQuestions },
+      });
+    });
+    await waitFor(() => expect(result.current.questions).toHaveLength(1));
+
+    act(() => result.current.handleQuestionChange({ ...result.current.questions[0], question: 'Geändert?' }));
+    await act(async () => { await result.current.handleFinalizeQuestions(); });
+
+    expect(questionsApi.finalizeQuestions).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-123',
+      course_ids: ['lv-1', 'lv-2'],
+    }));
+  });
+
+  it('behält Entwürfe bei einem 404 der LV-Zuordnung und zeigt eine verständliche Meldung', async () => {
+    (questionsApi.generateQuestions as any).mockResolvedValue({ job_id: 'job-course-404', status: 'pending' });
+    (questionsApi.finalizeQuestions as any).mockRejectedValue(new ApiError('Course not found', 404));
+
+    const { result } = renderHook(() => useQuestionWorkflow(), { wrapper: JobContextProvider });
+    await act(async () => {
+      await result.current.handleFormSubmit({
+        ...formValues,
+        count: 1,
+        types: ['MCQ'] as any,
+        course_ids: ['deleted-course'],
+      });
+    });
+    await act(async () => {
+      jobControls.updateJob({
+        status: 'completed',
+        progress: 100,
+        resultData: { request_id: 'req-123', questions: completedQuestions },
+      });
+    });
+    await waitFor(() => expect(result.current.questions).toHaveLength(1));
+
+    act(() => result.current.handleQuestionChange({ ...result.current.questions[0], question: 'Geändert?' }));
+    await act(async () => { await result.current.handleFinalizeQuestions(); });
+
+    expect(result.current.questions).toHaveLength(1);
+    expect(result.current.errorMessage).toContain('Es wurde nichts gespeichert');
   });
 
   it('zeigt Lade- und Fortschrittszustand waehrend der Job laeuft', async () => {

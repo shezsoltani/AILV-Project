@@ -67,3 +67,12 @@ def two_users(client, user_factory, test_password):
             "headers": {"Authorization": f"Bearer {token}"},
         })
     return tuple(users)
+
+
+@pytest.fixture
+def auth_headers():
+    def _headers(user):
+        from app.core.auth_utils import create_access_token
+        token = create_access_token({'sub': str(user.id)})
+        return {'Authorization': f'Bearer {token}'}
+    return _headers

@@ -22,6 +22,16 @@
   width: 100%;
   animation: slideUp var(--transition-slow) ease-out;
   border: 1px solid var(--color-border);
+  /* Bei sehr langem Text bleibt der Dialog im Bildschirm und wird scrollbar */
+  max-height: calc(100vh - 2 * var(--spacing-lg));
+  overflow-y: auto;
+}
+
+/* Auf dem Handy weniger Innenabstand, damit beide Buttons nebeneinander Platz haben */
+@media (max-width: 480px) {
+  .confirm-dialog {
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
 }
 
 .confirm-dialog-body {
@@ -40,6 +50,8 @@
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: 1.6;
+  /* Lange Namen ohne Leerzeichen sollen im Dialog umbrechen */
+  overflow-wrap: anywhere;
 }
 
 .confirm-dialog-footer {

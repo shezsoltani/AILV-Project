@@ -19,6 +19,7 @@ class StageRunner(Protocol):
         language: str,
         context: dict,
         custom_prompt: Optional[str] = None,
+        llm_provider: Optional[LLMProvider] = None,
     ) -> str: ...
 
 

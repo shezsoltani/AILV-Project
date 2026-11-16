@@ -30,6 +30,7 @@ export interface FinalQuestion {
 export interface FinalizeRequest {
   request_id: string;  // UUID
   questions: FinalQuestion[];
+  course_ids: string[];
 }
 
 // Response Interface für die finalizeQuestions API
@@ -48,6 +49,11 @@ export interface UploadPdfResponse {
 }
 
 // Archive Types
+export interface ArchiveFilterOptions {
+  courseIds?: string[];
+  unassigned?: boolean;
+}
+
 export interface ArchiveTopic {
   request_id: string;  // UUID
   topic: string;

@@ -1,3 +1,4 @@
+from .llm_selection import create_provider
 from uuid import UUID
 from sqlalchemy.orm import Session
 
@@ -55,6 +56,7 @@ async def run_question_batches(
     accumulated_questions: list | None = None,
     existing_request_id: UUID | None = None,
 ) -> tuple[list, UUID]:
+    llm_provider = create_provider(req)
     if accumulated_questions is None:
         accumulated_questions = []
 
@@ -104,6 +106,7 @@ async def run_question_batches(
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
                     custom_prompts=batch_custom_prompts,
+                    llm_provider=llm_provider,
                 )
 
                 accumulated_questions.extend(

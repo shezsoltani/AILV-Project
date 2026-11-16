@@ -27,6 +27,9 @@ Das Projekt entwickelt eine Web-Anwendung zur automatisierten Generierung von Pr
 
 ## Schnellstart
 
+Lokale KI-Modelle mit Ollama (Funktionsweise, Einrichtung, Modellwahl):
+[Ollama-Dokumentation](docs/InnoLab1/ollama.md).
+
 ### Voraussetzungen
 
 - Docker Desktop installiert und laufend

@@ -1,0 +1,323 @@
+/* Lehrveranstaltungen (LV-Verwaltung) */
+
+.courses-page {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Banner auf dieser Seite brauchen keinen eigenen Außenabstand, die Seite hat schon gap. */
+.courses-page .courses-banner,
+.courses-load-error .error-banner {
+  margin: 0;
+}
+
+.courses-banner {
+  overflow-wrap: anywhere;
+}
+
+.courses-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  /* Platz für die fixierte Kopfzeile, wenn zur Meldung gescrollt wird */
+  scroll-margin-top: 17rem;
+}
+
+.courses-load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.courses-load-error .error-banner {
+  width: 100%;
+}
+
+/* Anlegen */
+.courses-create {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: var(--spacing-xl);
+}
+
+.courses-create-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+}
+
+.courses-create-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Eingabefeld und Button daneben sind gleich hoch. */
+.courses-create .form-input,
+.course-item-edit .form-input {
+  height: 3.5rem;
+}
+
+.courses-create-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  height: 3.5rem;
+  padding: 0 var(--spacing-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.courses-create .form-error-message {
+  margin-top: var(--spacing-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Liste */
+.courses-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.courses-list-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.courses-list-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0 var(--spacing-sm);
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-primary-active);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.courses-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.course-item:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+.course-item--editing {
+  border-color: var(--color-primary);
+}
+
+.course-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.course-item-name {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  /* Lange Namen ohne Leerzeichen dürfen die Zeile nicht sprengen. */
+  overflow-wrap: anywhere;
+}
+
+.course-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.course-item-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.course-item-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--spacing-sm);
+}
+
+/* Umbenennen in der Zeile */
+.course-item-edit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.course-item-edit-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-item-edit .course-item-actions {
+  /* Buttons auf Höhe des Eingabefelds, unter dem Label */
+  margin-top: calc(var(--font-size-sm) * 1.6 + var(--spacing-xs));
+}
+
+.course-item-edit .course-button {
+  min-height: 3.5rem;
+}
+
+.course-item-edit .form-error-message {
+  overflow-wrap: anywhere;
+}
+
+/* Buttons der LV-Verwaltung */
+.course-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-base), border-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.course-button:hover:not(:disabled) {
+  background: var(--color-border-light);
+  border-color: var(--color-text-muted);
+}
+
+.course-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.course-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.course-button--primary {
+  color: #ffffff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.course-button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.course-button--danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.course-button--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+/* Tablet und Handy: alles untereinander */
+@media (max-width: 768px) {
+  .courses-create {
+    padding: var(--spacing-lg);
+  }
+
+  /* Eingabefeld und Button untereinander. Ab dieser Breite ist .primary-button
+     in der ganzen App 100 % breit und würde das Feld sonst zusammendrücken. */
+  .courses-create-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .courses-create-button {
+    width: 100%;
+  }
+
+  .course-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+
+  .course-item-actions {
+    width: 100%;
+  }
+
+  .course-item-actions .course-button {
+    flex: 1;
+    min-height: 2.75rem; /* gut mit dem Finger zu treffen */
+  }
+
+  .course-item-edit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .course-item-edit .course-item-actions {
+    margin-top: 0;
+  }
+
+  .course-item-edit .course-button {
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .courses-create,
+  .course-item {
+    padding: var(--spacing-md);
+  }
+
+  .courses-list-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .course-item-name {
+    font-size: var(--font-size-base);
+  }
+}

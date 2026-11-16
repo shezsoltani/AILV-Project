@@ -177,9 +177,12 @@ async def test_default_uses_existing_run_stage(case, monkeypatch, runner_argumen
     )
 
     assert result == case.response
+    # Fragen-Stufen reichen den (hier fehlenden) Provider durch, Slides-Stufen kennen ihn nicht.
+    expected_provider_kwargs = {} if case.stage.startswith("SLIDES") else {"llm_provider": None}
     default_runner.assert_awaited_once_with(
         db=db, request_id=request_id, stage=case.stage, language="de",
         context=case.context, custom_prompt="test template",
+        **expected_provider_kwargs,
     )
 
 

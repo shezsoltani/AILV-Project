@@ -8,6 +8,7 @@ import { generateQuestions, finalizeQuestions } from '../../services/questionsAp
 import { cancelJob } from '../../services/jobsApi';
 import { calculateQuestionDiff } from '../../utils/questionUtils';
 import { getUserFriendlyMessage } from '../../error-handling/errorMappers';
+import { ApiError } from '../../error-handling/AppErrors';
 import { DEFAULT_ERROR_MESSAGES, SUCCESS_MESSAGE_DISPLAY_TIME } from '../../constants/appConstants';
 import { useJobContext } from '../../context/JobContext';
 
@@ -17,6 +18,8 @@ export function useQuestionWorkflow() {
   const [originalQuestions, setOriginalQuestions] = useState<GeneratedQuestion[]>([]); // Snapshot für Diff-Berechnung (nur Änderungen senden)
   const [requestId, setRequestId] = useState<string | null>(null);
   const [persistentJobId, setPersistentJobId] = useState<string | null>(null);
+  // Unveränderlicher Snapshot der LV-Auswahl für genau diesen Generierungsauftrag.
+  const [submittedCourseIds, setSubmittedCourseIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +35,11 @@ export function useQuestionWorkflow() {
     setQuestions([]);
     setOriginalQuestions([]);
     setRequestId(null);
+    const courseIdsSnapshot = [...(values.course_ids ?? [])];
+    setSubmittedCourseIds(courseIdsSnapshot);
 
     try {
-      const result = await generateQuestions(values);
+      const result = await generateQuestions({ ...values, course_ids: courseIdsSnapshot });
       addJob(result.job_id, 'generate_questions');
       setPersistentJobId(result.job_id);
     } catch (error) {
@@ -57,6 +62,7 @@ export function useQuestionWorkflow() {
     setQuestions([]);
     setOriginalQuestions([]);
     setRequestId(null);
+    setSubmittedCourseIds([]);
     setErrorMessage(null);
     setSuccessMessage(null);
   };
@@ -103,6 +109,7 @@ export function useQuestionWorkflow() {
       const response = await finalizeQuestions({
         request_id: requestId,
         questions: finalizeQuestionsArray,
+        course_ids: [...submittedCourseIds],
       });
 
       setErrorMessage(null);
@@ -120,13 +127,18 @@ export function useQuestionWorkflow() {
         setQuestions([]);
         setOriginalQuestions([]);
         setRequestId(null);
+        setSubmittedCourseIds([]);
         setPersistentJobId(null);
         setSuccessMessage(null);
         timeoutRef.current = null;
       }, SUCCESS_MESSAGE_DISPLAY_TIME);
     } catch (error) {
       console.error('Fehler beim Finalisieren der Fragen:', error);
-      setErrorMessage(getUserFriendlyMessage(error));
+      setErrorMessage(
+        error instanceof ApiError && error.statusCode === 404
+          ? 'Eine ausgewählte Lehrveranstaltung wurde gelöscht oder gehört nicht zu Ihrem Konto. Es wurde nichts gespeichert. Ihre Fragenentwürfe bleiben erhalten. Bitte passen Sie die LV-Auswahl an und versuchen Sie es erneut.'
+          : getUserFriendlyMessage(error),
+      );
     } finally {
       isFinalizingRef.current = false;
       setIsLoading(false);

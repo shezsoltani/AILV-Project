@@ -3,15 +3,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- USERS table (for future extensions)
 CREATE TABLE users (
-     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-     username VARCHAR(100) UNIQUE NOT NULL,
-     email VARCHAR(255) UNIQUE NOT NULL,
-     password_hash VARCHAR(255) NOT NULL,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                       username VARCHAR(100) UNIQUE NOT NULL,
+                       email VARCHAR(255) UNIQUE NOT NULL,
+                       password_hash VARCHAR(255) NOT NULL,
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS generation_requests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                                   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     request_type VARCHAR(20) NOT NULL DEFAULT 'questions', -- 'questions' | 'slides'
     topic TEXT NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS generation_requests (
 CREATE INDEX idx_generation_requests_user_id ON generation_requests (user_id);
 
 CREATE TABLE IF NOT EXISTS prompts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID NOT NULL REFERENCES generation_requests(id) ON DELETE CASCADE,
     stage VARCHAR(50) NOT NULL,        -- e.g. SKELETON, CONTENT, IMPROVE
     prompt_text TEXT,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS prompts (
 CREATE INDEX idx_prompts_request_id ON prompts (request_id);
 
 CREATE TABLE IF NOT EXISTS generated_questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                                   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID NOT NULL
     REFERENCES generation_requests(id) ON DELETE CASCADE,
     prompt_id UUID NOT NULL
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS generated_questions (
 
 -- QUESTIONS table (finalized items)
 CREATE TABLE IF NOT EXISTS questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID NOT NULL REFERENCES generation_requests(id) ON DELETE CASCADE,
     prompt_id UUID REFERENCES prompts(id) ON DELETE SET NULL,
     type VARCHAR(50),
@@ -76,9 +76,34 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE INDEX idx_questions_request_id ON questions (request_id);
 
--- GENERATED_SLIDES (temporäre LLM-Ausgabe)
+-- COURSES (Lehrveranstaltungen, gehoeren genau einem Benutzer)
+-- Hinweis: bestehende Datenbanken erhalten diese Tabellen ueber
+-- db-migrations/001_add_courses.up.sql (diese Datei laeuft nur bei leerer DB).
+CREATE TABLE IF NOT EXISTS courses (
+                                       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    CONSTRAINT chk_course_name_not_blank CHECK (length(btrim(name)) > 0)
+    );
+
+CREATE INDEX IF NOT EXISTS idx_courses_user_id ON courses (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_courses_user_name ON courses (user_id, lower(name));
+
+-- QUESTION_COURSES (Zuordnung Frage <-> LV, N:M, optional)
+-- Loeschen einer LV oder Frage entfernt nur die Zuordnung, nie die andere Seite.
+CREATE TABLE IF NOT EXISTS question_courses (
+                                                question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    PRIMARY KEY (question_id, course_id)
+    );
+
+CREATE INDEX IF NOT EXISTS idx_question_courses_course_id ON question_courses (course_id);
+
+-- GENERATED_SLIDES (temporÃ¤re LLM-Ausgabe)
 CREATE TABLE IF NOT EXISTS generated_slides (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID NOT NULL REFERENCES generation_requests(id) ON DELETE CASCADE,
     prompt_id UUID NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
     stage VARCHAR(50) NOT NULL,
@@ -94,7 +119,7 @@ CREATE INDEX idx_generated_slides_request_id ON generated_slides(request_id);
 
 -- SLIDE_DECKS (finale Foliensammlung)
 CREATE TABLE IF NOT EXISTS slide_decks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                           id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID REFERENCES generation_requests(id) ON DELETE SET NULL,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -105,7 +130,7 @@ CREATE INDEX idx_slide_decks_user_id ON slide_decks(user_id);
 
 -- SLIDES (einzelne Folien eines Decks)
 CREATE TABLE IF NOT EXISTS slides (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     deck_id UUID NOT NULL REFERENCES slide_decks(id) ON DELETE CASCADE,
     position INT NOT NULL,
     slide_type VARCHAR(50),
@@ -118,7 +143,7 @@ CREATE TABLE IF NOT EXISTS slides (
 CREATE INDEX idx_slides_deck_id ON slides(deck_id);
 
 CREATE TABLE IF NOT EXISTS prompt_templates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stage VARCHAR(50) NOT NULL,          -- z.B. 'SKELETON', 'CONTENT', 'IMPROVE'
     language VARCHAR(8) DEFAULT 'de',
     template TEXT NOT NULL              -- der eigentliche Prompt-Text (mit Platzhaltern)
@@ -128,7 +153,7 @@ CREATE INDEX IF NOT EXISTS idx_prompt_templates_stage ON prompt_templates(stage)
 CREATE INDEX IF NOT EXISTS idx_prompt_templates_language ON prompt_templates(language);
 
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                                     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
@@ -140,7 +165,7 @@ CREATE INDEX idx_password_reset_user_id
     ON password_reset_tokens(user_id);
 
 CREATE TABLE IF NOT EXISTS jobs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     job_type VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
@@ -156,7 +181,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     CONSTRAINT chk_job_status CHECK (status IN ('pending', 'running', 'completed', 'failed')),
     CONSTRAINT chk_job_progress CHECK (progress >= 0 AND progress <= 100)
-);
+    );
 
 CREATE INDEX idx_jobs_user_id ON jobs(user_id);
 CREATE INDEX idx_jobs_status  ON jobs(status);
