@@ -128,18 +128,49 @@
   border-radius: var(--radius-xl);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: var(--spacing-lg) var(--spacing-xl);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition: all var(--transition-base);
   /* Bezugspunkt für die Klickfläche des Links (.course-item-link::after) */
   position: relative;
+  /* Schneidet den Hover-Balken an den runden Ecken ab */
+  overflow: hidden;
+}
+
+/* Farbbalken oben, läuft beim Hover ein (wie bei den Archiv-Karten) */
+.course-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, #7c3aed 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+  pointer-events: none;
 }
 
 .course-item:hover {
-  border-color: #c7d2fe;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  transform: translateY(-2px);
+}
+
+.course-item:hover::before {
+  transform: scaleX(1);
+}
+
+.course-item:active {
+  box-shadow: var(--shadow-md);
 }
 
 .course-item--editing {
   border-color: var(--color-primary);
+}
+
+/* Beim Umbenennen bleibt die Karte ruhig, damit die Eingabe nicht wandert */
+.course-item--editing:hover {
+  transform: none;
 }
 
 .course-item-main {
@@ -180,7 +211,7 @@
 
 .course-item-link:focus-visible::after {
   outline: 2px solid var(--color-primary, #4f46e5);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
 .course-item:has(.course-item-link) {
