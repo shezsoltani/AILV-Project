@@ -269,10 +269,93 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 
 ## CI-Pipeline
 
-Die Tests sind so aufgebaut, dass sie direkt in einer CI-Pipeline ausgeführt werden können. Der Befehl
+In GitHub Actions werden bei jedem Pull Request sowie bei Pushes auf den Standardbranch (`main`) automatisch zwei parallele Jobs auf Linux-Runnern (`ubuntu-latest`) ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+
+1. **`Backend Tests`**: Führt die Python-Testsuite mit PostgreSQL in Docker Compose aus.
+2. **`Frontend Tests & Build`**: Führt die Vitest-Tests und den Vite-Produktions-Build mit Node.js aus.
+
+Beide Jobs laufen unabhängig und parallel zueinander, sodass im Pull Request getrennte Status-Checks sichtbar sind.
+
+---
+
+### Backend-Job
+
+#### Startbefehl in der Pipeline
+
+Der Backend-Job wechselt in das Verzeichnis `backend/` und führt denselben Befehl aus wie in der lokalen Entwicklung:
 
 ```shell
+# Im Verzeichnis backend/
 docker compose -f compose.test.yml run --build --rm tests
 ```
 
-liefert Exit-Code `0` bei Erfolg und einen Wert ungleich `0` bei Fehlern – kompatibel mit GitHub Actions, GitLab CI und vergleichbaren Systemen. Eine Pipeline-Konfiguration ist für einen späteren Sprint geplant.
+#### Verhalten und Eigenschaften im CI-Lauf
+
+- **Exitcode-Weitergabe & Status-Check:** Docker Compose gibt den Exitcode des Testcontainers (`pytest`) direkt an GitHub Actions weiter. Der Status-Check schlägt fehl (rot), wenn ein Test fehlschlägt oder der Start bzw. der Healthcheck der PostgreSQL-Testdatenbank (`db-test`) scheitert. Nur bei erfolgreichem Gesamtlauf ist der Check grün (`0`).
+- **Isolierte Testdatenbank:** Die Tests nutzen die PostgreSQL-Testdatenbank und `TEST_DATABASE_URL` aus `compose.test.yml`. Es werden keine produktiven Zugangsdaten benötigt, und externe Netzwerkzugriffe sind über das interne Docker-Netzwerk unterbunden.
+- **Parallele Läufe auf persistenten Runnern:** Um Namenskonflikte auf persistenten oder Self-Hosted-Runnern bei parallelen CI-Läufen auszuschließen, setzt der Workflow einen eindeutigen Compose-Projektnamen über die Umgebungsvariable:
+  ```shell
+  COMPOSE_PROJECT_NAME=ailv-tests-${{ github.run_id }}-${{ github.run_attempt }}
+  ```
+  Dadurch erhalten Container, Netzwerke und Test-Volumes separate Namen pro CI-Lauf.
+- **Ressourcen-Bereinigung:** Nach Abschluss der Tests – auch im Fehlerfall (`if: always()`) – werden Container und Volumes des jeweiligen Laufs vollständig bereinigt:
+  ```shell
+  docker compose -f compose.test.yml down -v --remove-orphans
+  ```
+  Durch den eindeutigen Projektnamen betrifft das Aufräumen ausschließlich Ressourcen des jeweiligen Laufs; andere parallele Läufe bleiben unberührt.
+
+---
+
+### Frontend-Job
+
+Der Frontend-Job stellt sicher, dass die React-Oberfläche funktionsfähig ist und für die Produktion fehlerfrei gebaut werden kann.
+
+#### Schritte in der Pipeline
+
+1. **Node.js einrichten:** Verwendet Node.js 20 (LTS) mit integriertem Dependency-Caching (`cache-dependency-path: frontend/package-lock.json`).
+2. **Abhängigkeiten installieren:** Führt im Verzeichnis `frontend/` den Befehl `npm ci` aus, um exakt die im Lockfile definierten Pakete sauber zu installieren.
+3. **Tests ausführen:** Führt `npm test -- --run` aus. Das Flag `--run` beendet Vitest nach einem vollständigen Durchlauf (kein Watch-Modus).
+4. **Build erstellen:** Führt im Anschluss `npm run build` (`vite build`) als eigenen, klar benannten Schritt aus.
+
+#### Verhalten und Eigenschaften im Frontend-Lauf
+
+- **Fehlererkennung:** Da Test (`Run frontend tests`) und Build (`Build frontend`) als zwei separate Schritte im Workflow definiert sind, ist in der GitHub Actions Oberfläche sofort erkennbar, ob Vitest oder der Build fehlgeschlagen ist.
+- **Status-Check:** Scheitert entweder ein Test oder der Build, wird der Status-Check `Frontend Tests & Build` im Pull Request auf Rot gesetzt.
+- **Keine Abhängigkeit vom Backend:** Die Umgebungsvariable `VITE_API_BASE` wird für Tests und Build auf eine Dummy-Testadresse gesetzt (`http://ailv-test.invalid`). Vitest verwendet gemockte API-Aufrufe, sodass kein laufendes Backend erforderlich ist.
+- **Keine Deployments:** Der CI-Lauf benötigt keinen Deployment-Schlüssel und veröffentlicht nichts auf dem FH-Server.
+
+---
+
+### Bedeutung der CI-Checks im Pull Request
+
+Im Pull Request erscheinen zwei voneinander unabhängige Status-Checks:
+
+| Check-Name | Was wird geprüft? | Wann wird der Check rot? |
+|---|---|---|
+| **`Backend Tests`** | Python-Unit- und Integrationstests gegen die isolierte PostgreSQL-Testdatenbank. | Ein Backend-Test schlägt fehl oder die PostgreSQL-Testdatenbank startet nicht. |
+| **`Frontend Tests & Build`** | Vitest-Komponenten- und Hook-Tests sowie TypeScript-Kompilierung und Vite-Bundle. | Mindestens ein Frontend-Test schlägt fehl oder der Produktions-Build bricht mit Fehlern ab. |
+
+---
+
+### Lokale Vergleichsbefehle für das Frontend
+
+Um die CI-Schritte lokal vor dem Push oder PR nachzuvollziehen, können im Verzeichnis `frontend/` folgende Befehle ausgeführt werden:
+
+```shell
+# 1. Abhängigkeiten exakt aus Lockfile installieren
+npm ci
+
+# 2. Vitest-Tests einmalig ausführen (äquivalent zum CI-Schritt)
+# Linux / macOS:
+VITE_API_BASE=http://ailv-test.invalid npm test -- --run
+
+# Windows (PowerShell):
+$env:VITE_API_BASE="http://ailv-test.invalid"; npm test -- --run
+
+# 3. Produktions-Build lokal testen (äquivalent zum CI-Schritt)
+# Linux / macOS:
+VITE_API_BASE=http://ailv-test.invalid npm run build
+
+# Windows (PowerShell):
+$env:VITE_API_BASE="http://ailv-test.invalid"; npm run build
+```

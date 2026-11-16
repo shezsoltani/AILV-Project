@@ -47,3 +47,23 @@ def client(app, db_session):
 def smoke_client(app):
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def two_users(client, user_factory, test_password):
+    """Two independent users authenticated through the real login endpoint."""
+    users = []
+    for _ in range(2):
+        user = user_factory()
+        response = client.post("/api/auth/login", json={
+            "username": user.username,
+            "password": test_password,
+        })
+        assert response.status_code == 200, response.text
+        token = response.json()["access_token"]
+        users.append({
+            "user": user,
+            "token": token,
+            "headers": {"Authorization": f"Bearer {token}"},
+        })
+    return tuple(users)
