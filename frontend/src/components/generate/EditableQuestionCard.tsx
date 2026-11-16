@@ -13,6 +13,7 @@ interface EditableQuestionCardProps {
   onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void;
   showCorrectAnswer?: boolean;
   readOnly?: boolean;
+  footer?: React.ReactNode; // optionaler Bereich am Kartenende (z. B. LV-Zuordnung im Archiv)
 }
 
 export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
@@ -22,6 +23,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
   onQuestionChange,
   showCorrectAnswer = false,
   readOnly = false,
+  footer,
 }) => {
   const [localQuestion, setLocalQuestion] = useState<GeneratedQuestion>(question);
 
@@ -312,6 +314,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
           />
         </div>
       )}
+      {footer && <div className="question-card-footer">{footer}</div>}
     </article>
   );
 };

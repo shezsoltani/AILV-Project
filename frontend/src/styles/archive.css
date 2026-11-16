@@ -550,3 +550,145 @@
   font-weight: 600;
   margin-bottom: var(--spacing-md);
 }
+
+/* LV-Zuordnung: Fußbereich jeder archivierten Fragenkarte (Detailansicht) */
+.question-card-footer {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.archive-question-courses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-base);
+}
+
+/* Bearbeitungsmodus sichtbar machen */
+.archive-question-courses--editing {
+  padding: var(--spacing-md);
+  background: var(--color-primary-light);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.archive-question-courses-current {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.archive-question-courses-current strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Zugeordnete LVs einheitlich als Chips (wie in der Auswahl) */
+.archive-course-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.archive-course-chip--general {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Kompakte Buttons statt der großen Standardgröße */
+.archive-question-courses-edit,
+.archive-question-courses-actions .primary-button,
+.archive-question-courses-actions .secondary-button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  border-width: 1px;
+}
+
+.archive-question-courses-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  flex-basis: 100%;
+}
+
+.archive-question-courses-editor fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.archive-question-courses-editor fieldset:disabled {
+  opacity: 0.6;
+}
+
+.archive-question-courses-editor legend {
+  width: 100%;
+  margin-bottom: var(--spacing-sm);
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.archive-course-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+.archive-course-option:hover {
+  border-color: var(--color-primary);
+}
+
+.archive-course-option:has(input:checked) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.archive-course-option input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.archive-question-courses-hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.archive-question-courses-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}

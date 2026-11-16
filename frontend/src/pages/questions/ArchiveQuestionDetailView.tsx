@@ -76,14 +76,20 @@ const QuestionCourseAssignment: React.FC<QuestionCourseAssignmentProps> = ({ que
   };
 
   return (
-      <section className="archive-question-courses" aria-label={`LV-Zuordnung für Frage ${question.id}`}>
-        <div className="archive-question-courses-question">{question.question}</div>
+      <section
+          className={`archive-question-courses${isEditing ? ' archive-question-courses--editing' : ''}`}
+          aria-label={`LV-Zuordnung für Frage ${question.id}`}
+      >
         <div className="archive-question-courses-current">
           <strong>Zugeordnet:</strong>{' '}
-          {assignedIds.length > 0 ? assignedNames.join(', ') : 'Allgemein'}
+          {assignedIds.length > 0
+              ? assignedNames.map((name, index) => (
+                  <span key={`${assignedIds[index]}-${index}`} className="archive-course-chip">{name}</span>
+              ))
+              : <span className="archive-course-chip archive-course-chip--general">Allgemein</span>}
         </div>
         {!isEditing ? (
-            <button type="button" className="secondary-button" onClick={() => { setDraftIds(question.course_ids ?? []); setError(null); setIsEditing(true); }}>
+            <button type="button" className="secondary-button archive-question-courses-edit" onClick={() => { setDraftIds(question.course_ids ?? []); setError(null); setIsEditing(true); }}>
               LV-Zuordnung ändern
             </button>
         ) : (
@@ -343,14 +349,10 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
                   questions={isEditMode ? editableQuestions : archivedQuestions}
                   onQuestionChange={isEditMode ? onArchivedQuestionChange : undefined}
                   readOnly={!isEditMode}
+                  renderQuestionFooter={isEditMode ? undefined : (question) => (
+                      <QuestionCourseAssignment question={question} courses={courses} onSave={onSaveQuestionCourses} />
+                  )}
               />
-              {!isEditMode && (
-                  <div className="archive-question-course-assignments">
-                    {archivedQuestions.map((question) => (
-                        <QuestionCourseAssignment key={question.id} question={question} courses={courses} onSave={onSaveQuestionCourses} />
-                    ))}
-                  </div>
-              )}
             </>
         )}
       </div>

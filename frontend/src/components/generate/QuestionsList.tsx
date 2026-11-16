@@ -9,12 +9,14 @@ interface QuestionsListProps {
   questions: GeneratedQuestion[]; // Array aller generierten Fragen
   onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void; // Funktion bei Frageänderung (optional für read-only)
   readOnly?: boolean; // Wenn true, werden Fragen nicht editierbar angezeigt
+  renderQuestionFooter?: (question: GeneratedQuestion) => React.ReactNode; // optionaler Zusatz unter jeder Frage
 }
 
 export const QuestionsList: React.FC<QuestionsListProps> = ({
   questions,
   onQuestionChange,
   readOnly = false,
+  renderQuestionFooter,
 }) => {
   // State für die Anzeige der richtigen Antworten (bei MCQ und TRUE_FALSE-Fragen relevant)
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(false);
@@ -48,6 +50,7 @@ export const QuestionsList: React.FC<QuestionsListProps> = ({
             onQuestionChange={onQuestionChange}
             showCorrectAnswer={showCorrectAnswer}
             readOnly={readOnly}
+            footer={renderQuestionFooter?.(q)}
           />
         ))}
       </div>
