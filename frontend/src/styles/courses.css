@@ -129,6 +129,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: var(--spacing-lg) var(--spacing-xl);
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  /* Bezugspunkt für die Klickfläche des Links (.course-item-link::after) */
+  position: relative;
 }
 
 .course-item:hover {
@@ -158,6 +160,33 @@
   overflow-wrap: anywhere;
 }
 
+.course-item-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Die ganze Card ist klickbar: Die Klickfläche des Links wird auf die Card gedehnt. */
+.course-item-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.course-item:hover .course-item-link,
+.course-item-link:focus-visible {
+  color: var(--color-primary, #4f46e5);
+}
+
+.course-item-link:focus-visible::after {
+  outline: 2px solid var(--color-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+.course-item:has(.course-item-link) {
+  cursor: pointer;
+}
+
 .course-item-meta {
   display: flex;
   flex-wrap: wrap;
@@ -171,6 +200,9 @@
 }
 
 .course-item-actions {
+  /* Über der Klickfläche des Links, damit die Buttons weiter einzeln klickbar sind */
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-shrink: 0;
   gap: var(--spacing-sm);

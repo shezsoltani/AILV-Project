@@ -2,12 +2,18 @@
 // Orchestrator: schaltet zwischen Themen-Liste und Detail-Ansicht und steuert den Lösch-Dialog.
 
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ConfirmDialog } from '../../components/shared';
+import { readArchiveCourseIds } from '../../utils/archiveCourseUrl';
 import { useArchiveWorkflow } from '../../hooks/questions/useArchiveWorkflow';
 import { ArchiveTopicListView } from './ArchiveTopicListView';
 import { ArchiveQuestionDetailView } from './ArchiveQuestionDetailView';
 
 export const ArchivePage: React.FC = () => {
+  // Von der LV-Verwaltung aus kann das Archiv mit vorgewählter LV geöffnet werden.
+  const [searchParams] = useSearchParams();
+  const [initialCourseIds] = React.useState(() => readArchiveCourseIds(searchParams));
+
   // Hook verwaltet den kompletten Workflow: Themen laden, Fragen eines Themas anzeigen, Bearbeitung
   const {
     courses = [],
@@ -45,7 +51,7 @@ export const ArchivePage: React.FC = () => {
     handleSaveArchivedQuestions,
     handleSaveQuestionCourses,
     handleDeleteArchiveEntry,
-  } = useArchiveWorkflow();
+  } = useArchiveWorkflow(initialCourseIds);
 
   const activeFilterName = React.useMemo(() => {
     let base: string | null = null;

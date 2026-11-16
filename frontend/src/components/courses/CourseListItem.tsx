@@ -3,7 +3,9 @@
 // „Umbenennen“ und „Löschen“. Das Umbenennen passiert direkt in der Zeile.
 
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Course } from '../../types/courses';
+import { buildArchiveCourseUrl } from '../../utils/archiveCourseUrl';
 import { ESCAPE_KEY } from '../../constants/appConstants';
 import {
   COURSE_NAME_MAX_LENGTH,
@@ -143,7 +145,11 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
   return (
     <li className="course-item">
       <div className="course-item-main">
-        <h2 className="course-item-name">{course.name}</h2>
+        <h2 className="course-item-name">
+          <Link to={buildArchiveCourseUrl(course.id)} className="course-item-link">
+            {course.name}
+          </Link>
+        </h2>
         <div className="course-item-meta">
           <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
             {formatQuestionCount(course.question_count)}

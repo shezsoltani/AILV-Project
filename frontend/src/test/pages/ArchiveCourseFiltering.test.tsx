@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArchivePage } from '../../pages/questions/ArchivePage';
 import { listCourses, setQuestionCourses } from '../../services/coursesApi';
@@ -116,7 +117,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
   });
 
   it('1. Filter-Auswahl: zeigt Alle, Ohne LV / Allgemein und eigene Lehrveranstaltungen an', async () => {
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(await screen.findByRole('button', { name: 'Alle' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ohne LV / Allgemein' })).toBeInTheDocument();
@@ -129,7 +130,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
   });
 
   it('2. Filterwechsel auf Ohne LV / Allgemein ruft Backend mit unassigned=true auf', async () => {
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Alle' });
 
     const btnUnassigned = screen.getByRole('button', { name: 'Ohne LV / Allgemein' });
@@ -144,7 +145,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
   });
 
   it('3. Filterwechsel auf eine Lehrveranstaltung ruft Backend mit course_id auf', async () => {
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     const btnMath = screen.getByRole('button', { name: 'Mathematik 1' });
@@ -161,7 +162,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
   });
 
   it('4. Mehrfachauswahl mit ODER-Logik: zeigt mehrere Gruppen mit passenden Themen an', async () => {
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     // Beide LVs auswählen
@@ -194,7 +195,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
       return { topics: [TOPIC_ALGEBRA_ALL] };
     });
 
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Mathematik 1' }));
@@ -211,7 +212,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
       questions: QUESTIONS_ALGEBRA_MATH,
     });
 
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     // Filter setzen
@@ -264,7 +265,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
       ],
     });
 
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Mathematik 1' }));
@@ -309,7 +310,7 @@ describe('SCRUM-11: Fragenarchiv nach Lehrveranstaltungen filtern und gruppieren
       return { question_id: 'q-1', course_ids: courseIds };
     });
 
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     await screen.findByRole('button', { name: 'Mathematik 1' });
     fireEvent.click(screen.getByRole('button', { name: 'Mathematik 1' }));
     const topicCard = await screen.findByRole('button', { name: /Thema Lineare Algebra öffnen/i });

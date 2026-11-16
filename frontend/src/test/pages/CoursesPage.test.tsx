@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CoursesPage } from '../../pages/courses/CoursesPage';
 import { sortCoursesByName } from '../../hooks/courses/useCourses';
@@ -33,7 +34,7 @@ const ALGO = course('c-algo', 'Algorithmen', 0);
 
 async function renderLoaded(courses: Course[] = [DBS, SWE]) {
   mockList.mockResolvedValue(courses);
-  render(<CoursesPage />);
+  render(<CoursesPage />, { wrapper: MemoryRouter });
   await screen.findByLabelText('Name');
 }
 
@@ -51,7 +52,7 @@ beforeEach(() => {
 describe('CoursesPage – Laden', () => {
   it('zeigt zuerst den Ladezustand und dann die Liste mit Fragenanzahl', async () => {
     mockList.mockResolvedValue([SWE, DBS, ALGO]);
-    render(<CoursesPage />);
+    render(<CoursesPage />, { wrapper: MemoryRouter });
 
     expect(screen.getByText('Lehrveranstaltungen werden geladen...')).toBeInTheDocument();
 
@@ -75,7 +76,7 @@ describe('CoursesPage – Laden', () => {
   it('zeigt einen Ladefehler und lädt auf Knopfdruck erneut', async () => {
     mockList.mockRejectedValueOnce(new NetworkError('Backend nicht erreichbar.'));
     mockList.mockResolvedValueOnce([DBS]);
-    render(<CoursesPage />);
+    render(<CoursesPage />, { wrapper: MemoryRouter });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Backend nicht erreichbar.');
     // Ohne geladene Liste wird kein Formular angeboten.

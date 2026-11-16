@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ArchivePage } from '../../pages/questions/ArchivePage';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
@@ -94,13 +95,13 @@ describe('ArchivePage UI States', () => {
 
   it('sollte eine Fehlermeldung anzeigen, wenn topicsError gesetzt ist', () => {
     workflowState.topicsError = 'Fehler beim Laden der Themen';
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     expect(screen.getByText(/Fehler beim Laden der Themen/i)).toBeInTheDocument();
   });
 
   it('sollte archivierte Themen in der Liste darstellen', () => {
     workflowState.topics = [mockTopic];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(screen.getByText('Datenbanken')).toBeInTheDocument();
     expect(screen.getByText(/1 Frage/i)).toBeInTheDocument();
@@ -108,12 +109,12 @@ describe('ArchivePage UI States', () => {
 
   it('sollte Loading-Zustand für Themen anzeigen', () => {
     workflowState.isLoadingTopics = true;
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     expect(screen.getByText(/Themen werden geladen/i)).toBeInTheDocument();
   });
 
   it('sollte Empty-State anzeigen, wenn keine Themen vorhanden sind', () => {
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
     expect(screen.getByText(/Noch keine archivierten Themen vorhanden/i)).toBeInTheDocument();
   });
 
@@ -121,7 +122,7 @@ describe('ArchivePage UI States', () => {
     workflowState.selectedRequestId = 'req-1';
     workflowState.selectedTopic = 'Datenbanken';
     workflowState.archivedQuestions = [mockQuestion];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(screen.getByText(/Archiv: Datenbanken/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue('Was ist ein Primärschlüssel?')).toBeInTheDocument();
@@ -131,7 +132,7 @@ describe('ArchivePage UI States', () => {
   it('sollte Fehler beim Laden der Fragen sichtbar darstellen', () => {
     workflowState.selectedRequestId = 'req-1';
     workflowState.questionsError = 'Fragen konnten nicht geladen werden.';
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(screen.getByRole('alert')).toHaveTextContent(/Fragen konnten nicht geladen werden/i);
   });
@@ -140,7 +141,7 @@ describe('ArchivePage UI States', () => {
     workflowState.selectedRequestId = 'req-1';
     workflowState.selectedTopic = 'Datenbanken';
     workflowState.archivedQuestions = [mockQuestion];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     fireEvent.click(screen.getByRole('button', { name: /Bearbeiten/i }));
     expect(workflowState.handleStartEdit).toHaveBeenCalled();
@@ -152,7 +153,7 @@ describe('ArchivePage UI States', () => {
     workflowState.archivedQuestions = [mockQuestion];
     workflowState.isEditMode = true;
     workflowState.editableQuestions = [{ ...mockQuestion, answer: 'UUID' }];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     fireEvent.click(screen.getByRole('button', { name: /Speichern/i }));
     expect(workflowState.handleSaveArchivedQuestions).toHaveBeenCalled();
@@ -163,7 +164,7 @@ describe('ArchivePage UI States', () => {
     workflowState.selectedTopic = 'Datenbanken';
     workflowState.archivedQuestions = [mockQuestion];
     workflowState.saveSuccess = true;
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(screen.getByRole('status')).toHaveTextContent(/erfolgreich aktualisiert/i);
   });
@@ -175,7 +176,7 @@ describe('ArchivePage UI States', () => {
     workflowState.isEditMode = true;
     workflowState.editableQuestions = [mockQuestion];
     workflowState.saveError = 'Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.';
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       /Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut/i,
@@ -188,7 +189,7 @@ describe('ArchivePage UI States', () => {
     workflowState.archivedQuestions = [mockQuestion];
     workflowState.isEditMode = true;
     workflowState.editableQuestions = [mockQuestion];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     const answerInput = screen.getByDisplayValue('Eindeutiger Identifikator');
     fireEvent.change(answerInput, { target: { value: 'Neue Antwort' } });
@@ -201,7 +202,7 @@ describe('ArchivePage UI States', () => {
     workflowState.selectedRequestId = 'req-1';
     workflowState.selectedTopic = 'Datenbanken';
     workflowState.archivedQuestions = [mockQuestion];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     fireEvent.click(screen.getByRole('button', { name: /Exportieren/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /Als PDF exportieren/i }));
@@ -217,7 +218,7 @@ describe('ArchivePage UI States', () => {
     workflowState.selectedRequestId = 'req-1';
     workflowState.selectedTopic = 'Datenbanken';
     workflowState.archivedQuestions = [mockQuestion];
-    render(<ArchivePage />);
+    render(<ArchivePage />, { wrapper: MemoryRouter });
 
     fireEvent.click(screen.getByRole('button', { name: /Exportieren/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /Als Moodle XML exportieren/i }));

@@ -9,11 +9,11 @@ import type { ArchiveTopic, ArchiveFilterOptions } from '../../types/api';
 import type { Course } from '../../types/courses';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 
-export function useArchiveWorkflow() {
+export function useArchiveWorkflow(initialCourseIds: string[] = []) {
   // State für Lehrveranstaltungen und Filter
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesError, setCoursesError] = useState<string | null>(null);
-  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>(initialCourseIds);
   const [filterUnassigned, setFilterUnassigned] = useState<boolean>(false);
   const [groupedTopics, setGroupedTopics] = useState<Record<string, ArchiveTopic[]>>({});
 
