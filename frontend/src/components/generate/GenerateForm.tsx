@@ -2,6 +2,7 @@
 // Darstellung des Generierungsformulars. Logik: useGenerateForm.
 
 import React from 'react';
+import { Sparkles } from 'lucide-react';
 
 import {
   QUESTION_TYPE_OPTIONS,
@@ -114,6 +115,23 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
       !selectionValid ||
       Object.keys(errors).length > 0;
 
+  // Nur für die Anzeige: "Erweiterte Optionen" aufklappen und markieren,
+  // wenn dort ein Fehler steht oder kein KI-Modell verfügbar ist.
+  const advancedNeedsAttention = Boolean(errors.contextText);
+
+  // Nur für die Anzeige: KI-Menü aufklappen und markieren, wenn dort etwas zu beachten ist.
+  const aiNeedsAttention = Boolean(
+      modelsError ||
+      selectionError ||
+      (!modelsLoading && !hasAvailableModel),
+  );
+
+  // Aktuelle Wahl für die Kopfzeile, damit man sie auch zugeklappt sieht.
+  const aiSummary = [
+    hasSelectedProvider ? PROVIDER_LABELS[selectedProvider as GenerationProvider] : '',
+    hasSelectedModel ? formValues.model : '',
+  ].filter(Boolean).join(' · ');
+
   const handleProviderChange = (
       event: React.ChangeEvent<HTMLSelectElement>,
   ): void => {
@@ -126,133 +144,148 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
 
   return (
       <div className="card">
-        <form className="form" onSubmit={handleSubmit}>
-          {/* KI-Anbieter und Modell */}
-          <div className="form-row">
-            <p className="form-section-title">KI-Auswahl</p>
+        <form className="form form--generate" onSubmit={handleSubmit}>
+          {/* KI-Auswahl: dezentes Menü ganz oben, zeigt die aktuelle Wahl und öffnet sich bei Problemen von selbst */}
+          <details className="form-advanced form-advanced--ai" open={aiNeedsAttention}>
+            <summary className="form-advanced-summary">
+              <Sparkles className="form-advanced-icon" aria-hidden="true" />
+              KI-Auswahl
+              {aiSummary && <span className="form-advanced-hint">{aiSummary}</span>}
+              {aiNeedsAttention && (
+                  <span className="form-advanced-warning">Bitte prüfen</span>
+              )}
+            </summary>
+            <div className="form-advanced-body">
+            {/* KI-Anbieter und Modell */}
+            <div className="form-row">
+              <p className="form-section-title">KI-Auswahl</p>
 
-            <p className="form-helper">
-              Wählen Sie den KI-Anbieter und ein vom Server freigegebenes
-              Modell aus.
-            </p>
+              <p className="form-helper">
+                Wählen Sie den KI-Anbieter und ein vom Server freigegebenes
+                Modell aus.
+              </p>
 
-            {modelsLoading && (
-                <p className="form-helper" role="status">
-                  KI-Anbieter und Modelle werden geladen …
-                </p>
-            )}
+              {modelsLoading && (
+                  <p className="form-helper" role="status">
+                    KI-Anbieter und Modelle werden geladen …
+                  </p>
+              )}
 
-            <ErrorBanner message={modelsError} />
+              <ErrorBanner message={modelsError} />
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="provider">
-                KI-Anbieter
-              </label>
+              <div className="form-grid form-grid--2">
+              <div className="form-group">
+                <label className="form-label" htmlFor="provider">
+                  KI-Anbieter
+                </label>
 
-              <select
-                  id="provider"
-                  name="provider"
-                  className="form-input"
-                  value={hasSelectedProvider ? selectedProvider : ''}
-                  onChange={handleProviderChange}
-                  disabled={selectionDisabled || providers.length === 0}
-                  required
+                <select
+                    id="provider"
+                    name="provider"
+                    className="form-input"
+                    value={hasSelectedProvider ? selectedProvider : ''}
+                    onChange={handleProviderChange}
+                    disabled={selectionDisabled || providers.length === 0}
+                    required
+                >
+                  <option value="" disabled>
+                    Anbieter auswählen
+                  </option>
+
+                  {providers.map((provider) => (
+                      <option key={provider} value={provider}>
+                        {PROVIDER_LABELS[provider]}
+                      </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="model">
+                  Modell
+                </label>
+
+                <select
+                    id="model"
+                    name="model"
+                    className="form-input"
+                    value={hasSelectedModel ? formValues.model ?? '' : ''}
+                    onChange={(event) => setModel(event.target.value)}
+                    disabled={
+                        selectionDisabled ||
+                        availableSelectedModels.length === 0
+                    }
+                    required
+                >
+                  <option value="" disabled>
+                    {selectedModels.length > 0 &&
+                    availableSelectedModels.length === 0
+                        ? 'Kein verfügbares Modell'
+                        : 'Modell auswählen'}
+                  </option>
+
+                  {selectedModels.map((entry) => (
+                      <option
+                          key={`${entry.provider}:${entry.model}`}
+                          value={entry.model}
+                          disabled={!entry.available}
+                      >
+                        {entry.model}
+                        {!entry.available ? ' – nicht verfügbar' : ''}
+                      </option>
+                  ))}
+                </select>
+              </div>
+              </div>
+
+              {!modelsLoading &&
+                  !modelsError &&
+                  selectedModels
+                      .filter((entry) => !entry.available)
+                      .map((entry) => (
+                          <p
+                              key={`${entry.provider}:${entry.model}:reason`}
+                              className="form-helper"
+                          >
+                            {entry.model}:{' '}
+                            {entry.reason ?? 'Momentan nicht verfügbar.'}
+                          </p>
+                      ))}
+
+              {!modelsLoading && !modelsError && !hasAvailableModel && (
+                  <p className="form-error-message" role="status">
+                    Es ist momentan kein KI-Modell verfügbar. Prüfen Sie
+                    die Konfiguration beziehungsweise die Verbindung zum
+                    KI-Dienst.
+                  </p>
+              )}
+
+              {!modelsLoading &&
+                  !modelsError &&
+                  selectedProvider === 'ollama' &&
+                  availableSelectedModels.length > 0 && (
+                      <p className="form-helper">
+                        Die Generierung erfolgt über den lokalen
+                        Ollama-Dienst. Ollama muss während der Generierung
+                        laufen.
+                      </p>
+                  )}
+
+              <ErrorBanner message={selectionError} />
+
+              <button
+                  type="button"
+                  className="secondary-button form-inline-action"
+                  onClick={reloadModels}
+                  disabled={formIsLoading || modelsLoading}
               >
-                <option value="" disabled>
-                  Anbieter auswählen
-                </option>
-
-                {providers.map((provider) => (
-                    <option key={provider} value={provider}>
-                      {PROVIDER_LABELS[provider]}
-                    </option>
-                ))}
-              </select>
+                {modelsLoading
+                    ? 'Verfügbarkeit wird geprüft …'
+                    : 'Verfügbarkeit erneut prüfen'}
+              </button>
             </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="model">
-                Modell
-              </label>
-
-              <select
-                  id="model"
-                  name="model"
-                  className="form-input"
-                  value={hasSelectedModel ? formValues.model ?? '' : ''}
-                  onChange={(event) => setModel(event.target.value)}
-                  disabled={
-                      selectionDisabled ||
-                      availableSelectedModels.length === 0
-                  }
-                  required
-              >
-                <option value="" disabled>
-                  {selectedModels.length > 0 &&
-                  availableSelectedModels.length === 0
-                      ? 'Kein verfügbares Modell'
-                      : 'Modell auswählen'}
-                </option>
-
-                {selectedModels.map((entry) => (
-                    <option
-                        key={`${entry.provider}:${entry.model}`}
-                        value={entry.model}
-                        disabled={!entry.available}
-                    >
-                      {entry.model}
-                      {!entry.available ? ' – nicht verfügbar' : ''}
-                    </option>
-                ))}
-              </select>
             </div>
-
-            {!modelsLoading &&
-                !modelsError &&
-                selectedModels
-                    .filter((entry) => !entry.available)
-                    .map((entry) => (
-                        <p
-                            key={`${entry.provider}:${entry.model}:reason`}
-                            className="form-helper"
-                        >
-                          {entry.model}:{' '}
-                          {entry.reason ?? 'Momentan nicht verfügbar.'}
-                        </p>
-                    ))}
-
-            {!modelsLoading && !modelsError && !hasAvailableModel && (
-                <p className="form-error-message" role="status">
-                  Es ist momentan kein KI-Modell verfügbar. Prüfen Sie
-                  die Konfiguration beziehungsweise die Verbindung zum
-                  KI-Dienst.
-                </p>
-            )}
-
-            {!modelsLoading &&
-                !modelsError &&
-                selectedProvider === 'ollama' &&
-                availableSelectedModels.length > 0 && (
-                    <p className="form-helper">
-                      Die Generierung erfolgt über den lokalen
-                      Ollama-Dienst. Ollama muss während der Generierung
-                      laufen.
-                    </p>
-                )}
-
-            <ErrorBanner message={selectionError} />
-
-            <button
-                type="button"
-                className="secondary-button"
-                onClick={reloadModels}
-                disabled={formIsLoading || modelsLoading}
-            >
-              {modelsLoading
-                  ? 'Verfügbarkeit wird geprüft …'
-                  : 'Verfügbarkeit erneut prüfen'}
-            </button>
-          </div>
+          </details>
 
           {/* Thema */}
           <div className="form-row">
@@ -288,7 +321,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
             <p className="form-helper">
               Wählen Sie eine oder mehrere eigene Lehrveranstaltungen. Ohne Auswahl werden allgemeine Fragen erstellt.
             </p>
-            <p className="form-helper" aria-live="polite">
+            <p className="sr-only" aria-live="polite">
               {(formValues.course_ids ?? []).length === 0
                   ? 'Aktuelle Auswahl: Keine LV / Allgemein'
                   : `Aktuelle Auswahl: ${(formValues.course_ids ?? []).length} Lehrveranstaltung(en)`}
@@ -353,6 +386,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
             )}
           </div>
 
+          <div className="form-grid form-grid--2">
           {/* Sprache */}
           <div className="form-row">
             <label className="form-label" htmlFor="language">
@@ -403,6 +437,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
                   {errors.count}
                 </p>
             )}
+          </div>
           </div>
 
           {/* Fragetypen */}
@@ -461,6 +496,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
               Schwierigkeitsverteilung (%)
             </p>
 
+            <div className="form-grid form-grid--3">
             {DIFFICULTY_FIELDS.map(
                 ({ id, name, label, displayKey, errorKey }) => {
                   const fieldError = errors[errorKey];
@@ -513,6 +549,7 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
                   );
                 },
             )}
+            </div>
 
             <p className="form-helper">
               Die Summe aus Einfach, Mittel und Schwer muss 100%
@@ -529,42 +566,6 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
             )}
           </div>
 
-          {/* Manueller Kontext */}
-          <div className="form-row">
-            <p className="form-section-title">Manueller Kontext</p>
-
-            <label className="form-label" htmlFor="contextText">
-              Zusätzlicher Text (optional)
-            </label>
-
-            <textarea
-                id="contextText"
-                name="contextText"
-                className={`form-input${
-                    errors.contextText ? ' form-input--error' : ''
-                }`}
-                placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
-                rows={4}
-                value={formValues.contextText ?? ''}
-                onChange={handleInputChange}
-                aria-invalid={Boolean(errors.contextText)}
-                aria-describedby={
-                  errors.contextText ? 'context-text-error' : undefined
-                }
-            />
-
-            {errors.contextText && (
-                <p id="context-text-error" className="form-error-message">
-                  {errors.contextText}
-                </p>
-            )}
-
-            <p className="form-helper">
-              Ergänzende Informationen, die zusätzlich zum PDF oder
-              stattdessen bei der Fragengenerierung berücksichtigt
-              werden sollen.
-            </p>
-          </div>
 
           {/* PDF-Kontext */}
           <div className="form-row form-upload-section">
@@ -601,6 +602,55 @@ export const GenerateForm: React.FC<GenerateFormProps> = ({
                 </div>
             )}
           </div>
+
+          {/* Selten nötige Einstellung: öffnet sich von selbst, wenn dort ein Fehler steht */}
+          <details className="form-advanced" open={advancedNeedsAttention}>
+            <summary className="form-advanced-summary">
+              Erweiterte Optionen
+              <span className="form-advanced-hint">Zusätzlicher Text</span>
+              {advancedNeedsAttention && (
+                  <span className="form-advanced-warning">Bitte prüfen</span>
+              )}
+            </summary>
+            <div className="form-advanced-body">
+              {/* Manueller Kontext */}
+              <div className="form-row">
+                <p className="form-section-title">Manueller Kontext</p>
+
+                <label className="form-label" htmlFor="contextText">
+                  Zusätzlicher Text (optional)
+                </label>
+
+                <textarea
+                    id="contextText"
+                    name="contextText"
+                    className={`form-input${
+                        errors.contextText ? ' form-input--error' : ''
+                    }`}
+                    placeholder="Fügen Sie hier relevante Hintergrundinformationen ein …"
+                    rows={4}
+                    value={formValues.contextText ?? ''}
+                    onChange={handleInputChange}
+                    aria-invalid={Boolean(errors.contextText)}
+                    aria-describedby={
+                      errors.contextText ? 'context-text-error' : undefined
+                    }
+                />
+
+                {errors.contextText && (
+                    <p id="context-text-error" className="form-error-message">
+                      {errors.contextText}
+                    </p>
+                )}
+
+                <p className="form-helper">
+                  Ergänzende Informationen, die zusätzlich zum PDF oder
+                  stattdessen bei der Fragengenerierung berücksichtigt
+                  werden sollen.
+                </p>
+              </div>
+            </div>
+          </details>
 
           {/* Absenden */}
           <button

@@ -1,17 +1,19 @@
-/* Banner Styles (Success / Error / Info) */
+/* Banner (Erfolg / Fehler / Info): flach, Farben aus den Status-Tokens */
 .success-banner,
 .error-banner,
 .info-banner {
   margin: var(--spacing-lg) 0;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
 }
 
 .success-banner {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border: 2px solid #6ee7b7;
-  color: #065f46;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
 }
 
 .success-banner-content,
@@ -23,19 +25,18 @@
 }
 
 .error-banner {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border: 2px solid #fca5a5;
-  color: #991b1b;
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
 }
 
 .info-banner {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border: 2px solid #93c5fd;
-  color: #1e40af;
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
 }
 
 .success-banner-content strong,
 .error-banner-content strong {
-  font-weight: 700;
-  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
 }

@@ -130,7 +130,7 @@ export const SlidesGeneratePage: React.FC = () => {
 
         <button
           type="button"
-          className="secondary-button"
+          className="secondary-button page-secondary-action"
           onClick={handleViewPrompts}
           disabled={isTopicEmpty || promptPreviewLoading}
           aria-busy={promptPreviewLoading}

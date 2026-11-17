@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 import { getQuestionTypeLabel } from '../../constants/formConstants';
+import { Check, Square, SquareCheck } from 'lucide-react';
 
 // Interface für die Props dieser Komponente
 interface EditableQuestionCardProps {
@@ -185,7 +186,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                           onClick={() => !readOnly && handleCorrectIndicesToggle(index)}
                           disabled={readOnly}
                         >
-                          {isCorrect ? '☑' : '☐'}
+                          {isCorrect ? <SquareCheck aria-hidden="true" /> : <Square aria-hidden="true" />}
                         </button>
                       )}
                       <label
@@ -216,7 +217,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                         rows={1}
                       />
                       {isCorrect && (
-                        <span className="question-correct-badge">✓ Korrekt</span>
+                        <span className="question-correct-badge"><Check aria-hidden="true" />Korrekt</span>
                       )}
                     </div>
                   </div>
@@ -273,7 +274,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                         rows={1}
                       />
                       {isCorrect && (
-                        <span className="question-correct-badge">✓ Korrekt</span>
+                        <span className="question-correct-badge"><Check aria-hidden="true" />Korrekt</span>
                       )}
                     </div>
                   </div>

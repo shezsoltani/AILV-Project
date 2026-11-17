@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 import type { RenderedPrompt } from '../../types/prompts';
 import { validatePrompts, type PromptValidationErrors } from '../../validators/promptValidation';
+import { TriangleAlert } from 'lucide-react';
 
 interface PromptEditorModalProps {
   prompts: RenderedPrompt[];
@@ -80,7 +81,7 @@ export function PromptEditorModal({
                 <h3 className="prompt-editor-modal-stage-title">
                   {hasStageError && (
                     <span className="prompt-editor-modal-warn-icon" aria-hidden="true" title="Pflicht-Platzhalter fehlen">
-                      ⚠︎{' '}
+                      <TriangleAlert />
                     </span>
                   )}
                   {prompt.stage}

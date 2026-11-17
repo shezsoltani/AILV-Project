@@ -31,7 +31,7 @@
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .slides-preview__edit-toggle:hover {
@@ -62,7 +62,7 @@
   text-transform: uppercase;
   background: var(--color-primary-light);
   color: var(--color-primary-active);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
 .slides-preview__badge::before {
@@ -76,13 +76,13 @@
 .slides-preview__badge--title {
   background: var(--color-primary-light);
   color: var(--color-primary-active);
-  border-color: rgba(37, 99, 235, 0.25);
+  border-color: rgba(79, 70, 229, 0.25);
 }
 
 .slides-preview__badge--closing {
-  background: #d1fae5;
-  color: #065f46;
-  border-color: #6ee7b7;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
 }
 
 .slides-preview__counter {
@@ -116,11 +116,11 @@
   left: 0;
   bottom: 0;
   width: 8px;
-  background: linear-gradient(180deg, var(--color-primary) 0%, #1d4ed8 100%);
+  background: var(--color-primary);
 }
 
 .slides-preview__frame--title {
-  background: linear-gradient(135deg, #ffffff 0%, rgba(37, 99, 235, 0.05) 100%);
+  background: #ffffff;
 }
 
 .slides-preview__frame--title::before {
@@ -130,15 +130,15 @@
   height: 8px;
   width: auto;
   bottom: auto;
-  background: linear-gradient(90deg, var(--color-primary) 0%, #1d4ed8 100%);
+  background: var(--color-primary);
 }
 
 .slides-preview__frame--closing {
-  background: linear-gradient(135deg, #ffffff 0%, rgba(16, 185, 129, 0.05) 100%);
+  background: #ffffff;
 }
 
 .slides-preview__frame--closing::before {
-  background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+  background: var(--color-success);
 }
 
 .slides-preview__footer {
@@ -179,7 +179,7 @@
   margin: 0;
   font-size: clamp(2.25rem, 5.5vw, 3.25rem);
   line-height: 1.1;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
   padding-bottom: var(--spacing-md);
@@ -191,7 +191,7 @@
 .slides-preview__frame--title .slides-preview__title {
   font-size: clamp(3.5rem, 10vw, 5.5rem);
   line-height: 1.06;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #1e3a8a 100%);
+  background: var(--color-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -207,7 +207,7 @@
 
 .slides-preview__frame--closing .slides-preview__title {
   font-size: clamp(2.5rem, 7vw, 4rem);
-  color: #065f46;
+  color: var(--color-success-text);
   border-bottom: none;
   width: auto;
   min-width: 70%;
@@ -264,7 +264,7 @@
 
 .slides-preview__bullet:hover {
   background: var(--color-primary-light);
-  border-color: rgba(37, 99, 235, 0.25);
+  border-color: rgba(79, 70, 229, 0.25);
 }
 
 .slides-preview__bullet-marker {
@@ -292,7 +292,7 @@
 .slides-preview__progress-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--color-primary) 0%, #1d4ed8 100%);
+  background: var(--color-primary);
   transition: width var(--transition-slow);
 }
 
@@ -327,7 +327,7 @@
 .slides-preview__dot--active {
   width: 1.5rem;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--color-primary) 0%, #1d4ed8 100%);
+  background: var(--color-primary);
   transform: none;
 }
 
@@ -561,7 +561,7 @@
   border: 1px solid #fde68a;
   font-size: var(--font-size-base);
   line-height: 1.6;
-  color: #78350f;
+  color: var(--color-warning-text);
 }
 
 .slides-preview__example:hover {
@@ -572,10 +572,10 @@
 .slides-preview__example-label {
   flex-shrink: 0;
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #b45309;
+  color: var(--color-warning-text);
   margin-top: 0.25rem;
   white-space: nowrap;
 }

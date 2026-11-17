@@ -8,6 +8,7 @@ import type { GeneratedQuestion } from '../../types/generatedQuestion';
 import type { Course } from '../../types/courses';
 import { useState } from 'react';
 import { ApiError } from '../../error-handling/AppErrors';
+import { ClipboardList } from 'lucide-react';
 
 interface ArchiveQuestionDetailViewProps {
   selectedRequestId: string;
@@ -208,7 +209,7 @@ export const ArchiveQuestionDetailView: React.FC<ArchiveQuestionDetailViewProps>
         {!isLoadingQuestions && !questionsError && archivedQuestions.length === 0 && (
             <div className="archive-empty-state">
               <div className="archive-empty-state-icon" aria-hidden="true">
-                📋
+                <ClipboardList />
               </div>
               <p className="archive-empty-state-title">Keine Fragen gefunden</p>
               <p className="archive-empty-state-description">

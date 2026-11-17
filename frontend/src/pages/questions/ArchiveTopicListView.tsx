@@ -7,6 +7,7 @@ import { ErrorBanner } from '../../components/shared';
 import { formatDateToGerman } from '../../utils/dateUtils';
 import type { ArchiveTopic } from '../../types/api';
 import type { Course } from '../../types/courses';
+import { Library, SearchX } from 'lucide-react';
 
 interface ArchiveTopicListViewProps {
   topics: ArchiveTopic[];
@@ -144,7 +145,7 @@ export const ArchiveTopicListView: React.FC<ArchiveTopicListViewProps> = ({
             <div className="archive-empty-state">
               {searchTerm.trim() ? (
                 <>
-                  <div className="archive-empty-state-icon" aria-hidden="true">🔍</div>
+                  <div className="archive-empty-state-icon" aria-hidden="true"><SearchX /></div>
                   <p className="archive-empty-state-title">Keine Treffer gefunden</p>
                   <p className="archive-empty-state-description">
                     Zu „{searchTerm.trim()}" wurden keine Themen oder Fragen gefunden.
@@ -152,7 +153,7 @@ export const ArchiveTopicListView: React.FC<ArchiveTopicListViewProps> = ({
                 </>
               ) : (
                 <>
-                  <div className="archive-empty-state-icon" aria-hidden="true">📚</div>
+                  <div className="archive-empty-state-icon" aria-hidden="true"><Library /></div>
                   <p className="archive-empty-state-title">Noch keine archivierten Themen vorhanden</p>
                   <p className="archive-empty-state-description">
                     Generieren und finalisieren Sie Fragen, um sie im Archiv zu sehen.
