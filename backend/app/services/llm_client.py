@@ -12,7 +12,8 @@ from .llm_provider import LLMProvider
 logger = logging.getLogger(__name__)
 
 class OpenAILLMProvider:
-    def __init__(self) -> None:
+    def __init__(self, model: str | None = None) -> None:
+        self.model = model or settings.openai_model_name
         self._client: AsyncOpenAI | None = None
 
     def _get_client(self) -> AsyncOpenAI:
@@ -36,7 +37,7 @@ class OpenAILLMProvider:
 
         try:
             resp = await client.chat.completions.create(
-                model=settings.openai_model_name,
+                model=self.model,
                 messages=[
                     {
                         "role": "system",

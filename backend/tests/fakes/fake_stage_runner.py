@@ -1,7 +1,7 @@
 from collections import deque
 from collections.abc import Iterable
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ class StageCall:
     language: str
     context: dict
     custom_prompt: str | None
+    # Nur zur Nachvollziehbarkeit; beeinflusst den Vergleich zweier Aufrufe nicht.
+    llm_provider: object | None = field(default=None, compare=False)
 
 
 class FakeStageRunner:
@@ -32,9 +34,13 @@ class FakeStageRunner:
         language: str,
         context: dict,
         custom_prompt: str | None = None,
+        llm_provider: object | None = None,
     ) -> str:
         self.calls.append(
-            StageCall(db, request_id, stage, language, deepcopy(context), custom_prompt)
+            StageCall(
+                db, request_id, stage, language, deepcopy(context), custom_prompt,
+                llm_provider,
+            )
         )
         if not self._responses:
             raise AssertionError(f"No prepared response left for stage {stage!r}.")

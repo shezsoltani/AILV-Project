@@ -16,6 +16,7 @@ from .api.routes_jobs import router as jobs_router
 from .api.routes_prompts import router as prompts_router
 from .api.routes_export import router as export_router
 from .api.routes_archive_export import router as archive_export_router
+from .api.routes_courses import router as courses_router
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_check():
     if not settings.openai_api_key:
-        logger.warning("OPENAI_API_KEY missing; LLM features disabled.")
+        logger.warning("OPENAI_API_KEY missing; OpenAI generation unavailable.")
 
 @app.exception_handler(AppError)
 async def handle_app_error(request: Request, exc: AppError):
@@ -69,3 +70,4 @@ app.include_router(jobs_router, prefix="/api")
 app.include_router(prompts_router, prefix="/api")
 app.include_router(export_router, prefix="/api")
 app.include_router(archive_export_router, prefix="/api")
+app.include_router(courses_router, prefix="/api")

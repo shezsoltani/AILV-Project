@@ -34,28 +34,6 @@
   position: relative;
 }
 
-.form-input-wrapper--numeric::after {
-  content: '';
-  position: absolute;
-  right: var(--spacing-md);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 3L2 7h8L6 3zm0 6l4-4H2l4 4z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: 0.4;
-  pointer-events: none;
-  transition: opacity var(--transition-base);
-}
-
-.form-input-wrapper--numeric:hover::after {
-  opacity: 0.6;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232563eb' d='M6 3L2 7h8L6 3zm0 6l4-4H2l4 4z'/%3E%3C/svg%3E");
-}
-
 .form-input,
 .form-textarea,
 .form select {
@@ -67,7 +45,7 @@
   font-family: var(--font-family);
   background: var(--color-bg-card);
   color: var(--color-text-primary);
-  transition: all var(--transition-base);
+  transition: color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base), opacity var(--transition-base);
 }
 
 .form-input-wrapper--numeric .form-input {
@@ -101,7 +79,7 @@
   background: var(--color-primary-light);
 }
 
-.password-toggle-button:focus {
+.password-toggle-button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -117,7 +95,7 @@
 .form select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .form-input:hover,
@@ -146,7 +124,7 @@
   cursor: pointer;
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
+  transition: color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base), opacity var(--transition-base);
   font-weight: 600;
   font-size: var(--font-size-sm);
   border: 2px solid var(--color-border);
@@ -158,15 +136,15 @@
 }
 
 .checkbox-group label:hover {
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(219, 234, 254, 0.5) 100%);
+  background: var(--color-primary-light);
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
   transform: translateY(-1px);
 }
 
 .checkbox-group label:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -180,15 +158,15 @@
 }
 
 .checkbox-label--checked {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+  background: rgba(79, 70, 229, 0.1);
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
   color: var(--color-primary);
 }
 
 .checkbox-label--checked:hover {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  background: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .checkbox-label--checked span {
@@ -212,7 +190,6 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: var(--spacing-xs);
-  font-style: italic;
 }
 
 .form-error-message {
@@ -253,20 +230,20 @@
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: #e2e8f0;
+  background: var(--color-border);
   transition: background var(--transition-base);
 }
 
 .password-strength--weak .password-strength-bar--filled {
-  background: #ef4444;
+  background: var(--color-error);
 }
 
 .password-strength--medium .password-strength-bar--filled {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 
 .password-strength--strong .password-strength-bar--filled {
-  background: #22c55e;
+  background: var(--color-success);
 }
 
 .password-strength-label {
@@ -296,10 +273,10 @@
   margin-top: var(--spacing-lg);
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #065f46;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
   font-weight: 500;
-  border: 1px solid #6ee7b7;
+  border: 1px solid var(--color-success-border);
 }
 
 /* Responsive Form Styles */
@@ -316,4 +293,189 @@
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
   }
+}
+
+/* Jedes Feld bekommt eine eigene Zeile (ruhiger, besser lesbar).
+   Die .form-grid-Klassen bleiben im Markup und gruppieren nur den Abstand. */
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+.form-grid > .form-row {
+  margin-bottom: 0;
+}
+
+.form > .form-grid {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Neben-Aktion innerhalb eines Formular-Abschnitts (z. B. Verfügbarkeit prüfen) */
+.form-inline-action.secondary-button {
+  align-self: flex-start;
+  min-height: 2.25rem;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+}
+
+/* Neben-Aktion unter einem Formular (z. B. Prompts ansehen) */
+.page-secondary-action.secondary-button {
+  margin-top: var(--spacing-md);
+}
+
+/* ---------------------------------------------------------------------------
+   Fragen generieren: schlichtes Formular, Selteneres unter "Erweiterte Optionen"
+   --------------------------------------------------------------------------- */
+
+/* Zwischentitel (Lehrveranstaltungen, Fragetypen …) wie Feld-Labels statt Überschriften */
+.form--generate .form-section-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+/* Erklärtexte, die das Label schon sagt, ausblenden */
+.form--generate .form-helper--normal.form-helper--spaced,
+.form--generate .form-context-grid > .form-row:first-child > .form-section-title,
+.form--generate .form-context-grid > .form-row:first-child > .form-helper {
+  display: none;
+}
+
+/* Auswahl-Kacheln (LVs, Fragetypen) kompakt */
+.form--generate .checkbox-group {
+  gap: var(--spacing-sm);
+  margin-top: 0;
+}
+
+.form--generate .checkbox-group label {
+  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-sm);
+  box-shadow: none;
+}
+
+/* PDF-Upload-Feld */
+.form--generate .form-upload-section {
+  margin-bottom: 0;
+  padding: var(--spacing-md);
+}
+
+.form--generate .form-upload-section .form-section-title {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Einklappbarer Bereich */
+.form-advanced {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.form-advanced-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-lg);
+}
+
+.form-advanced-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Pfeil, der beim Aufklappen nach unten zeigt */
+.form-advanced-summary::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.form-advanced[open] > .form-advanced-summary::before {
+  transform: rotate(45deg);
+}
+
+.form-advanced-summary:hover {
+  color: var(--color-primary);
+}
+
+.form-advanced-hint {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.form-advanced-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.form-advanced-body .form-row {
+  margin-bottom: 0;
+}
+
+/* Zwischentitel und Erklärung sagen die Feld-Labels schon: ausblenden */
+.form-advanced-body .form-section-title,
+.form-advanced-body .form-section-title + .form-helper {
+  display: none;
+}
+
+/* Hinweis in der Kopfzeile, sichtbar auch im zugeklappten Zustand */
+.form-advanced-warning {
+  margin-left: auto;
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-full);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* KI-Auswahl: dezentes Menü ganz oben. Sieht wie ein Button aus (Rahmen, Pfeil, Primärfarbe)
+   und zeigt die aktuelle Wahl, auch wenn es zugeklappt ist. */
+.form-advanced--ai {
+  background: var(--color-bg-card);
+  border-color: var(--color-primary-border);
+}
+
+.form-advanced--ai > .form-advanced-summary {
+  color: var(--color-primary);
+}
+
+.form-advanced--ai > .form-advanced-summary:hover {
+  background: var(--color-primary-light);
+}
+
+.form-advanced--ai[open] {
+  border-color: var(--color-primary);
+}
+
+.form-advanced--ai[open] > .form-advanced-summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.form-advanced-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Sichtbarer Fokusring für Tastaturbedienung */
+.form-advanced-summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

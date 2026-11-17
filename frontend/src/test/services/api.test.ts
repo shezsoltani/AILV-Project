@@ -18,7 +18,8 @@ describe('API Services', () => {
     language: 'de' as const,
     count: 5,
     types: ['MCQ'] as any,
-    difficultyDistribution: { easy: 40, medium: 40, hard: 20 }
+    difficultyDistribution: { easy: 40, medium: 40, hard: 20 },
+    course_ids: [] as string[]
   };
 
   it('generateQuestions sollte den richtigen Endpunkt mit POST aufrufen und job_id zurueckgeben', async () => {
@@ -38,11 +39,36 @@ describe('API Services', () => {
 
     expect(result).toEqual(mockResponse);
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/generate'),
-      expect.objectContaining({
-        method: 'POST',
-      })
+        expect.stringContaining('/api/generate'),
+        expect.objectContaining({
+          method: 'POST',
+        })
     );
+  });
+
+
+  it('generateQuestions übergibt keine LV als leere Liste', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true, status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ job_id: 'job-1' })),
+    });
+
+    await generateQuestions(validFormValues);
+    const payload = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(payload.course_ids).toEqual([]);
+  });
+
+  it('generateQuestions übergibt eine oder mehrere ausgewählte LV-IDs', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true, status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ job_id: 'job-1' })),
+    });
+
+    await generateQuestions({ ...validFormValues, course_ids: ['lv-1', 'lv-2'] });
+    const payload = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(payload.course_ids).toEqual(['lv-1', 'lv-2']);
   });
 
   it('sollte den gespeicherten Token automatisch als Authorization-Header mitsenden', async () => {
@@ -85,14 +111,14 @@ describe('API Services', () => {
 
     expect(result.access_token).toBe('jwt-token');
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/auth/login'),
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({
-          username: 'max',
-          password: 'geheim',
-        }),
-      })
+        expect.stringContaining('/api/auth/login'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            username: 'max',
+            password: 'geheim',
+          }),
+        })
     );
 
     const requestOptions = (fetch as any).mock.calls[0][1];
@@ -211,4 +237,37 @@ describe('API Services', () => {
     );
   });
 
+  it('getArchiveTopics sollte Filterparameter course_id und unassigned korrekt in der URL übergeben', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ topics: [] })),
+    });
+
+    await getArchiveTopics('algebra', { courseIds: ['id-1', 'id-2'] });
+
+    const calledUrl = (fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('q=algebra');
+    expect(calledUrl).toContain('course_id=id-1');
+    expect(calledUrl).toContain('course_id=id-2');
+
+    await getArchiveTopics(undefined, { unassigned: true });
+    const calledUrlUnassigned = (fetch as any).mock.calls[1][0];
+    expect(calledUrlUnassigned).toContain('unassigned=true');
+  });
+
+  it('getArchiveQuestions sollte Filterparameter an den Fragen-Endpunkt anhängen', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Map([['content-type', 'application/json']]),
+      text: () => Promise.resolve(JSON.stringify({ questions: [] })),
+    });
+
+    await getArchiveQuestions('req-1', { courseIds: ['id-1'] });
+
+    const calledUrl = (fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('/api/archive/req-1/questions?course_id=id-1');
+  });
 });

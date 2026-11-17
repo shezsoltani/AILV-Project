@@ -1,3 +1,4 @@
+from ..llm_provider import LLMProvider
 from sqlalchemy.orm import Session
 from uuid import UUID
 import json
@@ -18,6 +19,7 @@ async def generate_valid_content(
     upload_context: Optional[str] = None,
     custom_prompt: Optional[str] = None,
     stage_runner: Optional[StageRunner] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> list[dict]:
     runner = run_stage if stage_runner is None else stage_runner
     context = {
@@ -38,6 +40,7 @@ async def generate_valid_content(
             language=language,
             context=context,
             custom_prompt=custom_prompt,
+            llm_provider=llm_provider,
         )
 
         try:

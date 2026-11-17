@@ -108,3 +108,16 @@ Beide Generierungslinien – Fragen und Folien – folgen demselben Pipeline-Pri
 - Strukturierte Exception-Klassen (`AppError`, `PDFEncryptedError`, `UploadFileTooLargeError`, etc.)
 - Automatische Retry-Logik bei Validierungsfehlern (max. 3 Versuche pro Stage)
 - Fehlerfeedback wird in den nächsten Prompt-Versuch eingebunden
+
+
+## Anbieterwahl f?r Fragen (SCRUM-5)
+
+Die Generate-Route l?st Anbieter und Modell gegen die Serverkonfiguration auf
+und speichert beide im vorhandenen JSON-Feld `Job.request_data`.
+`llm_selection.py` erstellt pro Auftragsausf?hrung einen Provider.
+Der Batch-Runner reicht dieselbe Instanz ?ber den Orchestrator und die drei
+Stage-Services an `run_stage` weiter. Parallele Auftr?ge ?ndern keine globale
+Anbieterauswahl. Folien verwenden weiterhin den bestehenden OpenAI-Standard.
+`ollama_provider.py` spricht Ollamas `/api/generate` an und wandelt Verbindungs-,
+Timeout- und Antwortfehler in `LLMAPIError` um. Der Job-Runner meldet Fehler im
+Jobstatus. Prompts, Validierungen und bisherige Wiederholungen bleiben bestehen.

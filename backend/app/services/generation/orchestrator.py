@@ -1,3 +1,5 @@
+from ..llm_provider import LLMProvider
+from ..llm_selection import create_provider
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Callable, Optional
@@ -23,9 +25,10 @@ async def generate_questions(
     custom_prompts: Optional[dict[str, str]] = None,
     persistence: Optional[QuestionGenerationPersistence] = None,
     stage_runner: Optional[StageRunner] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> GenerateResponse:
     persistence = persistence or SqlQuestionGenerationPersistence()
-
+    llm_provider = llm_provider or create_provider(req)
     # Request speichern
     db_req = persistence.create_or_load_request(
         db, req=req, user_id=user_id, existing_request_id=existing_request_id,
@@ -51,6 +54,7 @@ async def generate_questions(
         max_attempts=3,
         custom_prompt=cp.get("SKELETON"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(33, "Grundstruktur wird erstellt")
@@ -67,6 +71,7 @@ async def generate_questions(
         upload_context=req.upload_context,
         custom_prompt=cp.get("CONTENT"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(66, "Inhalte werden generiert")
@@ -80,6 +85,7 @@ async def generate_questions(
         max_attempts=3,
         custom_prompt=cp.get("IMPROVE"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(100, "Fragen werden optimiert")

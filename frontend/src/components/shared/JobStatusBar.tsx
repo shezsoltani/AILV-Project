@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useJobContext } from '../../context/JobContext';
-import { AlertTriangle, RefreshCw, X } from 'lucide-react';
+import { AlertTriangle, Check, RefreshCw, X } from 'lucide-react';
 
 function resolveStageText(progress: number): string {
   if (progress >= 100) {
@@ -93,7 +93,7 @@ export const JobStatusBar: React.FC = () => {
           {isRunning ? (
             <span className="job-status-bar__spinner" aria-hidden="true" />
           ) : (
-            <span className="job-status-bar__done" aria-hidden="true">✓</span>
+            <span className="job-status-bar__done" aria-hidden="true"><Check /></span>
           )}
           <p className="job-status-bar__text">
             {isCompleted ? stageLabel : isRetrying ? stageText : `${stageLabel} - ${stageText}`}

@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { GeneratedQuestion } from '../../types/generatedQuestion';
 import { getQuestionTypeLabel } from '../../constants/formConstants';
+import { Check, Square, SquareCheck } from 'lucide-react';
 
 // Interface für die Props dieser Komponente
 interface EditableQuestionCardProps {
@@ -13,6 +14,7 @@ interface EditableQuestionCardProps {
   onQuestionChange?: (updatedQuestion: GeneratedQuestion) => void;
   showCorrectAnswer?: boolean;
   readOnly?: boolean;
+  footer?: React.ReactNode; // optionaler Bereich am Kartenende (z. B. LV-Zuordnung im Archiv)
 }
 
 export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
@@ -22,6 +24,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
   onQuestionChange,
   showCorrectAnswer = false,
   readOnly = false,
+  footer,
 }) => {
   const [localQuestion, setLocalQuestion] = useState<GeneratedQuestion>(question);
 
@@ -183,7 +186,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                           onClick={() => !readOnly && handleCorrectIndicesToggle(index)}
                           disabled={readOnly}
                         >
-                          {isCorrect ? '☑' : '☐'}
+                          {isCorrect ? <SquareCheck aria-hidden="true" /> : <Square aria-hidden="true" />}
                         </button>
                       )}
                       <label
@@ -214,7 +217,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                         rows={1}
                       />
                       {isCorrect && (
-                        <span className="question-correct-badge">✓ Korrekt</span>
+                        <span className="question-correct-badge"><Check aria-hidden="true" />Korrekt</span>
                       )}
                     </div>
                   </div>
@@ -271,7 +274,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
                         rows={1}
                       />
                       {isCorrect && (
-                        <span className="question-correct-badge">✓ Korrekt</span>
+                        <span className="question-correct-badge"><Check aria-hidden="true" />Korrekt</span>
                       )}
                     </div>
                   </div>
@@ -312,6 +315,7 @@ export const EditableQuestionCard: React.FC<EditableQuestionCardProps> = ({
           />
         </div>
       )}
+      {footer && <div className="question-card-footer">{footer}</div>}
     </article>
   );
 };

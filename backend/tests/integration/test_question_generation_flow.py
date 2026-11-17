@@ -97,6 +97,9 @@ def fake_llm(monkeypatch):
     """Neuer Fake pro Test, als Provider des produktiven run_stage()."""
     fake = FakeLLMProvider()
     monkeypatch.setattr("app.services.llm_client.get_default_llm_provider", lambda: fake)
+    # Die Provider-Auswahl pro Job (OpenAI/Ollama) läuft über create_provider(); auch sie liefert den Fake.
+    monkeypatch.setattr("app.services.batch_runner.create_provider", lambda req: fake)
+    monkeypatch.setattr("app.services.generation.orchestrator.create_provider", lambda req: fake)
     return fake
 
 

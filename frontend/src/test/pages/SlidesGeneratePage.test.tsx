@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -108,12 +108,12 @@ const jobControls = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../context/JobContext', () => {
-  const ReactLib = require('react');
-  const MockJobContext = ReactLib.createContext(null);
+vi.mock('../../context/JobContext', async () => {
+  const ReactLib = await vi.importActual<typeof import('react')>('react');
+  const MockJobContext = ReactLib.createContext<unknown>(null);
 
   function MockJobContextProvider({ children }: { children: React.ReactNode }) {
-    const [activeJob, setActiveJob] = ReactLib.useState(null);
+    const [activeJob, setActiveJob] = ReactLib.useState<MockJob | null>(null);
 
     // Sofort registrieren, damit Tests den Job-State synchron fortschreiben koennen.
     jobControls.register((job: MockJob | null) => {

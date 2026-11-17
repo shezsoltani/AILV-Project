@@ -1,0 +1,386 @@
+/* Lehrveranstaltungen (LV-Verwaltung) */
+
+.courses-page {
+  max-width: none;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Banner auf dieser Seite brauchen keinen eigenen Außenabstand, die Seite hat schon gap. */
+.courses-page .courses-banner,
+.courses-load-error .error-banner {
+  margin: 0;
+}
+
+.courses-banner {
+  overflow-wrap: anywhere;
+}
+
+.courses-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  /* Platz für die fixierte Kopfzeile, wenn zur Meldung gescrollt wird */
+  scroll-margin-top: 17rem;
+}
+
+.courses-load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.courses-load-error .error-banner {
+  width: 100%;
+}
+
+/* Anlegen */
+.courses-create {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-xl);
+}
+
+.courses-create-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+}
+
+.courses-create-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Eingabefeld und Button daneben sind gleich hoch. */
+.courses-create .form-input,
+.course-item-edit .form-input {
+  height: 3.5rem;
+}
+
+.courses-create-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  height: 3.5rem;
+  padding: 0 var(--spacing-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.courses-create .form-error-message {
+  margin-top: var(--spacing-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Liste */
+.courses-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.courses-list-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.courses-list-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0 var(--spacing-sm);
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-primary-active);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.courses-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  transition: color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base), opacity var(--transition-base);
+  /* Bezugspunkt für die Klickfläche des Links (.course-item-link::after) */
+  position: relative;
+  /* Schneidet den Hover-Balken an den runden Ecken ab */
+  overflow: hidden;
+}
+
+/* Farbbalken oben, läuft beim Hover ein (wie bei den Archiv-Karten) */
+.course-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+  pointer-events: none;
+}
+
+.course-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
+.course-item:hover::before {
+  transform: scaleX(1);
+}
+
+.course-item:active {
+  box-shadow: var(--shadow-md);
+}
+
+.course-item--editing {
+  border-color: var(--color-primary);
+}
+
+/* Beim Umbenennen bleibt die Karte ruhig, damit die Eingabe nicht wandert */
+.course-item--editing:hover {
+  transform: none;
+}
+
+.course-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.course-item-name {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  /* Lange Namen ohne Leerzeichen dürfen die Zeile nicht sprengen. */
+  overflow-wrap: anywhere;
+}
+
+.course-item-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Die ganze Card ist klickbar: Die Klickfläche des Links wird auf die Card gedehnt. */
+.course-item-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.course-item:hover .course-item-link,
+.course-item-link:focus-visible {
+  color: var(--color-primary);
+}
+
+.course-item-link:focus-visible::after {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.course-item:has(.course-item-link) {
+  cursor: pointer;
+}
+
+.course-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.course-item-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.course-item-actions {
+  /* Über der Klickfläche des Links, damit die Buttons weiter einzeln klickbar sind */
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--spacing-sm);
+}
+
+/* Umbenennen in der Zeile */
+.course-item-edit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.course-item-edit-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-item-edit .course-item-actions {
+  /* Buttons auf Höhe des Eingabefelds, unter dem Label */
+  margin-top: calc(var(--font-size-sm) * 1.6 + var(--spacing-xs));
+}
+
+.course-item-edit .course-button {
+  min-height: 3.5rem;
+}
+
+.course-item-edit .form-error-message {
+  overflow-wrap: anywhere;
+}
+
+/* Buttons der LV-Verwaltung */
+.course-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-base), border-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.course-button:hover:not(:disabled) {
+  background: var(--color-border-light);
+  border-color: var(--color-text-muted);
+}
+
+.course-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.course-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.course-button--primary {
+  color: #ffffff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.course-button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.course-button--danger {
+  color: var(--color-error-hover);
+  border-color: var(--color-error-border);
+}
+
+.course-button--danger:hover:not(:disabled) {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+/* Tablet und Handy: alles untereinander */
+@media (max-width: 768px) {
+  .courses-create {
+    padding: var(--spacing-lg);
+  }
+
+  /* Eingabefeld und Button untereinander. Ab dieser Breite ist .primary-button
+     in der ganzen App 100 % breit und würde das Feld sonst zusammendrücken. */
+  .courses-create-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .courses-create-button {
+    width: 100%;
+  }
+
+  .course-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+
+  .course-item-actions {
+    width: 100%;
+  }
+
+  .course-item-actions .course-button {
+    flex: 1;
+    min-height: 2.75rem; /* gut mit dem Finger zu treffen */
+  }
+
+  .course-item-edit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .course-item-edit .course-item-actions {
+    margin-top: 0;
+  }
+
+  .course-item-edit .course-button {
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .courses-create,
+  .course-item {
+    padding: var(--spacing-md);
+  }
+
+  .courses-list-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .course-item-name {
+    font-size: var(--font-size-base);
+  }
+}

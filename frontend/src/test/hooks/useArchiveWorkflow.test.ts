@@ -83,7 +83,7 @@ describe('useArchiveWorkflow Hook', () => {
     });
 
     expect(result.current.selectedTopic).toBe('Datenbanken');
-    expect(questionsApi.getArchiveQuestions).toHaveBeenCalledWith('req-1');
+    expect(questionsApi.getArchiveQuestions).toHaveBeenCalledWith('req-1', {});
   });
 
   it('setzt questionsError, wenn das Laden der Fragen fehlschlägt', async () => {

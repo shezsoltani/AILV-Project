@@ -50,6 +50,7 @@ export const SlidesGenerateForm: React.FC<SlidesGenerateFormProps> = ({ form }) 
           )}
         </div>
 
+        <div className="form-grid form-grid--2">
         <div className="form-row">
           <label className="form-label" htmlFor="slides-slide-count">
             Anzahl Folien *
@@ -100,6 +101,7 @@ export const SlidesGenerateForm: React.FC<SlidesGenerateFormProps> = ({ form }) 
           {errors.language && (
             <p className="form-error-message">{errors.language}</p>
           )}
+        </div>
         </div>
 
         <div className="form-row">

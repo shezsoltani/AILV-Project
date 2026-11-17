@@ -61,22 +61,21 @@ export const ArchiveTopicCard: React.FC<ArchiveTopicCardProps> = ({
                 <span className="archive-topic-meta-badge archive-topic-meta-badge--count">
                   {topic.question_count} {topic.question_count === 1 ? 'Frage' : 'Fragen'}
                 </span>
-                {onDeleteClick && (
-                  <button
-                    type="button"
-                    className="archive-topic-delete-button"
-                    style={{ marginLeft: 'var(--spacing-sm)' }}
-                    aria-label={`Thema ${topic.topic} löschen`}
-                    disabled={deleteDisabled}
-                    onClick={function (e) {
-                      e.stopPropagation();
-                      onDeleteClick(topic.request_id);
-                    }}
-                  >
-                    Löschen
-                  </button>
-                )}
               </div>
+              {onDeleteClick && (
+                <button
+                  type="button"
+                  className="archive-topic-delete-button"
+                  aria-label={`Thema ${topic.topic} löschen`}
+                  disabled={deleteDisabled}
+                  onClick={function (e) {
+                    e.stopPropagation();
+                    onDeleteClick(topic.request_id);
+                  }}
+                >
+                  Löschen
+                </button>
+              )}
             </div>
             </div>
 

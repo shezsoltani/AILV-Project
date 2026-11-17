@@ -38,4 +38,5 @@ export const DEFAULT_FORM_VALUES: GenerateRequestFormValues = {
   },
   contextText: undefined,
   uploadContext: undefined,
+  course_ids: [],
 };
