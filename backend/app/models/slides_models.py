@@ -6,6 +6,10 @@ from .generate_models import Language
 
 
 class SlidesGenerateRequest(BaseModel):
+    # KI-Anbieter und Modell wie bei der Fragengenerierung (SCRUM-70).
+    # Ohne Angabe bleibt alles wie bisher: OpenAI mit dem Standardmodell des Servers.
+    provider: str = "openai"
+    model: Optional[str] = None
     topic: str = Field(..., min_length=3, max_length=200, description="Thema der Folien")
     slide_count: int = Field(10, ge=5, le=30, description="Anzahl der Folien")
     language: Language = Field(Language.de, description="Sprache (ISO-Code), z.B. 'de' oder 'en'")

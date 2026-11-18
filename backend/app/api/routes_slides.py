@@ -7,6 +7,7 @@ from ..models.job_models import JobCreateResponse
 from ..services.validators.slides_request_validator import SlidesGenerateRequestValidator
 from ..services.finalization.slides_finalize_service import finalize_slides
 from ..services.job_runner import run_slides_job
+from ..services.llm_selection import resolve_selection
 from ..persistence.job_repository import create_job
 from ..core.auth_utils import get_current_user
 from ..models.sql_models import User
@@ -26,6 +27,8 @@ async def generate_slides(
     current_user: User = Depends(get_current_user),
 ):
     validator.validate(req)
+    # Nicht freigegebener Anbieter oder nicht freigegebenes Modell -> 422, kein Job.
+    req = resolve_selection(req)
     job = create_job(
         db=db,
         user_id=current_user.id,

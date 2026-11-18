@@ -7,6 +7,7 @@ from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, SlidesImproveValidationError
 from ..validators.slides_improve_validator import validate_slides_improve
 from .stage_runner import StageRunner, run_stage
+from ..llm_provider import LLMProvider
 
 
 async def generate_valid_improved_slides(
@@ -17,6 +18,7 @@ async def generate_valid_improved_slides(
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
     stage_runner: Optional[StageRunner] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> list[dict]:
     runner = run_stage if stage_runner is None else stage_runner
     context = {
@@ -34,6 +36,7 @@ async def generate_valid_improved_slides(
             language=language,
             context=context,
             custom_prompt=custom_prompt,
+            llm_provider=llm_provider,
         )
 
         try:

@@ -8,6 +8,8 @@ from .slides_content_service import generate_valid_slides_content
 from .slides_improve_service import generate_valid_improved_slides
 from .persistence import SlidesGenerationPersistence, SqlSlidesGenerationPersistence
 from .stage_runner import StageRunner
+from ..llm_provider import LLMProvider
+from ..llm_selection import create_provider
 from ...models.generate_models import GenerateRequest
 from ...core.exceptions import PromptStateError
 
@@ -21,8 +23,11 @@ async def generate_slides(
     custom_prompts: Optional[dict[str, str]] = None,
     persistence: Optional[SlidesGenerationPersistence] = None,
     stage_runner: Optional[StageRunner] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> SlidesGenerateResponse:
     persistence = persistence or SqlSlidesGenerationPersistence()
+    # Gewählter Anbieter (OpenAI oder Ollama) für alle drei Stufen.
+    llm_provider = llm_provider or create_provider(req)
 
     base_req = GenerateRequest(
         topic=req.topic,
@@ -58,6 +63,7 @@ async def generate_slides(
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_OUTLINE"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(33, "Gliederung wird erstellt")
@@ -71,6 +77,7 @@ async def generate_slides(
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_CONTENT"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(66, "Folieninhalte werden generiert")
@@ -83,6 +90,7 @@ async def generate_slides(
         max_attempts=3,
         custom_prompt=cp.get("SLIDES_IMPROVE"),
         stage_runner=stage_runner,
+        llm_provider=llm_provider,
     )
     if on_progress:
         on_progress(100, "Folien werden optimiert")

@@ -590,6 +590,26 @@ Startet die 3-Stage-Pipeline zur Foliengenerierung.
 | `slide_count` | `integer` | ja | Anzahl der gewünschten Folien |
 | `context_text` | `string` | nein | Freitext als zusätzlicher Kontext |
 | `upload_context` | `string` | nein | Aus PDF extrahierter Text |
+| `provider` | `"openai"` \| `"ollama"` | nein | KI-Anbieter (Standard: `"openai"`). Seit SCRUM-70 wie bei `POST /api/generate` |
+| `model` | `string` | nein | Modell des Anbieters. Ohne Angabe nimmt der Server das erste freigegebene Modell (OpenAI: `OPENAI_MODEL_NAME`, Ollama: erster Eintrag in `OLLAMA_MODELS`) |
+
+**KI-Auswahl (SCRUM-70):**
+
+- Welche Anbieter und Modelle freigegeben sind, liefert `GET /api/generation/models`. Es gelten dieselben Regeln wie bei den Fragen.
+- Die Auswahl wird vor dem Jobstart geprüft. Ein nicht freigegebener Anbieter, ein nicht freigegebenes Modell oder Ollama bei `OLLAMA_ENABLED=false` ergibt HTTP 422, und es startet kein Job:
+  `{"detail": "Dieses Modell ist auf diesem Server nicht freigegeben."}` bzw. `"Dieser KI-Anbieter ist auf diesem Server nicht freigegeben."`
+- Die geprüfte Auswahl wird mit dem Job gespeichert. Alle drei Stufen (Gliederung, Inhalt, Verbesserung) und alle Batches verwenden denselben Anbieter.
+- Anfragen ohne `provider` und `model` laufen unverändert über OpenAI.
+
+```json
+{
+  "topic": "Grundlagen relationaler Datenbanken",
+  "slide_count": 10,
+  "language": "de",
+  "provider": "ollama",
+  "model": "qwen3:8b"
+}
+```
 
 **Response:** `SlidesGenerateResponse`
 ```json

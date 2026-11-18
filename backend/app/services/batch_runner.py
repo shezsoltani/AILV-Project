@@ -166,6 +166,8 @@ async def run_slide_batches(
     batches = _compute_batches(req.slide_count)
     n = len(batches)
     last_stage_label = "Initialisierung"
+    # Einmal pro Auftrag: alle Batches und Wiederholungen nutzen denselben Anbieter.
+    llm_provider = create_provider(req)
     # Einmalig vor der Batch-Schleife berechnen, damit alle Batches dieselbe bereinigte Prompt-Map nutzen.
     batch_custom_prompts = _custom_prompts_for_batch(
         req.custom_prompts,
@@ -221,6 +223,7 @@ async def run_slide_batches(
                     on_progress=on_progress_wrapped,
                     existing_request_id=shared_request_id,
                     custom_prompts=batch_custom_prompts,
+                    llm_provider=llm_provider,
                 )
 
                 accumulated_slides.extend(

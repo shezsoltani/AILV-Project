@@ -7,6 +7,7 @@ from ..json_utils import safe_parse_json
 from ...core.exceptions import LLMJSONError, SlidesContentValidationError
 from ..validators.slides_content_validator import validate_slides_content
 from .stage_runner import StageRunner, run_stage
+from ..llm_provider import LLMProvider
 
 
 async def generate_valid_slides_content(
@@ -18,6 +19,7 @@ async def generate_valid_slides_content(
     max_attempts: int = 3,
     custom_prompt: Optional[str] = None,
     stage_runner: Optional[StageRunner] = None,
+    llm_provider: Optional[LLMProvider] = None,
 ) -> list[dict]:
     runner = run_stage if stage_runner is None else stage_runner
     context = dict(base_context)
@@ -33,6 +35,7 @@ async def generate_valid_slides_content(
             language=language,
             context=context,
             custom_prompt=custom_prompt,
+            llm_provider=llm_provider,
         )
 
         try:

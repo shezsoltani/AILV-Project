@@ -1,16 +1,23 @@
-"""Resolve a server-approved provider separately for each question job."""
+"""Resolve a server-approved provider separately for each question or slides job."""
+
+from typing import TypeVar
 
 import httpx
 from fastapi import HTTPException
 
 from ..config import settings
 from ..models.generate_models import GenerateRequest
+from ..models.slides_models import SlidesGenerateRequest
 from .llm_client import OpenAILLMProvider
 from .llm_provider import LLMProvider
 from .ollama_provider import OllamaLLMProvider
 
 
-def resolve_selection(req: GenerateRequest) -> GenerateRequest:
+# Beide Anfragen haben die Felder provider und model; die Regeln sind für beide gleich.
+SelectionRequest = TypeVar("SelectionRequest", GenerateRequest, SlidesGenerateRequest)
+
+
+def resolve_selection(req: SelectionRequest) -> SelectionRequest:
     if req.provider == "openai":
         allowed = (settings.openai_model_name,)
     elif req.provider == "ollama" and settings.ollama_enabled:
@@ -23,7 +30,7 @@ def resolve_selection(req: GenerateRequest) -> GenerateRequest:
     return req.model_copy(update={"model": model})
 
 
-def create_provider(req: GenerateRequest) -> LLMProvider:
+def create_provider(req: GenerateRequest | SlidesGenerateRequest) -> LLMProvider:
     selected = resolve_selection(req)
     if selected.provider == "ollama":
         return OllamaLLMProvider(
