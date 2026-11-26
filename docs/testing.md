@@ -77,6 +77,27 @@ docker compose -f compose.test.yml run --rm tests tests/integration/test_databas
 docker compose -f compose.test.yml run --rm --no-deps -e TEST_DATABASE_URL= tests tests/integration/test_app_smoke.py -q
 ```
 
+### Mit Coverage
+
+```shell
+# Im Verzeichnis backend/
+docker compose -f compose.test.yml run --build --rm tests --cov=app --cov-report=term --cov-report=html:reports/htmlcov
+```
+
+Die Abdeckung pro Datei steht danach im Terminal, der HTML-Bericht unter `backend/reports/htmlcov/index.html`. Der Ordner `backend/reports/` ist in `.gitignore` eingetragen.
+
+Im Frontend (Verzeichnis `frontend/`):
+
+```shell
+# Linux / macOS:
+VITE_API_BASE=http://ailv-test.invalid npm test -- --run --coverage
+
+# Windows (PowerShell):
+$env:VITE_API_BASE="http://ailv-test.invalid"; npm test -- --run --coverage
+```
+
+Der HTML-Bericht liegt danach unter `frontend/coverage/index.html`.
+
 ### Lokal ohne Docker (optional)
 
 ```powershell
@@ -274,12 +295,20 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 
 ## CI-Pipeline
 
-In GitHub Actions werden bei jedem Pull Request sowie bei Pushes auf den Standardbranch (`main`) automatisch zwei parallele Jobs auf Linux-Runnern (`ubuntu-latest`) ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+In GitHub Actions werden bei jedem Push auf einen beliebigen Branch automatisch zwei parallele Jobs auf Linux-Runnern (`ubuntu-latest`) ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
 
 1. **`Backend Tests`**: Führt die Python-Testsuite mit PostgreSQL in Docker Compose aus.
 2. **`Frontend Tests & Build`**: Führt die Vitest-Tests und den Vite-Produktions-Build mit Node.js aus.
 
-Beide Jobs laufen unabhängig und parallel zueinander, sodass im Pull Request getrennte Status-Checks sichtbar sind.
+Beide Jobs laufen unabhängig und parallel zueinander, sodass im Pull Request getrennte Status-Checks sichtbar sind. Ein Pull Request löst keinen eigenen Lauf aus; er zeigt die Checks des letzten Pushs auf den Branch.
+
+Der Push-Lauf testet den Branch, nicht das Ergebnis des Merges mit `main`. Deshalb vor dem Merge den aktuellen Stand von `main` in den Branch holen und pushen:
+
+```shell
+git fetch origin
+git merge origin/main
+git push
+```
 
 ---
 
@@ -291,8 +320,10 @@ Der Backend-Job wechselt in das Verzeichnis `backend/` und führt denselben Befe
 
 ```shell
 # Im Verzeichnis backend/
-docker compose -f compose.test.yml run --build --rm tests
+docker compose -f compose.test.yml run --build --rm tests   -q -rs --junitxml=reports/junit.xml   --cov=app --cov-report=term --cov-report=xml:reports/coverage.xml
 ```
+
+Die Berichte landen über ein Volume aus `compose.test.yml` in `backend/reports/`.
 
 #### Verhalten und Eigenschaften im CI-Lauf
 
@@ -319,7 +350,7 @@ Der Frontend-Job stellt sicher, dass die React-Oberfläche funktionsfähig ist u
 
 1. **Node.js einrichten:** Verwendet Node.js 20 (LTS) mit integriertem Dependency-Caching (`cache-dependency-path: frontend/package-lock.json`).
 2. **Abhängigkeiten installieren:** Führt im Verzeichnis `frontend/` den Befehl `npm ci` aus, um exakt die im Lockfile definierten Pakete sauber zu installieren.
-3. **Tests ausführen:** Führt `npm test -- --run` aus. Das Flag `--run` beendet Vitest nach einem vollständigen Durchlauf (kein Watch-Modus).
+3. **Tests ausführen:** Führt `npm test -- --run --coverage` aus und schreibt zusätzlich einen JUnit-Bericht nach `frontend/reports/junit.xml`. Das Flag `--run` beendet Vitest nach einem vollständigen Durchlauf (kein Watch-Modus).
 4. **Build erstellen:** Führt im Anschluss `npm run build` (`vite build`) als eigenen, klar benannten Schritt aus.
 
 #### Verhalten und Eigenschaften im Frontend-Lauf
@@ -328,6 +359,21 @@ Der Frontend-Job stellt sicher, dass die React-Oberfläche funktionsfähig ist u
 - **Status-Check:** Scheitert entweder ein Test oder der Build, wird der Status-Check `Frontend Tests & Build` im Pull Request auf Rot gesetzt.
 - **Keine Abhängigkeit vom Backend:** Die Umgebungsvariable `VITE_API_BASE` wird für Tests und Build auf eine Dummy-Testadresse gesetzt (`http://ailv-test.invalid`). Vitest verwendet gemockte API-Aufrufe, sodass kein laufendes Backend erforderlich ist.
 - **Keine Deployments:** Der CI-Lauf benötigt keinen Deployment-Schlüssel und veröffentlicht nichts auf dem FH-Server.
+
+---
+
+### Testergebnisse und Coverage im Workflow-Lauf
+
+Beide Jobs schreiben nach den Tests eine Zusammenfassung in den Workflow-Lauf (Tab „Summary“): Anzahl der Tests, bestandene, fehlgeschlagene und übersprungene Tests, die Namen fehlgeschlagener Tests und die Zeilenabdeckung. Das übernimmt `.github/scripts/test_summary.py` aus dem JUnit- und dem Cobertura-Bericht.
+
+Die Berichte stehen im selben Lauf unter „Artifacts“ zum Download:
+
+| Artefakt | Inhalt |
+|---|---|
+| `backend-test-reports` | `junit.xml`, `coverage.xml` |
+| `frontend-test-reports` | `reports/junit.xml`, `coverage/` (HTML-Bericht und `cobertura-coverage.xml`) |
+
+Zusammenfassung und Upload laufen auch dann, wenn Tests fehlschlagen (`if: always()`). Der Check wird trotzdem rot, weil der Testschritt selbst fehlschlägt. Eine Mindest-Coverage ist nicht festgelegt.
 
 ---
 
@@ -350,12 +396,12 @@ Um die CI-Schritte lokal vor dem Push oder PR nachzuvollziehen, können im Verze
 # 1. Abhängigkeiten exakt aus Lockfile installieren
 npm ci
 
-# 2. Vitest-Tests einmalig ausführen (äquivalent zum CI-Schritt)
+# 2. Vitest-Tests einmalig mit Coverage ausführen (wie im CI-Schritt, ohne JUnit-Bericht)
 # Linux / macOS:
-VITE_API_BASE=http://ailv-test.invalid npm test -- --run
+VITE_API_BASE=http://ailv-test.invalid npm test -- --run --coverage
 
 # Windows (PowerShell):
-$env:VITE_API_BASE="http://ailv-test.invalid"; npm test -- --run
+$env:VITE_API_BASE="http://ailv-test.invalid"; npm test -- --run --coverage
 
 # 3. Produktions-Build lokal testen (äquivalent zum CI-Schritt)
 # Linux / macOS:

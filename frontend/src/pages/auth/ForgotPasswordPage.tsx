@@ -2,11 +2,20 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ErrorBanner } from '../../components/shared';
 import { useForgotPasswordForm } from '../../hooks/auth/useForgotPasswordForm';
 
 export const ForgotPasswordPage: React.FC = () => {
-  const { email, emailError, isLoading, isSuccess, handleChange, handleBlur, handleSubmit } =
-    useForgotPasswordForm();
+  const {
+    email,
+    emailError,
+    submitError,
+    isLoading,
+    isSuccess,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+  } = useForgotPasswordForm();
 
   if (isSuccess) {
     return (
@@ -62,6 +71,8 @@ export const ForgotPasswordPage: React.FC = () => {
             >
               {isLoading ? 'Wird gesendet…' : 'Reset-Link anfordern'}
             </button>
+
+            <ErrorBanner message={submitError} />
 
             <p className="form-helper form-helper--flush">
               <Link to="/login">Zurück zum Login</Link>

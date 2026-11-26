@@ -85,6 +85,24 @@ def test_duplicate_registration_does_not_create_user(
     assert users[0].email == registration_data["email"]
 
 
+def test_registration_with_too_short_password_does_not_create_user(
+    client, db_session, registration_data,
+):
+    response = client.post(
+        "/api/auth/register", json={**registration_data, "password": "a" * 7},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "password"]
+    assert db_session.scalars(select(User)).all() == []
+
+
+def test_registration_accepts_password_with_minimum_length(client, registration_data):
+    response = client.post(
+        "/api/auth/register", json={**registration_data, "password": "a" * 8},
+    )
+    assert response.status_code == 200
+
+
 @pytest.mark.parametrize("failure", ["wrong_password", "unknown_username"])
 def test_invalid_login_returns_no_access_token(
     client, test_user, test_password, failure,
@@ -150,3 +168,95 @@ def test_archive_rejects_invalid_authentication_without_leaking_data(
     assert "topics" not in response.json()
     assert topic not in response.text
     assert str(archive["request_id"]) not in response.text
+
+
+def login(client, username, password, headers=None):
+    return client.post(
+        "/api/auth/login",
+        json={"username": username, "password": password},
+        headers=headers,
+    )
+
+
+@pytest.fixture
+def fake_time(monkeypatch):
+    now = [1000.0]
+    monkeypatch.setattr("app.core.rate_limiter.clock", lambda: now[0])
+    return now
+
+
+def test_login_is_blocked_until_window_expires(
+    client, test_user, test_password, fake_time,
+):
+    from app.config import settings
+
+    for _ in range(settings.login_rate_limit_per_user):
+        assert login(client, test_user.username, "wrong").status_code == 401
+
+    response = login(client, test_user.username, test_password)
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "auth_rate_limited"
+    assert response.headers["retry-after"] == str(settings.rate_limit_window_seconds)
+
+    fake_time[0] += settings.rate_limit_window_seconds
+    assert login(client, test_user.username, test_password).status_code == 200
+
+
+def test_successful_login_resets_failed_attempts(client, test_user, test_password):
+    from app.config import settings
+
+    for _ in range(3):
+        for _ in range(settings.login_rate_limit_per_user - 1):
+            assert login(client, test_user.username, "wrong").status_code == 401
+        assert login(client, test_user.username, test_password).status_code == 200
+
+
+def test_login_limit_per_ip_covers_different_usernames(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "login_rate_limit_per_ip", 3)
+
+    for number in range(3):
+        assert login(client, f"user{number}", "wrong").status_code == 401
+    assert login(client, "another_user", "wrong").status_code == 429
+
+
+@pytest.mark.parametrize("trust_proxy, expected_status", [(True, 401), (False, 429)])
+def test_real_ip_header_only_counts_behind_proxy(
+    client, monkeypatch, trust_proxy, expected_status,
+):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "trust_proxy_headers", trust_proxy)
+    monkeypatch.setattr(settings, "login_rate_limit_per_ip", 1)
+
+    assert login(client, "someone", "wrong", {"X-Real-IP": "10.0.0.1"}).status_code == 401
+    response = login(client, "someone", "wrong", {"X-Real-IP": "10.0.0.2"})
+    assert response.status_code == expected_status
+
+
+@pytest.mark.parametrize("path, body, limit_name, normal_status", [
+    (
+        "/api/auth/forgot-password",
+        {"email": "nobody@example.com"},
+        "forgot_password_rate_limit_per_email",
+        200,
+    ),
+    (
+        "/api/auth/reset-password",
+        {"token": "invalid", "new_password": "a" * 8},
+        "reset_password_rate_limit_per_ip",
+        400,
+    ),
+])
+def test_password_reset_is_blocked_until_window_expires(
+    client, fake_time, path, body, limit_name, normal_status,
+):
+    from app.config import settings
+
+    for _ in range(getattr(settings, limit_name)):
+        assert client.post(path, json=body).status_code == normal_status
+    assert client.post(path, json=body).status_code == 429
+
+    fake_time[0] += settings.rate_limit_window_seconds
+    assert client.post(path, json=body).status_code == normal_status

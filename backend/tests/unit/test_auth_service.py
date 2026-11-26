@@ -94,3 +94,34 @@ async def test_request_password_reset_email_failure_propagates(
 
     with pytest.raises(RuntimeError, match="SMTP nicht erreichbar"):
         await request_password_reset(db_session, user.email)
+
+
+# ---------------------------------------------------------------------------
+# send_reset_email – Reset-Link aus der Konfiguration
+# ---------------------------------------------------------------------------
+
+async def test_send_reset_email_uses_configured_frontend_base_url(monkeypatch):
+    """Der Link in der Reset-Mail verwendet die konfigurierte Basis-URL."""
+    from app.core import email_utils
+
+    sent_messages = []
+
+    class FakeFastMail:
+        def __init__(self, config):
+            pass
+
+        async def send_message(self, message):
+            sent_messages.append(message)
+
+    monkeypatch.setattr(email_utils, "FastMail", FakeFastMail)
+    monkeypatch.setattr(
+        email_utils.settings, "frontend_base_url", "https://ailv.example.com"
+    )
+
+    await email_utils.send_reset_email("user@example.com", "test-token")
+
+    assert len(sent_messages) == 1
+    assert (
+        "https://ailv.example.com/reset-password?token=test-token"
+        in sent_messages[0].body
+    )

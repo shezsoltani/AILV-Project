@@ -32,6 +32,8 @@ services:
       - ./app:/workspace/backend/app:ro
       - ./tests:/workspace/backend/tests:ro
       - ./pytest.ini:/workspace/backend/pytest.ini:ro
+      # Testberichte (JUnit, Coverage) landen in backend/reports/
+      - ./reports:/workspace/backend/reports
     networks:
       - test-network
 

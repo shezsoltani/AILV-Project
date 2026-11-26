@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from uuid import UUID
 
-from ..db import SessionLocal
+from ..db import JobSessionLocal
 from ..persistence.job_repository import get_job, update_job
 from ..models.generate_models import GenerateRequest
 from ..models.slides_models import SlidesGenerateRequest
@@ -19,7 +19,7 @@ async def run_questions_job(
     request_data: dict,
     user_id: UUID,
     *,
-    session_factory: Callable = SessionLocal,
+    session_factory: Callable = JobSessionLocal,
     question_batch_runner: Callable = run_question_batches,
 ) -> None:
     db = session_factory()
@@ -71,7 +71,7 @@ async def run_slides_job(
     request_data: dict,
     user_id: UUID,
     *,
-    session_factory: Callable = SessionLocal,
+    session_factory: Callable = JobSessionLocal,
     slide_batch_runner: Callable = run_slide_batches,
 ) -> None:
     db = session_factory()

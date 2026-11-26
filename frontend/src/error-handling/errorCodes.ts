@@ -4,6 +4,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   // Auth
   auth_username_exists: 'Dieser Benutzername ist bereits vergeben.',
   auth_email_exists: 'Diese E-Mail-Adresse ist bereits registriert.',
+  auth_rate_limited: 'Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.',
   auth_invalid_credentials: 'Benutzername oder Passwort sind nicht korrekt.',
   auth_current_password_incorrect: 'Das aktuelle Passwort ist nicht korrekt.',
   auth_reset_token_invalid: 'Der Reset-Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.',
