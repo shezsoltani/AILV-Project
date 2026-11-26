@@ -482,3 +482,39 @@ async def test_questions_job_forwards_progress_to_db(
     ]
     # Wir prüfen, dass der Job-Fortschritt mind. einmal auf 42 gesetzt wurde
     assert job.stage_label == "Abgeschlossen"  # finaler Zustand korrekt
+
+
+# ---------------------------------------------------------------------------
+# Standard-Session-Factory: jeder Job bekommt eine eigene Session
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("run_job, runner_name, request_data", [
+    (run_questions_job, "question_batch_runner", _questions_request_data),
+    (run_slides_job, "slide_batch_runner", _slides_request_data),
+])
+async def test_jobs_without_session_factory_use_separate_sessions(
+    user_id, monkeypatch, run_job, runner_name, request_data,
+):
+    import asyncio
+    from sqlalchemy.orm import Session
+
+    sessions = []
+    closed = []
+    monkeypatch.setattr(Session, "close", lambda self: closed.append(self))
+
+    async def batch_runner(*, db, **kwargs):
+        sessions.append(db)
+        # Den anderen Job dazwischen laufen lassen
+        await asyncio.sleep(0)
+        return [], uuid4()
+
+    async def start_job():
+        await run_job(uuid4(), request_data(), user_id, **{runner_name: batch_runner})
+
+    with patch("app.services.job_runner.get_job", return_value=_make_job()),             patch("app.services.job_runner.update_job"):
+        await start_job()
+        await start_job()
+        await asyncio.gather(start_job(), start_job())
+
+    assert len({id(session) for session in sessions}) == 4
+    assert {id(session) for session in closed} == {id(session) for session in sessions}
