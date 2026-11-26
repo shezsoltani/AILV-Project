@@ -4,6 +4,7 @@
 
 pytest==8.3.5
 pytest-asyncio==0.24.0
+pytest-cov==6.0.0
 httpx<0.28
 
 # SQLAlchemy 2.x wird für bestimmte Datenbank-Tests (Fixtures) benötigt

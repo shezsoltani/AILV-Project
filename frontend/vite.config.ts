@@ -14,6 +14,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts', // Pfad prüfen!
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/test/**'],
+      reporter: ['text', 'html', 'cobertura'],
+      reportOnFailure: true,
+    },
     deps: {
       optimizer: {
         web: {

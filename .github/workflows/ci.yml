@@ -2,7 +2,6 @@ name: CI
 
 'on':
   push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -23,7 +22,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run backend tests
-        run: docker compose -f compose.test.yml run --build --rm tests
+        run: >-
+          docker compose -f compose.test.yml run --build --rm tests
+          -q -rs
+          --junitxml=reports/junit.xml
+          --cov=app --cov-report=term --cov-report=xml:reports/coverage.xml
+
+      - name: Write test summary
+        if: always()
+        run: python3 ../.github/scripts/test_summary.py "Backend" reports/junit.xml reports/coverage.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: backend/reports/
+          if-no-files-found: warn
 
       - name: Clean up Docker resources
         if: always()
@@ -55,7 +70,23 @@ jobs:
         run: npm ci
 
       - name: Run frontend tests
-        run: npm test -- --run
+        run: >-
+          npm test -- --run --coverage
+          --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
+
+      - name: Write test summary
+        if: always()
+        run: python3 ../.github/scripts/test_summary.py "Frontend" reports/junit.xml coverage/cobertura-coverage.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-reports
+          path: |
+            frontend/reports/
+            frontend/coverage/
+          if-no-files-found: warn
 
       - name: Build frontend
         run: npm run build
