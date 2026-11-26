@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
 from ..db import get_db
@@ -19,6 +19,12 @@ from ..services.auth.auth_service import (
     reset_password_with_token,
 )
 from ..core.auth_utils import get_current_user
+from ..core.rate_limiter import (
+    limit_forgot_password,
+    limit_login,
+    limit_reset_password,
+    login_succeeded,
+)
 from ..models.sql_models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,10 +44,13 @@ def register(
 @router.post("/login", response_model=TokenResponse)
 def login(
     req: UserLogin,
+    request: Request,
     db: Session = Depends(get_db),
 ):
 
+    limit_login(request, req.username)
     token = login_user(db, req)
+    login_succeeded(request, req.username)
 
     return TokenResponse(
         access_token=token,
@@ -65,15 +74,19 @@ def change_password(
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
 async def forgot_password(
     body: ForgotPasswordRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    limit_forgot_password(request, body.email)
     await request_password_reset(db, body.email)
     # Immer 200, egal ob E-Mail existiert oder nicht
     return {"message": "If the account exists, a reset email has been sent."}
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 def reset_password(
     body: ResetPasswordRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    limit_reset_password(request)
     reset_password_with_token(db, body.token, body.new_password)
     return {"message": "Password has been reset successfully."}

@@ -24,6 +24,9 @@ def app(monkeypatch):
     def no_database():
         pytest.fail("Für Datenbank-Endpunkte die Fixture 'client' verwenden.")
 
+    from app.core.rate_limiter import reset_limits
+    reset_limits()
+
     previous = application.dependency_overrides.copy()
     application.dependency_overrides[get_db] = no_database
     try:

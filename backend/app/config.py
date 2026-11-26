@@ -29,6 +29,14 @@ class Settings:
 
     frontend_base_url: str = "http://localhost:3000"
 
+    rate_limit_window_seconds: int = 900
+    login_rate_limit_per_user: int = 5
+    login_rate_limit_per_ip: int = 50
+    forgot_password_rate_limit_per_email: int = 3
+    forgot_password_rate_limit_per_ip: int = 10
+    reset_password_rate_limit_per_ip: int = 10
+    trust_proxy_headers: bool = False
+
     @classmethod
     def from_env(cls) -> "Settings":
         """Liest Konfiguration aus Environment-Variablen."""
@@ -86,6 +94,13 @@ class Settings:
             allowed_origins=allowed_origins,
             enable_docs=enable_docs,
             frontend_base_url=frontend_base_url,
+            rate_limit_window_seconds=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "900")),
+            login_rate_limit_per_user=int(os.getenv("LOGIN_RATE_LIMIT_PER_USER", "5")),
+            login_rate_limit_per_ip=int(os.getenv("LOGIN_RATE_LIMIT_PER_IP", "50")),
+            forgot_password_rate_limit_per_email=int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_PER_EMAIL", "3")),
+            forgot_password_rate_limit_per_ip=int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_PER_IP", "10")),
+            reset_password_rate_limit_per_ip=int(os.getenv("RESET_PASSWORD_RATE_LIMIT_PER_IP", "10")),
+            trust_proxy_headers=os.getenv("TRUST_PROXY_HEADERS", "false").strip().lower() == "true",
             ollama_enabled=os.getenv("OLLAMA_ENABLED", "false").lower() == "true",
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434").rstrip("/"),
             ollama_models=tuple(m.strip() for m in os.getenv("OLLAMA_MODELS", "qwen3:8b").split(",") if m.strip()),
