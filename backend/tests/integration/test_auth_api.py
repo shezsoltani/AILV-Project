@@ -85,6 +85,24 @@ def test_duplicate_registration_does_not_create_user(
     assert users[0].email == registration_data["email"]
 
 
+def test_registration_with_too_short_password_does_not_create_user(
+    client, db_session, registration_data,
+):
+    response = client.post(
+        "/api/auth/register", json={**registration_data, "password": "a" * 7},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "password"]
+    assert db_session.scalars(select(User)).all() == []
+
+
+def test_registration_accepts_password_with_minimum_length(client, registration_data):
+    response = client.post(
+        "/api/auth/register", json={**registration_data, "password": "a" * 8},
+    )
+    assert response.status_code == 200
+
+
 @pytest.mark.parametrize("failure", ["wrong_password", "unknown_username"])
 def test_invalid_login_returns_no_access_token(
     client, test_user, test_password, failure,
