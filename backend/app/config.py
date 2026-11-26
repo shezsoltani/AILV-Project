@@ -27,6 +27,8 @@ class Settings:
     ollama_models: tuple[str, ...] = ("qwen3:8b",)
     ollama_timeout_seconds: float = 120.0
 
+    frontend_base_url: str = "http://localhost:3000"
+
     @classmethod
     def from_env(cls) -> "Settings":
         """Liest Konfiguration aus Environment-Variablen."""
@@ -62,6 +64,12 @@ class Settings:
         )
         allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
+        # FRONTEND_BASE_URL (öffentliche Adresse des Frontends, z. B. für Links in E-Mails)
+        frontend_base_url = (
+            os.getenv("FRONTEND_BASE_URL", "").strip().rstrip("/")
+            or "http://localhost:3000"
+        )
+
         # ENABLE_DOCS
         enable_docs = os.getenv("ENABLE_DOCS", "false").strip().lower() == "true"
 
@@ -77,6 +85,7 @@ class Settings:
             mail_from=mail_from,
             allowed_origins=allowed_origins,
             enable_docs=enable_docs,
+            frontend_base_url=frontend_base_url,
             ollama_enabled=os.getenv("OLLAMA_ENABLED", "false").lower() == "true",
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434").rstrip("/"),
             ollama_models=tuple(m.strip() for m in os.getenv("OLLAMA_MODELS", "qwen3:8b").split(",") if m.strip()),

@@ -34,6 +34,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       MAIL_FROM: ${MAIL_FROM}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       ENABLE_DOCS: ${ENABLE_DOCS:-false}
     depends_on:
       db:
