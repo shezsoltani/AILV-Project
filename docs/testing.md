@@ -295,12 +295,20 @@ Alle Fixtures stehen automatisch in Unit- und Integrationstests zur Verfügung (
 
 ## CI-Pipeline
 
-In GitHub Actions werden bei jedem Push auf einen beliebigen Branch sowie bei jedem Pull Request auf `main` automatisch zwei parallele Jobs auf Linux-Runnern (`ubuntu-latest`) ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+In GitHub Actions werden bei jedem Push auf einen beliebigen Branch automatisch zwei parallele Jobs auf Linux-Runnern (`ubuntu-latest`) ausgeführt (Konfiguration in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
 
 1. **`Backend Tests`**: Führt die Python-Testsuite mit PostgreSQL in Docker Compose aus.
 2. **`Frontend Tests & Build`**: Führt die Vitest-Tests und den Vite-Produktions-Build mit Node.js aus.
 
-Beide Jobs laufen unabhängig und parallel zueinander, sodass im Pull Request getrennte Status-Checks sichtbar sind.
+Beide Jobs laufen unabhängig und parallel zueinander, sodass im Pull Request getrennte Status-Checks sichtbar sind. Ein Pull Request löst keinen eigenen Lauf aus; er zeigt die Checks des letzten Pushs auf den Branch.
+
+Der Push-Lauf testet den Branch, nicht das Ergebnis des Merges mit `main`. Deshalb vor dem Merge den aktuellen Stand von `main` in den Branch holen und pushen:
+
+```shell
+git fetch origin
+git merge origin/main
+git push
+```
 
 ---
 
