@@ -176,3 +176,10 @@ class SlidesImproveValidationError(AppError):
 
     def __init__(self, detail: str):
         super().__init__(detail)
+
+class FactCheckValidationError(AppError):
+    status_code = 422
+    error_code = "invalid_fact_check"
+
+    def __init__(self, detail: str):
+        super().__init__(detail)
